@@ -5,13 +5,8 @@ on:
     types: [opened, synchronize, reopened]
     # Filtra apenas alterações em arquivos de código relevantes
     paths:
-      - "src/**"
-      - "lib/**"
-      - "app/**"
-      - "*.py"
-      - "*.js"
-      - "*.ts"
-      - "*.java"
+      - "**/*.py"
+      - "rag_reviewer/**"
 
 permissions:
   contents: read
