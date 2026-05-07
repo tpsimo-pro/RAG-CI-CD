@@ -1,0 +1,26 @@
+## Arquivo em revisão
+{filename}
+
+## Linhas adicionadas no PR
+```
+{added_lines}
+```
+
+## Normas organizacionais relevantes recuperadas
+{retrieved_chunks}
+
+## Tarefa
+Analise as linhas adicionadas e identifique violações às normas acima.
+
+Responda em JSON com o seguinte schema:
+{
+  "violations": [
+    {
+      "line_content": "trecho exato da linha violada",
+      "violation_description": "descrição clara e objetiva da violação",
+      "norm_reference": "nome do documento + seção/página",
+      "severity": "CRITICAL | HIGH | MEDIUM | LOW",
+      "suggestion": "como corrigir a violação"
+    }
+  ]
+}

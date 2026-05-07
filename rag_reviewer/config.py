@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
     llm_model: str = Field(
-        default="claude-sonnet-4-20250514", alias="LLM_MODEL"
+        default="gpt-4o", alias="LLM_MODEL"
     )
 
     # ── Qdrant ───────────────────────────────────────────────────────────────

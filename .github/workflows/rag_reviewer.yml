@@ -1,0 +1,51 @@
+name: RAG-Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    # Filtra apenas alterações em arquivos de código relevantes
+    paths:
+      - "src/**"
+      - "lib/**"
+      - "app/**"
+      - "*.py"
+      - "*.js"
+      - "*.ts"
+      - "*.java"
+
+permissions:
+  contents: read
+  pull-requests: write   # necessário para postar comentários
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10   # evita execuções travadas
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # necessário para acessar o histórico completo do diff
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Executar RAG-Reviewer
+        env:
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          QDRANT_URL:         ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY:     ${{ secrets.QDRANT_API_KEY }}
+          PR_NUMBER:          ${{ github.event.pull_request.number }}
+          REPO_FULL_NAME:     ${{ github.repository }}
+          PR_BASE_SHA:        ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA:        ${{ github.event.pull_request.head.sha }}
+        run: |
+          python -m rag_reviewer.main
