@@ -1,0 +1,18 @@
+# requirements-dev.txt
+# Ferramentas de desenvolvimento e qualidade de código
+
+-r requirements.txt
+
+# Testes
+pytest==8.2.2
+pytest-cov==5.0.0
+pytest-mock==3.14.0
+
+# Qualidade de código
+ruff==0.4.9
+black==24.4.2
+mypy==1.10.0
+
+# Tipos
+types-requests==2.32.0.20240602
+types-Markdown==3.6.0.20240316
