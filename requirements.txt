@@ -23,6 +23,7 @@ PyGithub==2.3.0
 requests==2.32.3
 
 # Utilitários
+httpx<0.28.0
 python-dotenv==1.0.1
 pydantic==2.7.4
 pydantic-settings==2.3.4
