@@ -8,7 +8,7 @@ torch
 qdrant-client==1.9.1
 
 # Orquestração LLM
-google-genai==0.3.0
+groq==0.13.1
 
 # Processamento de documentos
 pypdf==4.2.0

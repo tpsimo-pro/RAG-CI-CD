@@ -35,9 +35,9 @@ class Settings(BaseSettings):
     pr_base_sha: str = Field(default="", alias="PR_BASE_SHA")
 
     # ── LLM ─────────────────────────────────────────────────────────────────
-    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
     llm_model: str = Field(
-        default="gemini-2.0-flash", alias="LLM_MODEL"
+        default="llama-3.3-70b-versatile", alias="LLM_MODEL"
     )
 
     # ── Qdrant ───────────────────────────────────────────────────────────────

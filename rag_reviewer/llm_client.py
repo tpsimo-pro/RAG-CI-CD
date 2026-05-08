@@ -3,7 +3,7 @@ llm_client.py — Interface com o LLM para geração de revisões de código.
 
 Responsabilidades:
   1. Montar o prompt de revisão com o diff e os chunks normativos recuperados.
-  2. Chamar a API do Gemini e obter a resposta em JSON.
+  2. Chamar a API da Groq e obter a resposta em JSON.
   3. Parsear o JSON e retornar uma lista de objetos Violation.
 
 Uso típico:
@@ -62,12 +62,12 @@ class Violation:
 
 class LLMClient:
     """
-    Interface com a API do Gemini para revisão de código.
+    Interface com a API da Groq para revisão de código.
 
     Constrói o prompt de revisão, chama a API e converte a resposta JSON
     em uma lista de objetos Violation.
 
-    A inicialização é lazy: a biblioteca ``google-genai`` é importada apenas
+    A inicialização é lazy: a biblioteca ``groq`` é importada apenas
     na primeira chamada a ``review()``, permitindo testes unitários sem a
     dependência instalada.
     """
@@ -81,11 +81,11 @@ class LLMClient:
         Inicializa o cliente.
 
         Args:
-            model: Nome do modelo Gemini. Usa LLM_MODEL do .env se None.
+            model: Nome do modelo Groq. Usa LLM_MODEL do .env se None.
             max_tokens: Limite de tokens na resposta do LLM.
         """
         settings = get_settings()
-        self._api_key = settings.gemini_api_key
+        self._api_key = settings.groq_api_key
         self._model = model or settings.llm_model
         self._max_tokens = max_tokens
         self._client = None  # lazy — importado em _get_client()
@@ -113,7 +113,7 @@ class LLMClient:
             retornar JSON com "violations": [].
 
         Raises:
-            ValueError: Quando GEMINI_API_KEY não está configurada.
+            ValueError: Quando GROQ_API_KEY não está configurada.
             json.JSONDecodeError: Quando o LLM não retorna JSON válido.
         """
         self._validate_api_key()
@@ -142,7 +142,7 @@ class LLMClient:
         """Verifica se a API key está configurada antes de chamar a API."""
         if not self._api_key:
             raise ValueError(
-                "GEMINI_API_KEY não está configurada. "
+                "GROQ_API_KEY não está configurada. "
                 "Adicione ao .env ou às variáveis de ambiente."
             )
 
@@ -159,21 +159,20 @@ class LLMClient:
         )
 
     def _call_api(self, user_message: str) -> str:
-        """Chama a API do Gemini e retorna o texto bruto da resposta."""
+        """Chama a API da Groq e retorna o texto bruto da resposta."""
         client = self._get_client()
         try:
-            from google.genai import types
-            response = client.models.generate_content(
+            response = client.chat.completions.create(
                 model=self._model,
-                contents=user_message,
-                config=types.GenerateContentConfig(
-                    system_instruction=self._system_prompt,
-                    max_output_tokens=self._max_tokens,
-                )
+                max_tokens=self._max_tokens,
+                messages=[
+                    {"role": "system", "content": self._system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
             )
-            return response.text.strip()
+            return response.choices[0].message.content.strip()
         except Exception as exc:
-            console.log(f"[bold red]Erro na API do Gemini:[/bold red] {exc}")
+            console.log(f"[bold red]Erro na API da Groq:[/bold red] {exc}")
             raise
 
     def _parse_response(self, raw: str) -> List[Violation]:
@@ -239,17 +238,17 @@ class LLMClient:
         )
 
     def _get_client(self):
-        """Retorna cliente Gemini com lazy initialization."""
+        """Retorna cliente Groq com lazy initialization."""
         if self._client is None:
             try:
-                from google import genai
+                from groq import Groq
             except ImportError as exc:
                 raise ImportError(
-                    "google-genai não está instalado. Execute: pip install google-genai"
+                    "groq não está instalado. Execute: pip install groq"
                 ) from exc
-            self._client = genai.Client(api_key=self._api_key)
+            self._client = Groq(api_key=self._api_key)
             console.log(
-                f"[cyan]LLMClient:[/cyan] cliente Gemini inicializado "
+                f"[cyan]LLMClient:[/cyan] cliente Groq inicializado "
                 f"(modelo: [bold]{self._model}[/bold])."
             )
         return self._client
