@@ -8,9 +8,7 @@ torch
 qdrant-client==1.9.1
 
 # Orquestração LLM
-langchain==0.2.6
-langchain-openai==0.1.14
-openai>=1.50.0
+google-genai==0.3.0
 
 # Processamento de documentos
 pypdf==4.2.0

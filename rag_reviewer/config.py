@@ -35,10 +35,9 @@ class Settings(BaseSettings):
     pr_base_sha: str = Field(default="", alias="PR_BASE_SHA")
 
     # ── LLM ─────────────────────────────────────────────────────────────────
-    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
-    anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
+    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
     llm_model: str = Field(
-        default="gpt-4o", alias="LLM_MODEL"
+        default="gemini-1.5-flash", alias="LLM_MODEL"
     )
 
     # ── Qdrant ───────────────────────────────────────────────────────────────

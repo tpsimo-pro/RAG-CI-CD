@@ -86,7 +86,7 @@ def make_llm_client(api_key: str = "sk-test") -> LLMClient:
     with patch.object(LLMClient, "_load_prompt", return_value="prompt mock"):
         client = LLMClient.__new__(LLMClient)
         client._api_key = api_key
-        client._model = "gpt-4o-test"
+        client._model = "gemini-test"
         client._max_tokens = 1024
         client._client = None
         client._system_prompt = "system mock"
@@ -161,7 +161,7 @@ class TestLLMClientPrompts:
 class TestLLMClientValidation:
     def test_raises_when_api_key_missing(self):
         client = make_llm_client(api_key="")
-        with pytest.raises(ValueError, match="OPENAI_API_KEY"):
+        with pytest.raises(ValueError, match="GEMINI_API_KEY"):
             client._validate_api_key()
 
     def test_passes_when_api_key_present(self):
@@ -335,18 +335,14 @@ class TestParseResponse:
 
 class TestLLMClientReview:
     def _mock_api_response(self, text: str) -> MagicMock:
-        message = MagicMock()
-        message.content = text
-        choice = MagicMock()
-        choice.message = message
         response = MagicMock()
-        response.choices = [choice]
+        response.text = text
         return response
 
     def test_review_returns_violations(self):
         client = make_llm_client()
         mock_api = MagicMock()
-        mock_api.chat.completions.create.return_value = self._mock_api_response(
+        mock_api.models.generate_content.return_value = self._mock_api_response(
             make_llm_response([make_violation_dict()])
         )
         client._client = mock_api
@@ -359,7 +355,7 @@ class TestLLMClientReview:
     def test_review_calls_api_with_model(self):
         client = make_llm_client()
         mock_api = MagicMock()
-        mock_api.chat.completions.create.return_value = self._mock_api_response(
+        mock_api.models.generate_content.return_value = self._mock_api_response(
             json.dumps({"violations": []})
         )
         client._client = mock_api
@@ -367,18 +363,18 @@ class TestLLMClientReview:
         ctx = make_context()
         client.review(ctx)
 
-        call_kwargs = mock_api.chat.completions.create.call_args.kwargs
-        assert call_kwargs["model"] == "gpt-4o-test"
+        call_kwargs = mock_api.models.generate_content.call_args.kwargs
+        assert call_kwargs["model"] == "gemini-test"
 
     def test_review_raises_when_no_api_key(self):
         client = make_llm_client(api_key="")
-        with pytest.raises(ValueError, match="OPENAI_API_KEY"):
+        with pytest.raises(ValueError, match="GEMINI_API_KEY"):
             client.review(make_context())
 
     def test_review_returns_empty_for_no_violations(self):
         client = make_llm_client()
         mock_api = MagicMock()
-        mock_api.chat.completions.create.return_value = self._mock_api_response(
+        mock_api.models.generate_content.return_value = self._mock_api_response(
             json.dumps({"violations": []})
         )
         client._client = mock_api
