@@ -8,11 +8,7 @@ torch
 qdrant-client==1.9.1
 
 # Orquestração LLM
-langchain==0.2.6
-langchain-openai==0.1.14
-langchain-anthropic==0.1.23
-openai==1.35.0
-anthropic
+groq==0.13.1
 
 # Processamento de documentos
 pypdf==4.2.0
