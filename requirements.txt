@@ -10,7 +10,7 @@ qdrant-client==1.9.1
 # Orquestração LLM
 langchain==0.2.6
 langchain-openai==0.1.14
-openai==1.35.0
+openai>=1.50.0
 
 # Processamento de documentos
 pypdf==4.2.0
@@ -23,7 +23,6 @@ PyGithub==2.3.0
 requests==2.32.3
 
 # Utilitários
-httpx<0.28.0
 python-dotenv==1.0.1
 pydantic==2.7.4
 pydantic-settings==2.3.4
