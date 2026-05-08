@@ -161,15 +161,19 @@ class LLMClient:
     def _call_api(self, user_message: str) -> str:
         """Chama a API da OpenAI e retorna o texto bruto da resposta."""
         client = self._get_client()
-        response = client.chat.completions.create(
-            model=self._model,
-            max_tokens=self._max_tokens,
-            messages=[
-                {"role": "system", "content": self._system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-        )
-        return response.choices[0].message.content.strip()
+        try:
+            response = client.chat.completions.create(
+                model=self._model,
+                max_tokens=self._max_tokens,
+                messages=[
+                    {"role": "system", "content": self._system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as exc:
+            console.log(f"[bold red]Erro na API da OpenAI:[/bold red] {exc}")
+            raise
 
     def _parse_response(self, raw: str) -> List[Violation]:
         """
