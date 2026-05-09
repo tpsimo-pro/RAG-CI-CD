@@ -17,10 +17,10 @@ Responda em JSON com o seguinte schema:
   "violations": [
     {{
       "line_content": "trecho exato da linha violada",
-      "violation_description": "descrição clara e objetiva da violação",
-      "norm_reference": "nome do documento + seção/página",
+      "violation_description": "descrição detalhada da violação, explicando claramente qual foi o erro no código e por que ele viola a norma citada",
+      "norm_reference": "apenas a seção da norma (ex: '2.1 Python — Convenções Obrigatórias' - omita o path/caminho do arquivo)",
       "severity": "CRITICAL | HIGH | MEDIUM | LOW",
-      "suggestion": "como corrigir a violação"
+      "suggestion": "como corrigir a violação de forma prática"
     }}
   ]
 }}
