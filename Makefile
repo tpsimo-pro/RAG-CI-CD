@@ -1,7 +1,7 @@
 # RAG-Reviewer — Makefile
 # Atalhos para tarefas de desenvolvimento
 
-.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant clean
+.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant evaluate clean
 
 # ── Intérprete Python — sempre usa o .venv do projeto ────────────────────────
 # Detecta Windows (Scripts/) vs Unix (bin/)
@@ -23,13 +23,14 @@ help:
 	@echo "  make install-dev    Instala dependências de desenvolvimento"
 	@echo "  make index          Executa o pipeline de indexação (docs/style_guides/)"
 	@echo "  make index-recreate Executa a indexação e recria a coleção Qdrant"
-	@echo "  make test           Executa os testes unitários"
+	@echo "  make test           Executa os testes unitários e de integração"
 	@echo "  make test-cov       Executa testes com relatório de cobertura"
 	@echo "  make lint           Verifica qualidade do código com ruff"
 	@echo "  make lint-fix       Corrige automaticamente problemas de linting"
 	@echo "  make format         Formata o código com black"
 	@echo "  make typecheck      Verifica tipos com mypy"
 	@echo "  make docker-qdrant  Sobe o Qdrant localmente via Docker"
+	@echo "  make evaluate       Avalia o sistema contra o dataset sintético (métricas TCC)"
 	@echo "  make clean          Remove arquivos temporários e cache"
 	@echo ""
 
@@ -52,10 +53,16 @@ index-recreate:
 # ── Testes ────────────────────────────────────────────────────────────────────
 
 test:
+	$(PYTHON) -m pytest tests/ -v
+
+test-unit:
 	$(PYTHON) -m pytest tests/unit/ -v
 
+test-integration:
+	$(PYTHON) -m pytest tests/integration/ -v
+
 test-cov:
-	$(PYTHON) -m pytest tests/unit/ --cov=rag_reviewer --cov=indexer --cov-report=term-missing --cov-report=html -v
+	$(PYTHON) -m pytest tests/ --cov=rag_reviewer --cov=indexer --cov-report=term-missing --cov-report=html -v
 
 # ── Qualidade de código ───────────────────────────────────────────────────────
 
@@ -82,6 +89,11 @@ docker-qdrant:
 		qdrant/qdrant:latest
 	@echo "Qdrant disponível em http://localhost:6333"
 	@echo "Dashboard: http://localhost:6333/dashboard"
+
+# ── Avaliação ────────────────────────────────────────────────────────────────
+
+evaluate:
+	set PYTHONIOENCODING=utf-8 && $(PYTHON) -m evaluation.run_evaluation
 
 # ── Limpeza ───────────────────────────────────────────────────────────────────
 

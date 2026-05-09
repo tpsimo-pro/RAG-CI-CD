@@ -1,0 +1,279 @@
+[
+  {
+    "pr_id": "PR-001",
+    "description": "Validação de usuário com comparação booleana usando == True",
+    "filename": "auth/validator.py",
+    "added_lines": [
+      "def is_user_active(user):",
+      "    if user.active == True:",
+      "        return user.session_token",
+      "    return None"
+    ],
+    "patch": "@@ -0,0 +1,4 @@\n+def is_user_active(user):\n+    if user.active == True:\n+        return user.session_token\n+    return None",
+    "expected_violations": [
+      {
+        "line_content": "if user.active == True:",
+        "norm_reference": "guia_python_pep8.md — Seção 5",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-002",
+    "description": "Serviço de cache com comparação de None usando != ao invés de is not",
+    "filename": "services/cache_service.py",
+    "added_lines": [
+      "def get_cached_value(key):",
+      "    result = cache.get(key)",
+      "    if result != None:",
+      "        return result",
+      "    return fetch_from_db(key)"
+    ],
+    "patch": "@@ -0,0 +1,5 @@\n+def get_cached_value(key):\n+    result = cache.get(key)\n+    if result != None:\n+        return result\n+    return fetch_from_db(key)",
+    "expected_violations": [
+      {
+        "line_content": "if result != None:",
+        "norm_reference": "guia_python_pep8.md — Seção 5",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-003",
+    "description": "Módulo utilitário com importações usando asterisco (import *)",
+    "filename": "utils/helpers.py",
+    "added_lines": [
+      "from os.path import *",
+      "from utils.string_utils import *",
+      "",
+      "",
+      "def normalize_path(p):",
+      "    return join(expanduser(p))"
+    ],
+    "patch": "@@ -0,0 +1,6 @@\n+from os.path import *\n+from utils.string_utils import *\n+\n+\n+def normalize_path(p):\n+    return join(expanduser(p))",
+    "expected_violations": [
+      {
+        "line_content": "from os.path import *",
+        "norm_reference": "guia_python_pep8.md — Seção 3.2",
+        "severity": "HIGH"
+      },
+      {
+        "line_content": "from utils.string_utils import *",
+        "norm_reference": "guia_python_pep8.md — Seção 3.2",
+        "severity": "HIGH"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-004",
+    "description": "Gerador de relatórios com linhas ultrapassando 79 caracteres",
+    "filename": "reports/generator.py",
+    "added_lines": [
+      "def generate_monthly_report(user_id, start_date, end_date, include_inactive=False, format=\"pdf\"):",
+      "    report_data = database.query_transactions(user_id=user_id, start_date=start_date, end_date=end_date, include_inactive=include_inactive)",
+      "    return render_template(report_data, output_format=format)"
+    ],
+    "patch": "@@ -0,0 +1,3 @@\n+def generate_monthly_report(user_id, start_date, end_date, include_inactive=False, format=\"pdf\"):\n+    report_data = database.query_transactions(user_id=user_id, start_date=start_date, end_date=end_date, include_inactive=include_inactive)\n+    return render_template(report_data, output_format=format)",
+    "expected_violations": [
+      {
+        "line_content": "def generate_monthly_report(user_id, start_date, end_date, include_inactive=False, format=\"pdf\"):",
+        "norm_reference": "guia_python_pep8.md — Seção 1.1",
+        "severity": "LOW"
+      },
+      {
+        "line_content": "report_data = database.query_transactions(user_id=user_id, start_date=start_date, end_date=end_date, include_inactive=include_inactive)",
+        "norm_reference": "guia_python_pep8.md — Seção 1.1",
+        "severity": "LOW"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-005",
+    "description": "Processador de pagamentos com nome de classe em snake_case em vez de PascalCase",
+    "filename": "payments/processor.py",
+    "added_lines": [
+      "class payment_processor:",
+      "    def __init__(self, gateway):",
+      "        self.gateway = gateway",
+      "",
+      "    def process(self, amount, currency):",
+      "        return self.gateway.charge(amount, currency)"
+    ],
+    "patch": "@@ -0,0 +1,6 @@\n+class payment_processor:\n+    def __init__(self, gateway):\n+        self.gateway = gateway\n+\n+    def process(self, amount, currency):\n+        return self.gateway.charge(amount, currency)",
+    "expected_violations": [
+      {
+        "line_content": "class payment_processor:",
+        "norm_reference": "guia_python_pep8.md — Seção 2",
+        "severity": "HIGH"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-006",
+    "description": "Configurações do sistema com constantes nomeadas em snake_case em vez de UPPER_SNAKE_CASE",
+    "filename": "config/settings.py",
+    "added_lines": [
+      "max_retry_attempts = 3",
+      "default_timeout_seconds = 30",
+      "api_base_url = \"https://api.example.com/v2\""
+    ],
+    "patch": "@@ -0,0 +1,3 @@\n+max_retry_attempts = 3\n+default_timeout_seconds = 30\n+api_base_url = \"https://api.example.com/v2\"",
+    "expected_violations": [
+      {
+        "line_content": "max_retry_attempts = 3",
+        "norm_reference": "guia_python_pep8.md — Seção 2",
+        "severity": "MEDIUM"
+      },
+      {
+        "line_content": "default_timeout_seconds = 30",
+        "norm_reference": "guia_python_pep8.md — Seção 2",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-007",
+    "description": "Decodificador de token usando variáveis proibidas: l (L minúsculo), O (O maiúsculo) e I (I maiúsculo)",
+    "filename": "encoding/decoder.py",
+    "added_lines": [
+      "def decode_token(token):",
+      "    l = len(token)",
+      "    O = token.split(\".\")",
+      "    I = base64.decode(O[1])",
+      "    return I"
+    ],
+    "patch": "@@ -0,0 +1,5 @@\n+def decode_token(token):\n+    l = len(token)\n+    O = token.split(\".\")\n+    I = base64.decode(O[1])\n+    return I",
+    "expected_violations": [
+      {
+        "line_content": "l = len(token)",
+        "norm_reference": "guia_python_pep8.md — Seção 2.1",
+        "severity": "HIGH"
+      },
+      {
+        "line_content": "O = token.split(\".\")",
+        "norm_reference": "guia_python_pep8.md — Seção 2.1",
+        "severity": "HIGH"
+      },
+      {
+        "line_content": "I = base64.decode(O[1])",
+        "norm_reference": "guia_python_pep8.md — Seção 2.1",
+        "severity": "HIGH"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-008",
+    "description": "Calculadora de desconto com espaços incorretos em expressões e operadores",
+    "filename": "math/calculator.py",
+    "added_lines": [
+      "def calculate_discount( price, rate ):",
+      "    if price>0:",
+      "        discount=price*rate",
+      "        return price-discount",
+      "    return price"
+    ],
+    "patch": "@@ -0,0 +1,5 @@\n+def calculate_discount( price, rate ):\n+    if price>0:\n+        discount=price*rate\n+        return price-discount\n+    return price",
+    "expected_violations": [
+      {
+        "line_content": "def calculate_discount( price, rate ):",
+        "norm_reference": "guia_python_pep8.md — Seção 4",
+        "severity": "LOW"
+      },
+      {
+        "line_content": "if price>0:",
+        "norm_reference": "guia_python_pep8.md — Seção 4",
+        "severity": "LOW"
+      },
+      {
+        "line_content": "discount=price*rate",
+        "norm_reference": "guia_python_pep8.md — Seção 4",
+        "severity": "LOW"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-009",
+    "description": "Processador de pedidos com aninhamento excessivo (ausência de Early Return) e comparação booleana com == True",
+    "filename": "orders/processor.py",
+    "added_lines": [
+      "def process_order(order):",
+      "    if order is not None:",
+      "        if order.items:",
+      "            if order.customer.is_active == True:",
+      "                if order.total > 0:",
+      "                    payment = charge(order.total)",
+      "                    return payment"
+    ],
+    "patch": "@@ -0,0 +1,7 @@\n+def process_order(order):\n+    if order is not None:\n+        if order.items:\n+            if order.customer.is_active == True:\n+                if order.total > 0:\n+                    payment = charge(order.total)\n+                    return payment",
+    "expected_violations": [
+      {
+        "line_content": "if order is not None:",
+        "norm_reference": "guia_python_pep8.md — Seção 5",
+        "severity": "MEDIUM"
+      },
+      {
+        "line_content": "if order.customer.is_active == True:",
+        "norm_reference": "guia_python_pep8.md — Seção 5",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-010",
+    "description": "Módulo JWT handler com código correto e idiomático — sem violações (controle negativo)",
+    "filename": "auth/jwt_handler.py",
+    "added_lines": [
+      "import json",
+      "import os",
+      "from datetime import datetime, timedelta",
+      "",
+      "import jwt",
+      "",
+      "from auth.models import User",
+      "",
+      "",
+      "SECRET_KEY = os.environ.get(\"JWT_SECRET_KEY\", \"\")",
+      "TOKEN_EXPIRY_HOURS = 24",
+      "",
+      "",
+      "class JwtHandler:",
+      "    def __init__(self, secret: str = SECRET_KEY) -> None:",
+      "        self._secret = secret",
+      "",
+      "    def generate_token(self, user: User) -> str:",
+      "        payload = {",
+      "            \"sub\": user.id,",
+      "            \"exp\": datetime.utcnow() + timedelta(hours=TOKEN_EXPIRY_HOURS),",
+      "        }",
+      "        return jwt.encode(payload, self._secret, algorithm=\"HS256\")",
+      "",
+      "    def decode_token(self, token: str) -> dict:",
+      "        if not token:",
+      "            return {}",
+      "        return jwt.decode(token, self._secret, algorithms=[\"HS256\"])"
+    ],
+    "patch": "@@ -0,0 +1,28 @@\n+import json\n+import os\n+from datetime import datetime, timedelta\n+\n+import jwt\n+\n+from auth.models import User\n+\n+\n+SECRET_KEY = os.environ.get(\"JWT_SECRET_KEY\", \"\")\n+TOKEN_EXPIRY_HOURS = 24\n+\n+\n+class JwtHandler:\n+    def __init__(self, secret: str = SECRET_KEY) -> None:\n+        self._secret = secret\n+\n+    def generate_token(self, user: User) -> str:\n+        payload = {\n+            \"sub\": user.id,\n+            \"exp\": datetime.utcnow() + timedelta(hours=TOKEN_EXPIRY_HOURS),\n+        }\n+        return jwt.encode(payload, self._secret, algorithm=\"HS256\")\n+\n+    def decode_token(self, token: str) -> dict:\n+        if not token:\n+            return {}\n+        return jwt.decode(token, self._secret, algorithms=[\"HS256\"])",
+    "expected_violations": []
+  },
+  {
+    "pr_id": "PR-011",
+    "description": "Utilitários de formatação com código limpo e idiomático — sem violações (controle negativo)",
+    "filename": "utils/formatters.py",
+    "added_lines": [
+      "def format_currency(value: float, symbol: str = \"R$\") -> str:",
+      "    if value is None:",
+      "        return f\"{symbol} 0,00\"",
+      "    return f\"{symbol} {value:,.2f}\".replace(\",\", \"X\").replace(\".\", \",\").replace(\"X\", \".\")",
+      "",
+      "",
+      "def truncate_text(text: str, max_length: int = 100) -> str:",
+      "    if not text:",
+      "        return \"\"",
+      "    if len(text) <= max_length:",
+      "        return text",
+      "    return text[:max_length] + \"...\""
+    ],
+    "patch": "@@ -0,0 +1,12 @@\n+def format_currency(value: float, symbol: str = \"R$\") -> str:\n+    if value is None:\n+        return f\"{symbol} 0,00\"\n+    return f\"{symbol} {value:,.2f}\".replace(\",\", \"X\").replace(\".\", \",\").replace(\"X\", \".\")\n+\n+\n+def truncate_text(text: str, max_length: int = 100) -> str:\n+    if not text:\n+        return \"\"\n+    if len(text) <= max_length:\n+        return text\n+    return text[:max_length] + \"...\"",
+    "expected_violations": []
+  }
+]
