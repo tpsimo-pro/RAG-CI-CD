@@ -30,27 +30,9 @@ console = Console()
 # Modelos como all-MiniLM-L6-v2 suportam até ~512 tokens (≈ 2 000 chars).
 _MAX_QUERY_CHARS: int = 2_000
 
-# Extensões de arquivo ignoradas na revisão (binários, locks, assets, etc.)
-_IGNORED_EXTENSIONS: frozenset[str] = frozenset(
-    {
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".gif",
-        ".svg",
-        ".ico",
-        ".webp",
-        ".pdf",
-        ".zip",
-        ".tar",
-        ".gz",
-        ".whl",
-        ".exe",
-        ".dll",
-        ".lock",
-        ".sum",
-    }
-)
+# Extensões de arquivo permitidas na revisão (apenas arquivos de código Python)
+_ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".py"})
+
 
 
 # ── Modelos de dados ───────────────────────────────────────────────────────────
@@ -247,8 +229,8 @@ class DiffCollector:
                 skipped += 1
                 continue
 
-            # Extensões de arquivo ignoradas (binários, assets)
-            if _is_ignored_file(filename):
+            # Apenas arquivos com extensões permitidas (ex: .py)
+            if not _is_allowed_file(filename):
                 skipped += 1
                 continue
 
@@ -273,7 +255,7 @@ class DiffCollector:
         if skipped:
             console.log(
                 f"[dim]DiffCollector:[/dim] {skipped} arquivo(s) ignorado(s) "
-                "(deletados, binários ou sem patch)."
+                "(deletados, extensões não permitidas ou sem patch)."
             )
 
         return files
@@ -302,18 +284,18 @@ def _extract_added_lines(patch: str) -> list[str]:
     return added
 
 
-def _is_ignored_file(filename: str) -> bool:
+def _is_allowed_file(filename: str) -> bool:
     """
-    Verifica se um arquivo deve ser ignorado com base na extensão.
+    Verifica se um arquivo deve ser revisado com base na extensão.
 
     Args:
         filename: Caminho relativo do arquivo no repositório.
 
     Returns:
-        True se o arquivo deve ser ignorado, False caso contrário.
+        True se o arquivo deve ser revisado, False caso contrário.
     """
     suffix = os.path.splitext(filename)[1].lower()
-    return suffix in _IGNORED_EXTENSIONS
+    return suffix in _ALLOWED_EXTENSIONS
 
 
 def build_query_text(file_diff: FileDiff, max_chars: int = _MAX_QUERY_CHARS) -> str:
