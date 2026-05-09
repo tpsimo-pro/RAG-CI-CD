@@ -12,9 +12,8 @@ Retorna uma lista de objetos Document com texto e metadados preservados.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 
 from rich.console import Console
 
@@ -50,7 +49,7 @@ class DocumentLoader:
 
     SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx"}
 
-    def load(self, path: str | Path) -> List[Document]:
+    def load(self, path: str | Path) -> list[Document]:
         """
         Carrega um arquivo e retorna lista de Document.
 
@@ -77,7 +76,9 @@ class DocumentLoader:
                 f"Formatos suportados: {', '.join(sorted(self.SUPPORTED_EXTENSIONS))}"
             )
 
-        console.log(f"[cyan]DocumentLoader:[/cyan] carregando [bold]{path.name}[/bold] ({suffix})")
+        console.log(
+            f"[cyan]DocumentLoader:[/cyan] carregando [bold]{path.name}[/bold] ({suffix})"
+        )
 
         if suffix == ".pdf":
             docs = self._load_pdf(path)
@@ -93,7 +94,7 @@ class DocumentLoader:
         )
         return docs
 
-    def load_directory(self, directory: str | Path) -> List[Document]:
+    def load_directory(self, directory: str | Path) -> list[Document]:
         """
         Carrega recursivamente todos os documentos suportados de um diretório.
 
@@ -107,7 +108,7 @@ class DocumentLoader:
         if not directory.is_dir():
             raise NotADirectoryError(f"Não é um diretório: {directory}")
 
-        all_docs: List[Document] = []
+        all_docs: list[Document] = []
         for path in sorted(directory.rglob("*")):
             if path.is_file() and path.suffix.lower() in self.SUPPORTED_EXTENSIONS:
                 try:
@@ -119,7 +120,7 @@ class DocumentLoader:
 
     # ── Implementações por formato ────────────────────────────────────────
 
-    def _load_pdf(self, path: Path) -> List[Document]:
+    def _load_pdf(self, path: Path) -> list[Document]:
         """Extrai texto página a página usando pypdf."""
         try:
             from pypdf import PdfReader  # type: ignore
@@ -150,7 +151,7 @@ class DocumentLoader:
 
         return docs
 
-    def _load_markdown(self, path: Path) -> List[Document]:
+    def _load_markdown(self, path: Path) -> list[Document]:
         """
         Extrai seções de Markdown usando cabeçalhos como separadores.
 
@@ -210,7 +211,7 @@ class DocumentLoader:
 
         return docs
 
-    def _load_docx(self, path: Path) -> List[Document]:
+    def _load_docx(self, path: Path) -> list[Document]:
         """
         Extrai parágrafos de um arquivo DOCX, agrupando por estilos de cabeçalho.
 
@@ -228,7 +229,7 @@ class DocumentLoader:
         source = str(path)
 
         current_section = "Introdução"
-        current_paragraphs: List[str] = []
+        current_paragraphs: list[str] = []
 
         for para in doc.paragraphs:
             style_name = para.style.name if para.style else ""
@@ -237,7 +238,9 @@ class DocumentLoader:
             if not text:
                 continue
 
-            is_heading = style_name.startswith("Heading") or style_name.startswith("Título")
+            is_heading = style_name.startswith("Heading") or style_name.startswith(
+                "Título"
+            )
 
             if is_heading:
                 # Salva a seção anterior

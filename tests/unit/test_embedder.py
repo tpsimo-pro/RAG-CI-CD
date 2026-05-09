@@ -9,7 +9,6 @@ import pytest
 
 from rag_reviewer.embedder import Embedder
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -20,7 +19,9 @@ def mock_sentence_transformer():
     model.get_sentence_embedding_dimension.return_value = 384
     # encode retorna array numpy de floats normalizados
     model.encode = MagicMock(
-        side_effect=lambda texts, **kwargs: np.random.rand(len(texts), 384).astype(np.float32)
+        side_effect=lambda texts, **kwargs: np.random.rand(len(texts), 384).astype(
+            np.float32
+        )
     )
     return model
 
@@ -28,7 +29,10 @@ def mock_sentence_transformer():
 @pytest.fixture
 def embedder(mock_sentence_transformer) -> Embedder:
     """Embedder com modelo mockado."""
-    with patch("rag_reviewer.embedder.SentenceTransformer", return_value=mock_sentence_transformer):
+    with patch(
+        "rag_reviewer.embedder.SentenceTransformer",
+        return_value=mock_sentence_transformer,
+    ):
         emb = Embedder(model_name="all-MiniLM-L6-v2")
         emb._model = mock_sentence_transformer  # injeta o mock diretamente
         return emb
@@ -76,7 +80,9 @@ class TestEmbed:
         result = embedder.embed(["apenas um texto"])
         assert result.shape[0] == 1
 
-    def test_encode_called_with_correct_arguments(self, embedder: Embedder, mock_sentence_transformer):
+    def test_encode_called_with_correct_arguments(
+        self, embedder: Embedder, mock_sentence_transformer
+    ):
         texts = ["texto A", "texto B"]
         embedder.embed(texts)
         mock_sentence_transformer.encode.assert_called_once()
@@ -109,7 +115,10 @@ class TestVectorSize:
 
     def test_vector_size_triggers_model_load(self, mock_sentence_transformer):
         """vector_size deve forçar o carregamento do modelo."""
-        with patch("rag_reviewer.embedder.SentenceTransformer", return_value=mock_sentence_transformer) as mock_cls:
+        with patch(
+            "rag_reviewer.embedder.SentenceTransformer",
+            return_value=mock_sentence_transformer,
+        ):
             emb = Embedder(model_name="all-MiniLM-L6-v2")
             assert emb._model is None  # ainda não carregado
             _ = emb.vector_size

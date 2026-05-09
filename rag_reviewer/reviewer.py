@@ -13,12 +13,10 @@ Uso típico (chamado pelo GitHub Actions via __main__.py):
 
 from __future__ import annotations
 
-from typing import List, Tuple
-
 from rich.console import Console
 
 from rag_reviewer.config import get_settings
-from rag_reviewer.diff_parser import DiffCollector, FileDiff, PullRequestDiff
+from rag_reviewer.diff_parser import DiffCollector, FileDiff
 from rag_reviewer.embedder import Embedder
 from rag_reviewer.llm_client import LLMClient, Violation
 from rag_reviewer.retriever import RetrievedContext, Retriever
@@ -27,7 +25,7 @@ from rag_reviewer.vector_store import VectorStore
 console = Console()
 
 # Tipo alias para a lista de violações com referência ao arquivo de origem
-ViolationList = List[Tuple[FileDiff, Violation]]
+ViolationList = list[tuple[FileDiff, Violation]]
 
 
 class RAGReviewer:
@@ -87,7 +85,9 @@ class RAGReviewer:
         pr_diff = self._collector.collect()
 
         if not pr_diff.files:
-            console.log("[yellow]⚠️  Nenhum arquivo relevante no PR. Encerrando.[/yellow]")
+            console.log(
+                "[yellow]⚠️  Nenhum arquivo relevante no PR. Encerrando.[/yellow]"
+            )
             self._publish_no_violations()
             return []
 
@@ -116,7 +116,7 @@ class RAGReviewer:
 
         return all_violations
 
-    def review_context(self, context: RetrievedContext) -> List[Violation]:
+    def review_context(self, context: RetrievedContext) -> list[Violation]:
         """
         Revisa um único RetrievedContext.
 
@@ -127,14 +127,12 @@ class RAGReviewer:
 
     # ── Internos ──────────────────────────────────────────────────────────
 
-    def _review_all_contexts(self, contexts: List[RetrievedContext]) -> ViolationList:
+    def _review_all_contexts(self, contexts: list[RetrievedContext]) -> ViolationList:
         """Itera sobre os contextos e acumula as violações."""
         all_violations: ViolationList = []
         for context in contexts:
             violations = self._llm.review(context)
-            all_violations.extend(
-                (context.file_diff, v) for v in violations
-            )
+            all_violations.extend((context.file_diff, v) for v in violations)
         return all_violations
 
     def _handle_pr_status(self, violations: ViolationList) -> None:
@@ -158,7 +156,9 @@ class RAGReviewer:
         """Publica comentário de aprovação quando não há violações."""
         try:
             publisher = self._get_publisher()
-            publisher.post_summary("✅ Nenhuma violação detectada nas normas organizacionais.")
+            publisher.post_summary(
+                "✅ Nenhuma violação detectada nas normas organizacionais."
+            )
         except Exception:
             # Publisher pode não estar disponível em testes; não bloqueia
             pass
@@ -167,6 +167,7 @@ class RAGReviewer:
         """Retorna o publisher com lazy initialization."""
         if self._publisher is None:
             from rag_reviewer.github_publisher import GitHubPublisher  # type: ignore
+
             self._publisher = GitHubPublisher()
         return self._publisher
 

@@ -18,7 +18,6 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 
 from rich.console import Console
 
@@ -101,7 +100,7 @@ class LLMClient:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def review(self, context: RetrievedContext) -> List[Violation]:
+    def review(self, context: RetrievedContext) -> list[Violation]:
         """
         Analisa um arquivo do PR e retorna as violações encontradas.
 
@@ -167,7 +166,7 @@ class LLMClient:
                 max_tokens=self._max_tokens,
                 messages=[
                     {"role": "system", "content": self._system_prompt},
-                    {"role": "user", "content": user_message}
+                    {"role": "user", "content": user_message},
                 ],
             )
             return response.choices[0].message.content.strip()
@@ -175,7 +174,7 @@ class LLMClient:
             console.log(f"[bold red]Erro na API da Groq:[/bold red] {exc}")
             raise
 
-    def _parse_response(self, raw: str) -> List[Violation]:
+    def _parse_response(self, raw: str) -> list[Violation]:
         """
         Converte o JSON bruto do LLM em uma lista de Violation.
 
@@ -189,7 +188,7 @@ class LLMClient:
         data = self._extract_json(raw)
         raw_violations = data.get("violations", [])
 
-        violations: List[Violation] = []
+        violations: list[Violation] = []
         for i, v in enumerate(raw_violations):
             try:
                 violation = self._parse_single_violation(v)

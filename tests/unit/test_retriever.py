@@ -6,15 +6,12 @@ ao Qdrant nem ao modelo de embedding.
 
 from __future__ import annotations
 
-from typing import List
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock
+
 import numpy as np
 
-import pytest
-
 from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
-from rag_reviewer.retriever import Retriever, RetrievedContext
-
+from rag_reviewer.retriever import RetrievedContext, Retriever
 
 # ── Helpers de fixture ────────────────────────────────────────────────────────
 
@@ -54,7 +51,13 @@ def make_chunk(
     section: str = "3.2 Funções",
     score: float = 0.82,
 ) -> dict:
-    return {"text": text, "source": source, "section": section, "page": 0, "score": score}
+    return {
+        "text": text,
+        "source": source,
+        "section": section,
+        "page": 0,
+        "score": score,
+    }
 
 
 def make_embedder_mock(vector_size: int = 4) -> MagicMock:
@@ -231,20 +234,24 @@ class TestRetrieveForDiff:
     def test_returns_context_for_each_relevant_file(self):
         chunks = [make_chunk()]
         r, _, _ = make_retriever(chunks=chunks)
-        pr = make_pr_diff(files=[
-            make_file_diff(filename="a.py"),
-            make_file_diff(filename="b.py"),
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(filename="a.py"),
+                make_file_diff(filename="b.py"),
+            ]
+        )
         contexts = r.retrieve_for_diff(pr)
         assert len(contexts) == 2
 
     def test_files_without_added_lines_are_skipped(self):
         chunks = [make_chunk()]
         r, _, _ = make_retriever(chunks=chunks)
-        pr = make_pr_diff(files=[
-            make_file_diff(filename="a.py", added_lines=["x"]),
-            make_file_diff(filename="b.py", added_lines=[]),  # sem adições
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(filename="a.py", added_lines=["x"]),
+                make_file_diff(filename="b.py", added_lines=[]),  # sem adições
+            ]
+        )
         contexts = r.retrieve_for_diff(pr)
         filenames = [c.file_diff.filename for c in contexts]
         assert "a.py" in filenames
@@ -256,15 +263,17 @@ class TestRetrieveForDiff:
         store = MagicMock()
         store.search.side_effect = [
             [make_chunk()],  # a.py → tem contexto
-            [],              # b.py → sem contexto
+            [],  # b.py → sem contexto
         ]
         embedder = make_embedder_mock()
         r = Retriever(embedder=embedder, store=store, top_k=3, score_threshold=0.55)
 
-        pr = make_pr_diff(files=[
-            make_file_diff(filename="a.py"),
-            make_file_diff(filename="b.py"),
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(filename="a.py"),
+                make_file_diff(filename="b.py"),
+            ]
+        )
         contexts = r.retrieve_for_diff(pr)
         assert len(contexts) == 1
         assert contexts[0].file_diff.filename == "a.py"
@@ -276,20 +285,24 @@ class TestRetrieveForDiff:
 
     def test_all_files_without_added_lines_returns_empty(self):
         r, _, _ = make_retriever()
-        pr = make_pr_diff(files=[
-            make_file_diff(added_lines=[]),
-            make_file_diff(added_lines=[]),
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(added_lines=[]),
+                make_file_diff(added_lines=[]),
+            ]
+        )
         assert r.retrieve_for_diff(pr) == []
 
     def test_embedder_called_once_per_candidate_file(self):
         chunks = [make_chunk()]
         r, embedder, _ = make_retriever(chunks=chunks)
-        pr = make_pr_diff(files=[
-            make_file_diff(filename="a.py"),
-            make_file_diff(filename="b.py"),
-            make_file_diff(filename="c.py", added_lines=[]),  # ignorado
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(filename="a.py"),
+                make_file_diff(filename="b.py"),
+                make_file_diff(filename="c.py", added_lines=[]),  # ignorado
+            ]
+        )
         r.retrieve_for_diff(pr)
         # Dois arquivos com added_lines → embed chamado 2x
         assert embedder.embed.call_count == 2
@@ -297,10 +310,12 @@ class TestRetrieveForDiff:
     def test_store_search_called_once_per_candidate_file(self):
         chunks = [make_chunk()]
         r, _, store = make_retriever(chunks=chunks)
-        pr = make_pr_diff(files=[
-            make_file_diff(filename="a.py"),
-            make_file_diff(filename="b.py"),
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(filename="a.py"),
+                make_file_diff(filename="b.py"),
+            ]
+        )
         r.retrieve_for_diff(pr)
         assert store.search.call_count == 2
 
@@ -325,10 +340,12 @@ class TestRetrieveForDiff:
             top_k=3,
             score_threshold=0.55,
         )
-        pr = make_pr_diff(files=[
-            make_file_diff(filename="a.py"),
-            make_file_diff(filename="b.py"),
-        ])
+        pr = make_pr_diff(
+            files=[
+                make_file_diff(filename="a.py"),
+                make_file_diff(filename="b.py"),
+            ]
+        )
         contexts = r.retrieve_for_diff(pr)
         all_chunks = [c.chunks for c in contexts]
         assert [chunk_a] in all_chunks

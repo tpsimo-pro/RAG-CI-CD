@@ -22,7 +22,9 @@ def main() -> None:
         reviewer.run()
     except Exception as exc:
         console.print_exception(show_locals=True)
-        console.log(f"[bold red]Erro fatal durante a execução do RAG-Reviewer:[/bold red] {exc}")
+        console.log(
+            f"[bold red]Erro fatal durante a execução do RAG-Reviewer:[/bold red] {exc}"
+        )
         sys.exit(1)
 
 

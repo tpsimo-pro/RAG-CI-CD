@@ -7,9 +7,8 @@ Usa Pydantic BaseSettings para validação automática de tipos.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
 from functools import lru_cache
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import Field
@@ -36,23 +35,17 @@ class Settings(BaseSettings):
 
     # ── LLM ─────────────────────────────────────────────────────────────────
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
-    llm_model: str = Field(
-        default="llama-3.3-70b-versatile", alias="LLM_MODEL"
-    )
+    llm_model: str = Field(default="llama-3.3-70b-versatile", alias="LLM_MODEL")
 
     # ── Qdrant ───────────────────────────────────────────────────────────────
-    qdrant_url: str = Field(
-        default="http://localhost:6333", alias="QDRANT_URL"
-    )
+    qdrant_url: str = Field(default="http://localhost:6333", alias="QDRANT_URL")
     qdrant_api_key: str = Field(default="", alias="QDRANT_API_KEY")
     qdrant_collection: str = Field(
         default="style_guide_chunks", alias="QDRANT_COLLECTION"
     )
 
     # ── Embedding ────────────────────────────────────────────────────────────
-    embedding_model: str = Field(
-        default="all-MiniLM-L6-v2", alias="EMBEDDING_MODEL"
-    )
+    embedding_model: str = Field(default="all-MiniLM-L6-v2", alias="EMBEDDING_MODEL")
 
     # ── Retrieval ────────────────────────────────────────────────────────────
     top_k_chunks: int = Field(default=5, alias="TOP_K_CHUNKS")
@@ -64,7 +57,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         populate_by_name=True,
-        env_file=str(_ENV_FILE),          # caminho absoluto — independente do cwd
+        env_file=str(_ENV_FILE),  # caminho absoluto — independente do cwd
         env_file_encoding="utf-8",
     )
 

@@ -9,7 +9,6 @@ import pytest
 
 from indexer.document_loader import Document, DocumentLoader
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -21,7 +20,8 @@ def loader() -> DocumentLoader:
 @pytest.fixture
 def tmp_md(tmp_path: Path) -> Path:
     """Cria um arquivo Markdown temporário para testes."""
-    content = textwrap.dedent("""\
+    content = textwrap.dedent(
+        """\
         # Guia de Estilo
 
         Introdução ao guia.
@@ -37,7 +37,8 @@ def tmp_md(tmp_path: Path) -> Path:
         ## Tratamento de Exceções
 
         Nunca capture Exception genérica silenciosamente.
-    """)
+    """
+    )
     md_file = tmp_path / "guide.md"
     md_file.write_text(content, encoding="utf-8")
     return md_file
@@ -104,7 +105,9 @@ class TestLoadMarkdown:
     def test_intro_before_first_heading(self, loader: DocumentLoader, tmp_md: Path):
         docs = loader.load(tmp_md)
         # Deve haver uma seção de introdução com o conteúdo antes do primeiro ##
-        intro_docs = [d for d in docs if "Introdução" in d.section or "snake_case" in d.text]
+        intro_docs = [
+            d for d in docs if "Introdução" in d.section or "snake_case" in d.text
+        ]
         assert len(intro_docs) > 0
 
 
@@ -116,7 +119,9 @@ class TestLoadMarkdownEdgeCases:
         assert len(docs) == 1
         assert "Apenas texto plano" in docs[0].text
 
-    def test_empty_file_returns_empty_list(self, loader: DocumentLoader, tmp_path: Path):
+    def test_empty_file_returns_empty_list(
+        self, loader: DocumentLoader, tmp_path: Path
+    ):
         md = tmp_path / "empty.md"
         md.write_text("", encoding="utf-8")
         docs = loader.load(md)
@@ -167,7 +172,9 @@ class TestLoadDirectory:
         docs = loader.load_directory(tmp_path)
         assert any("deep.md" in d.source for d in docs)
 
-    def test_empty_directory_returns_empty_list(self, loader: DocumentLoader, tmp_path: Path):
+    def test_empty_directory_returns_empty_list(
+        self, loader: DocumentLoader, tmp_path: Path
+    ):
         docs = loader.load_directory(tmp_path)
         assert docs == []
 

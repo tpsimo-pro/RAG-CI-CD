@@ -7,8 +7,6 @@ Os embeddings são sempre L2-normalizados para compatibilidade com cosine simila
 
 from __future__ import annotations
 
-from typing import List
-
 import numpy as np
 from rich.console import Console
 
@@ -53,7 +51,7 @@ class Embedder:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def embed(self, texts: List[str]) -> np.ndarray:
+    def embed(self, texts: list[str]) -> np.ndarray:
         """
         Gera embeddings para uma lista de textos.
 
