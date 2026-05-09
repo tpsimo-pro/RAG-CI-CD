@@ -6,20 +6,19 @@ A GitHub API é mockada via pytest-mock / unittest.mock.
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
 
 from rag_reviewer.diff_parser import (
+    _MAX_QUERY_CHARS,
     DiffCollector,
     FileDiff,
     PullRequestDiff,
     _extract_added_lines,
     _is_ignored_file,
     build_query_text,
-    _MAX_QUERY_CHARS,
-    _IGNORED_EXTENSIONS,
 )
-
 
 # ── Helpers de fixture ────────────────────────────────────────────────────────
 
@@ -150,8 +149,7 @@ class TestExtractAddedLines:
 
     def test_multiple_hunks(self):
         patch = (
-            "@@ -1,3 +1,4 @@\n ctx\n+line1\n-old\n"
-            "@@ -10,2 +11,3 @@\n ctx2\n+line2"
+            "@@ -1,3 +1,4 @@\n ctx\n+line1\n-old\n" "@@ -10,2 +11,3 @@\n ctx2\n+line2"
         )
         lines = _extract_added_lines(patch)
         assert lines == ["line1", "line2"]

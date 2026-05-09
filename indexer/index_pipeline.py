@@ -19,22 +19,23 @@ from __future__ import annotations
 import argparse
 import sys
 import time
-
 from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from indexer.chunker import RecursiveChunker
+from indexer.document_loader import DocumentLoader
+from rag_reviewer.embedder import Embedder
+from rag_reviewer.vector_store import VectorStore
+
 # Garante que o pacote raiz está no sys.path ao executar diretamente
 _ROOT = Path(__file__).parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from indexer.chunker import RecursiveChunker
-from indexer.document_loader import DocumentLoader
-from rag_reviewer.embedder import Embedder
-from rag_reviewer.vector_store import VectorStore
+
 
 console = Console()
 
@@ -99,9 +100,7 @@ def run_indexing(
     embedder = Embedder()
     texts = [c.text for c in chunks]
     embeddings = embedder.embed(texts)
-    console.print(
-        f"[green]✅ Embeddings gerados. Shape: {embeddings.shape}[/green]\n"
-    )
+    console.print(f"[green]✅ Embeddings gerados. Shape: {embeddings.shape}[/green]\n")
 
     # ── Etapa 4: Inserção no Qdrant ───────────────────────────────────────
     console.rule("[bold]Etapa 4 — Inserção no Qdrant[/bold]")
@@ -140,7 +139,9 @@ def _print_summary(
     elapsed: float,
 ) -> None:
     """Imprime uma tabela de resumo com as estatísticas da indexação."""
-    table = Table(title="📊 Resumo da Indexação", show_header=True, header_style="bold magenta")
+    table = Table(
+        title="📊 Resumo da Indexação", show_header=True, header_style="bold magenta"
+    )
     table.add_column("Parâmetro", style="cyan")
     table.add_column("Valor", style="green")
 
@@ -160,6 +161,7 @@ def _print_summary(
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
+
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(

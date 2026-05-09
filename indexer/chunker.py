@@ -11,10 +11,8 @@ Parâmetros padrão recomendados pelo planejamento:
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
 from indexer.document_loader import Document
 
@@ -39,7 +37,7 @@ class Chunk:
     page: int = 0
     chunk_index: int = 0
     indexed_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
 
 
@@ -87,7 +85,7 @@ class RecursiveChunker:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def split(self, documents: List[Document]) -> List[Chunk]:
+    def split(self, documents: list[Document]) -> list[Chunk]:
         """
         Divide uma lista de Documents em Chunks.
 
@@ -97,7 +95,7 @@ class RecursiveChunker:
         Returns:
             Lista de Chunks com metadados do documento pai preservados.
         """
-        all_chunks: List[Chunk] = []
+        all_chunks: list[Chunk] = []
 
         for doc in documents:
             chunks = self._split_text(doc.text)
@@ -116,7 +114,7 @@ class RecursiveChunker:
 
     # ── Implementação interna ─────────────────────────────────────────────
 
-    def _split_text(self, text: str) -> List[str]:
+    def _split_text(self, text: str) -> list[str]:
         """
         Divide um texto em segmentos respeitando chunk_size e chunk_overlap.
         """
@@ -134,12 +132,12 @@ class RecursiveChunker:
         # Fallback: divide por caractere (texto sem separadores naturais)
         return self._hard_split(text)
 
-    def _merge_splits(self, splits: List[str], separator: str) -> List[str]:
+    def _merge_splits(self, splits: list[str], separator: str) -> list[str]:
         """
         Agrupa splits em chunks do tamanho correto com sobreposição.
         """
-        chunks: List[str] = []
-        current_parts: List[str] = []
+        chunks: list[str] = []
+        current_parts: list[str] = []
         current_len = 0
 
         for part in splits:
@@ -167,13 +165,13 @@ class RecursiveChunker:
 
         return chunks
 
-    def _hard_split(self, text: str) -> List[str]:
+    def _hard_split(self, text: str) -> list[str]:
         """
         Divide por palavras quando não há separadores naturais.
         Usado como fallback para textos muito densos (ex: código minificado).
         """
         words = text.split()
-        chunks: List[str] = []
+        chunks: list[str] = []
         i = 0
 
         while i < len(words):

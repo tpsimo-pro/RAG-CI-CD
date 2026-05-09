@@ -7,7 +7,6 @@ Gerencia criação de coleções, inserção (upsert) e busca por similaridade.
 from __future__ import annotations
 
 import uuid
-from typing import List
 
 from rich.console import Console
 
@@ -59,7 +58,9 @@ class VectorStore:
         existing = [c.name for c in client.get_collections().collections]
         if self._collection in existing:
             client.delete_collection(self._collection)
-            console.log(f"[yellow]VectorStore:[/yellow] coleção '{self._collection}' removida.")
+            console.log(
+                f"[yellow]VectorStore:[/yellow] coleção '{self._collection}' removida."
+            )
 
         client.create_collection(
             collection_name=self._collection,
@@ -84,7 +85,6 @@ class VectorStore:
             chunks: Lista de objetos Chunk (de indexer/chunker.py).
             embeddings: Array numpy (N, D) com os vetores correspondentes.
         """
-        import numpy as np
         from qdrant_client.models import PointStruct  # type: ignore
 
         client = self._get_client()
@@ -124,7 +124,7 @@ class VectorStore:
         query_vector: list,
         top_k: int = 5,
         score_threshold: float = 0.55,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Busca os top-K chunks mais similares ao vetor de consulta.
 

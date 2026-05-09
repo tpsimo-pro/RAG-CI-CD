@@ -5,8 +5,7 @@ Todos os testes são isolados via unittest.mock — sem chamadas reais à GitHub
 
 from __future__ import annotations
 
-from typing import List, Tuple
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests as req
@@ -18,10 +17,8 @@ from rag_reviewer.github_publisher import (
     _count_by_severity,
     _find_diff_position,
     _format_inline_comment,
-    _SEVERITY_EMOJI,
 )
 from rag_reviewer.llm_client import Violation
-
 
 # ── Helpers de fixture ────────────────────────────────────────────────────────
 
@@ -82,7 +79,9 @@ def make_publisher(
     )
 
 
-def make_violations(n: int = 1, severity: str = "HIGH") -> List[Tuple[FileDiff, Violation]]:
+def make_violations(
+    n: int = 1, severity: str = "HIGH"
+) -> list[tuple[FileDiff, Violation]]:
     fd = make_file_diff()
     return [(fd, make_violation(severity=severity)) for _ in range(n)]
 
@@ -184,12 +183,15 @@ class TestFormatInlineComment:
         result = _format_inline_comment(v)
         assert "Use nome descritivo" in result
 
-    @pytest.mark.parametrize("severity,emoji", [
-        ("CRITICAL", "⛔"),
-        ("HIGH", "🔴"),
-        ("MEDIUM", "🟡"),
-        ("LOW", "🔵"),
-    ])
+    @pytest.mark.parametrize(
+        "severity,emoji",
+        [
+            ("CRITICAL", "⛔"),
+            ("HIGH", "🔴"),
+            ("MEDIUM", "🟡"),
+            ("LOW", "🔵"),
+        ],
+    )
     def test_correct_emoji_per_severity(self, severity: str, emoji: str):
         v = make_violation(severity=severity)
         result = _format_inline_comment(v)

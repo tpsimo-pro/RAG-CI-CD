@@ -1,7 +1,7 @@
 # RAG-Reviewer — Makefile
 # Atalhos para tarefas de desenvolvimento
 
-.PHONY: help install install-dev index test test-cov lint format typecheck docker-qdrant clean
+.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant clean
 
 # ── Intérprete Python — sempre usa o .venv do projeto ────────────────────────
 # Detecta Windows (Scripts/) vs Unix (bin/)
@@ -26,6 +26,7 @@ help:
 	@echo "  make test           Executa os testes unitários"
 	@echo "  make test-cov       Executa testes com relatório de cobertura"
 	@echo "  make lint           Verifica qualidade do código com ruff"
+	@echo "  make lint-fix       Corrige automaticamente problemas de linting"
 	@echo "  make format         Formata o código com black"
 	@echo "  make typecheck      Verifica tipos com mypy"
 	@echo "  make docker-qdrant  Sobe o Qdrant localmente via Docker"
@@ -60,6 +61,9 @@ test-cov:
 
 lint:
 	$(PYTHON) -m ruff check rag_reviewer/ indexer/ tests/
+
+lint-fix:
+	$(PYTHON) -m ruff check --fix rag_reviewer/ indexer/ tests/
 
 format:
 	$(PYTHON) -m black rag_reviewer/ indexer/ tests/

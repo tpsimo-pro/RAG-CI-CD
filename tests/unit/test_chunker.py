@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import textwrap
-from typing import List
-
 import pytest
 
 from indexer.chunker import Chunk, RecursiveChunker
 from indexer.document_loader import Document
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +38,7 @@ class TestChunk:
 
     def test_indexed_at_is_iso8601(self):
         import re
+
         chunk = Chunk(text="test", source="f.md")
         # Verifica formato ISO 8601 básico
         assert re.match(r"\d{4}-\d{2}-\d{2}T", chunk.indexed_at)
@@ -69,7 +66,9 @@ class TestChunkerInit:
 
 
 class TestSplitSmallDocument:
-    def test_document_smaller_than_chunk_size_returns_one_chunk(self, chunker: RecursiveChunker):
+    def test_document_smaller_than_chunk_size_returns_one_chunk(
+        self, chunker: RecursiveChunker
+    ):
         doc = make_doc("Texto curto.")
         chunks = chunker.split([doc])
         assert len(chunks) == 1
@@ -85,7 +84,9 @@ class TestSplitSmallDocument:
         chunks = chunker.split([doc])
         assert chunks == []
 
-    def test_whitespace_only_document_returns_no_chunks(self, chunker: RecursiveChunker):
+    def test_whitespace_only_document_returns_no_chunks(
+        self, chunker: RecursiveChunker
+    ):
         doc = make_doc("   \n\n   ")
         chunks = chunker.split([doc])
         assert chunks == []
@@ -95,7 +96,9 @@ class TestSplitSmallDocument:
 
 
 class TestSplitLargeDocument:
-    def test_large_document_splits_into_multiple_chunks(self, small_chunker: RecursiveChunker):
+    def test_large_document_splits_into_multiple_chunks(
+        self, small_chunker: RecursiveChunker
+    ):
         # 50 palavras → deve gerar mais de 1 chunk com chunk_size=10
         text = " ".join(f"palavra{i}" for i in range(50))
         doc = make_doc(text)
@@ -109,9 +112,9 @@ class TestSplitLargeDocument:
         # Com uma margem de tolerância (separadores podem aumentar levemente)
         for chunk in chunks:
             word_count = len(chunk.text.split())
-            assert word_count <= small_chunker.chunk_size + 5, (
-                f"Chunk muito grande: {word_count} palavras"
-            )
+            assert (
+                word_count <= small_chunker.chunk_size + 5
+            ), f"Chunk muito grande: {word_count} palavras"
 
     def test_chunks_are_not_empty(self, small_chunker: RecursiveChunker):
         text = " ".join(f"palavra{i}" for i in range(50))

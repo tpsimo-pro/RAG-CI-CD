@@ -16,9 +16,6 @@ Uso típico:
 
 from __future__ import annotations
 
-import re
-from typing import Dict, List, Optional, Tuple
-
 import requests
 from rich.console import Console
 
@@ -29,13 +26,13 @@ from rag_reviewer.llm_client import Violation
 console = Console()
 
 # Tipo alias
-ViolationList = List[Tuple[FileDiff, Violation]]
+ViolationList = list[tuple[FileDiff, Violation]]
 
-_SEVERITY_EMOJI: Dict[str, str] = {
+_SEVERITY_EMOJI: dict[str, str] = {
     "CRITICAL": "⛔",
-    "HIGH":     "🔴",
-    "MEDIUM":   "🟡",
-    "LOW":      "🔵",
+    "HIGH": "🔴",
+    "MEDIUM": "🟡",
+    "LOW": "🔵",
 }
 
 _GITHUB_API_BASE = "https://api.github.com"
@@ -54,10 +51,10 @@ class GitHubPublisher:
 
     def __init__(
         self,
-        token: Optional[str] = None,
-        repo: Optional[str] = None,
-        pr_number: Optional[int] = None,
-        head_sha: Optional[str] = None,
+        token: str | None = None,
+        repo: str | None = None,
+        pr_number: int | None = None,
+        head_sha: str | None = None,
     ) -> None:
         """
         Inicializa o publisher.
@@ -66,10 +63,10 @@ class GitHubPublisher:
         Em produção, os valores vêm de ``get_settings()``.
         """
         settings = get_settings()
-        self._token    = token      if token      is not None else settings.github_token
-        self._repo     = repo       if repo       is not None else settings.repo_full_name
-        self._pr_number = pr_number if pr_number  is not None else settings.pr_number
-        self._head_sha  = head_sha  if head_sha   is not None else settings.pr_head_sha
+        self._token = token if token is not None else settings.github_token
+        self._repo = repo if repo is not None else settings.repo_full_name
+        self._pr_number = pr_number if pr_number is not None else settings.pr_number
+        self._head_sha = head_sha if head_sha is not None else settings.pr_head_sha
         self._headers = {
             "Authorization": f"Bearer {self._token}",
             "Accept": "application/vnd.github+json",
@@ -91,7 +88,9 @@ class GitHubPublisher:
             pr_diff: Diff completo do PR (usado para contexto no sumário).
         """
         if not violations:
-            self.post_summary("✅ Nenhuma violação detectada nas normas organizacionais.")
+            self.post_summary(
+                "✅ Nenhuma violação detectada nas normas organizacionais."
+            )
             return
 
         review_comments = self._build_review_comments(violations)
@@ -133,8 +132,7 @@ class GitHubPublisher:
             message: Mensagem explicativa exibida no topo da review.
         """
         url = (
-            f"{_GITHUB_API_BASE}/repos/{self._repo}"
-            f"/pulls/{self._pr_number}/reviews"
+            f"{_GITHUB_API_BASE}/repos/{self._repo}" f"/pulls/{self._pr_number}/reviews"
         )
         payload = {
             "commit_id": self._head_sha,
@@ -160,14 +158,16 @@ class GitHubPublisher:
         for file_diff, violation in violations:
             position = _find_diff_position(file_diff.patch, violation.line_content)
             if position is not None:
-                comments.append({
-                    "path":     file_diff.filename,
-                    "position": position,
-                    "body":     _format_inline_comment(violation),
-                })
+                comments.append(
+                    {
+                        "path": file_diff.filename,
+                        "position": position,
+                        "body": _format_inline_comment(violation),
+                    }
+                )
         return comments
 
-    def _create_review(self, comments: list, severity_counts: Dict[str, int]) -> None:
+    def _create_review(self, comments: list, severity_counts: dict[str, int]) -> None:
         """
         Cria uma review consolidada com comentários inline e sumário.
 
@@ -182,13 +182,12 @@ class GitHubPublisher:
 
         payload = {
             "commit_id": self._head_sha,
-            "body":      body,
-            "event":     "COMMENT",
-            "comments":  comments,
+            "body": body,
+            "event": "COMMENT",
+            "comments": comments,
         }
         url = (
-            f"{_GITHUB_API_BASE}/repos/{self._repo}"
-            f"/pulls/{self._pr_number}/reviews"
+            f"{_GITHUB_API_BASE}/repos/{self._repo}" f"/pulls/{self._pr_number}/reviews"
         )
         response = requests.post(url, headers=self._headers, json=payload, timeout=30)
         response.raise_for_status()
@@ -197,7 +196,7 @@ class GitHubPublisher:
 # ── Funções puras auxiliares ───────────────────────────────────────────────────
 
 
-def _find_diff_position(patch: str, line_content: str) -> Optional[int]:
+def _find_diff_position(patch: str, line_content: str) -> int | None:
     """
     Encontra a posição (1-indexed) de uma linha adicionada dentro do patch.
 
@@ -263,7 +262,7 @@ def _format_inline_comment(violation: Violation) -> str:
     )
 
 
-def _count_by_severity(violations: ViolationList) -> Dict[str, int]:
+def _count_by_severity(violations: ViolationList) -> dict[str, int]:
     """
     Conta as violações agrupadas por severidade.
 
@@ -273,13 +272,13 @@ def _count_by_severity(violations: ViolationList) -> Dict[str, int]:
     Returns:
         Dict com chaves 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW' e suas contagens.
     """
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     for _, v in violations:
         counts[v.severity] = counts.get(v.severity, 0) + 1
     return counts
 
 
-def _build_summary_body(total: int, counts: Dict[str, int]) -> str:
+def _build_summary_body(total: int, counts: dict[str, int]) -> str:
     """
     Constrói o corpo Markdown do sumário da review.
 

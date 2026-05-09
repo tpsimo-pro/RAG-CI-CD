@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 import requests
 from rich.console import Console
@@ -34,9 +33,22 @@ _MAX_QUERY_CHARS: int = 2_000
 # Extensões de arquivo ignoradas na revisão (binários, locks, assets, etc.)
 _IGNORED_EXTENSIONS: frozenset[str] = frozenset(
     {
-        ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp",
-        ".pdf", ".zip", ".tar", ".gz", ".whl", ".exe", ".dll",
-        ".lock", ".sum",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".ico",
+        ".webp",
+        ".pdf",
+        ".zip",
+        ".tar",
+        ".gz",
+        ".whl",
+        ".exe",
+        ".dll",
+        ".lock",
+        ".sum",
     }
 )
 
@@ -63,7 +75,7 @@ class FileDiff:
     deletions: int = 0
     """Número de linhas removidas."""
 
-    added_lines: List[str] = field(default_factory=list)
+    added_lines: list[str] = field(default_factory=list)
     """Apenas as linhas efetivamente adicionadas (prefixo '+' removido)."""
 
 
@@ -77,7 +89,7 @@ class PullRequestDiff:
     repo: str
     """Nome completo do repositório. Ex: 'org/repo'."""
 
-    files: List[FileDiff]
+    files: list[FileDiff]
     """Lista de diffs por arquivo."""
 
     total_additions: int
@@ -106,9 +118,9 @@ class DiffCollector:
 
     def __init__(
         self,
-        token: Optional[str] = None,
-        repo: Optional[str] = None,
-        pr_number: Optional[int] = None,
+        token: str | None = None,
+        repo: str | None = None,
+        pr_number: int | None = None,
     ) -> None:
         """
         Inicializa o coletor.
@@ -200,7 +212,7 @@ class DiffCollector:
         vem no header ``Link`` da resposta.
         """
         results: list = []
-        current_url: Optional[str] = url
+        current_url: str | None = url
         while current_url:
             response = requests.get(
                 current_url,
@@ -213,7 +225,7 @@ class DiffCollector:
             current_url = response.links.get("next", {}).get("url")
         return results
 
-    def _parse_files(self, raw_files: list) -> List[FileDiff]:
+    def _parse_files(self, raw_files: list) -> list[FileDiff]:
         """
         Converte a lista bruta da API em objetos FileDiff.
 
@@ -222,7 +234,7 @@ class DiffCollector:
         - Extensões ignoradas (binários, imagens, etc.)
         - Arquivos sem patch (binários detectados em tempo de execução)
         """
-        files: List[FileDiff] = []
+        files: list[FileDiff] = []
         skipped = 0
 
         for raw in raw_files:
@@ -270,7 +282,7 @@ class DiffCollector:
 # ── Funções auxiliares puras ───────────────────────────────────────────────────
 
 
-def _extract_added_lines(patch: str) -> List[str]:
+def _extract_added_lines(patch: str) -> list[str]:
     """
     Extrai apenas as linhas adicionadas de um patch no formato unified diff.
 
@@ -283,7 +295,7 @@ def _extract_added_lines(patch: str) -> List[str]:
     Returns:
         Lista de strings com o conteúdo das linhas adicionadas (sem o '+').
     """
-    added: List[str] = []
+    added: list[str] = []
     for line in patch.splitlines():
         if line.startswith("+") and not line.startswith("+++"):
             added.append(line[1:])  # remove o prefixo '+'

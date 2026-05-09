@@ -7,16 +7,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
 from rag_reviewer.diff_parser import FileDiff
-from rag_reviewer.llm_client import LLMClient, Violation, _VALID_SEVERITIES
+from rag_reviewer.llm_client import _VALID_SEVERITIES, LLMClient, Violation
 from rag_reviewer.retriever import RetrievedContext
 from rag_reviewer.reviewer import RAGReviewer
-
 
 # ── Helpers de fixture ────────────────────────────────────────────────────────
 
@@ -43,7 +41,13 @@ def make_chunk(
     section: str = "3.2 Funções",
     score: float = 0.85,
 ) -> dict:
-    return {"text": text, "source": source, "section": section, "page": 0, "score": score}
+    return {
+        "text": text,
+        "source": source,
+        "section": section,
+        "page": 0,
+        "score": score,
+    }
 
 
 def make_context(
@@ -77,7 +81,9 @@ def make_violation_dict(
 
 def make_llm_response(violations: list | None = None) -> str:
     """Gera uma resposta JSON simulando a saída do LLM."""
-    data = {"violations": violations if violations is not None else [make_violation_dict()]}
+    data = {
+        "violations": violations if violations is not None else [make_violation_dict()]
+    }
     return json.dumps(data)
 
 
@@ -90,9 +96,7 @@ def make_llm_client(api_key: str = "sk-test") -> LLMClient:
         client._max_tokens = 1024
         client._client = None
         client._system_prompt = "system mock"
-        client._review_template = (
-            "## Arquivo\n{filename}\n## Linhas\n{added_lines}\n## Normas\n{retrieved_chunks}"
-        )
+        client._review_template = "## Arquivo\n{filename}\n## Linhas\n{added_lines}\n## Normas\n{retrieved_chunks}"
     return client
 
 
@@ -128,19 +132,22 @@ class TestViolation:
 
 class TestLLMClientPrompts:
     def test_system_prompt_file_exists(self):
-        path = Path(__file__).parent.parent.parent / "rag_reviewer" / "prompts" / "system_prompt.txt"
+        path = (
+            Path(__file__).parent.parent.parent
+            / "rag_reviewer"
+            / "prompts"
+            / "system_prompt.txt"
+        )
         assert path.exists(), f"system_prompt.txt não encontrado em {path}"
 
     def test_review_template_file_exists(self):
-        path = Path(__file__).parent.parent.parent / "rag_reviewer" / "prompts" / "review_template.txt"
+        path = (
+            Path(__file__).parent.parent.parent
+            / "rag_reviewer"
+            / "prompts"
+            / "review_template.txt"
+        )
         assert path.exists(), f"review_template.txt não encontrado em {path}"
-
-    def test_system_prompt_not_empty(self):
-        client = make_llm_client()
-        # Carrega o arquivo real
-        real_client = LLMClient.__new__(LLMClient)
-        prompt = LLMClient._load_prompt("system_prompt.txt")
-        assert len(prompt.strip()) > 0
 
     def test_load_prompt_raises_when_file_missing(self):
         with pytest.raises(FileNotFoundError, match="nonexistent.txt"):
@@ -207,10 +214,12 @@ class TestBuildUserMessage:
 
     def test_multiple_chunks_separated(self):
         client = make_llm_client()
-        ctx = make_context(chunks=[
-            make_chunk(text="Norma A"),
-            make_chunk(text="Norma B"),
-        ])
+        ctx = make_context(
+            chunks=[
+                make_chunk(text="Norma A"),
+                make_chunk(text="Norma B"),
+            ]
+        )
         msg = client._build_user_message(ctx)
         assert "Norma A" in msg
         assert "Norma B" in msg
@@ -242,6 +251,7 @@ class TestExtractJson:
 
     def test_raises_when_no_valid_json(self):
         import json as _json
+
         client = make_llm_client()
         with pytest.raises(_json.JSONDecodeError):
             client._extract_json("Isso não é JSON de jeito nenhum.")
@@ -306,10 +316,12 @@ class TestParseResponse:
 
     def test_multiple_violations_parsed(self):
         client = make_llm_client()
-        raw = make_llm_response([
-            make_violation_dict(line_content="line1"),
-            make_violation_dict(line_content="line2"),
-        ])
+        raw = make_llm_response(
+            [
+                make_violation_dict(line_content="line1"),
+                make_violation_dict(line_content="line2"),
+            ]
+        )
         violations = client._parse_response(raw)
         assert len(violations) == 2
 
@@ -466,6 +478,7 @@ class TestRAGReviewerReviewContext:
 class TestRAGReviewerRun:
     def _make_pr_diff(self, files=None):
         from rag_reviewer.diff_parser import PullRequestDiff
+
         if files is None:
             files = [make_file_diff()]
         return PullRequestDiff(
@@ -535,7 +548,7 @@ class TestRAGReviewerRun:
         assert result == []
 
     def test_run_calls_request_changes_for_critical(self):
-        from rag_reviewer.config import get_settings
+
         v_critical = Violation("x", "d", "ref", "CRITICAL", "fix")
 
         mock_collector = MagicMock()

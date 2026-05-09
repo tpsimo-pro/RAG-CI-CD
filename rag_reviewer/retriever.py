@@ -19,8 +19,7 @@ Uso típico:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
 
 from rich.console import Console
 
@@ -47,7 +46,7 @@ class RetrievedContext:
     file_diff: FileDiff
     """O diff do arquivo que originou a consulta."""
 
-    chunks: List[dict]
+    chunks: list[dict]
     """
     Chunks recuperados do Qdrant, cada um com as chaves:
       - text    : texto do trecho normativo
@@ -103,9 +102,7 @@ class Retriever:
         self._store = store if store is not None else VectorStore()
         self._top_k = top_k if top_k is not None else settings.top_k_chunks
         self._score_threshold = (
-            score_threshold
-            if score_threshold is not None
-            else settings.score_threshold
+            score_threshold if score_threshold is not None else settings.score_threshold
         )
 
     # ── Propriedades ──────────────────────────────────────────────────────
@@ -120,7 +117,7 @@ class Retriever:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def retrieve_for_diff(self, pr_diff: PullRequestDiff) -> List[RetrievedContext]:
+    def retrieve_for_diff(self, pr_diff: PullRequestDiff) -> list[RetrievedContext]:
         """
         Recupera contexto normativo para cada arquivo relevante do PR.
 
@@ -142,7 +139,7 @@ class Retriever:
             f"arquivo(s) com linhas adicionadas para revisar."
         )
 
-        contexts: List[RetrievedContext] = []
+        contexts: list[RetrievedContext] = []
         for file_diff in candidates:
             ctx = self._retrieve_for_file(file_diff)
             if ctx is not None:
@@ -170,7 +167,7 @@ class Retriever:
 
     # ── Internos ──────────────────────────────────────────────────────────
 
-    def _filter_candidates(self, files: List[FileDiff]) -> List[FileDiff]:
+    def _filter_candidates(self, files: list[FileDiff]) -> list[FileDiff]:
         """
         Filtra apenas arquivos com linhas adicionadas que merecem revisão.
 
