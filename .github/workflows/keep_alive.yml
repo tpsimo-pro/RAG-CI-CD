@@ -1,0 +1,47 @@
+name: Keep Qdrant Alive
+
+on:
+  schedule:
+    # Executa a cada 3 dias às 00:00 UTC (seguro para evitar a suspensão de 72h/inatividade)
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # Permite execução manual pela aba Actions do GitHub
+
+jobs:
+  ping:
+    name: Ping Qdrant API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Executar requisição HTTP para o Qdrant Cloud
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+        run: |
+          if [ -z "$QDRANT_URL" ]; then
+            echo "❌ Erro: A variável de ambiente QDRANT_URL não está configurada nos Secrets do GitHub."
+            exit 1
+          fi
+
+          # Garante que não há barra "/" sobrando no final da URL
+          URL=$(echo "$QDRANT_URL" | sed 's/\/$//')
+
+          echo "Pinguando Qdrant Cloud em: $URL/collections"
+
+          # Envia uma requisição GET para /collections com a api-key
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "$URL/collections" \
+            -H "api-key: $QDRANT_API_KEY" \
+            -H "Content-Type: application/json")
+
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "Código HTTP retornado: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ Sucesso! Qdrant está ativo e respondendo. Requisição mantida com sucesso!"
+          else
+            echo "❌ Falha ao pinguar o Qdrant. Status: $HTTP_STATUS"
+            echo "Corpo da resposta:"
+            echo "$BODY"
+            exit 1
+          fi

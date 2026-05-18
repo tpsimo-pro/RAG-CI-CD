@@ -1,7 +1,7 @@
 # RAG-Reviewer — Makefile
 # Atalhos para tarefas de desenvolvimento
 
-.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant evaluate clean
+.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant keep-alive evaluate clean
 
 # ── Intérprete Python — sempre usa o .venv do projeto ────────────────────────
 # Detecta Windows (Scripts/) vs Unix (bin/)
@@ -89,6 +89,11 @@ docker-qdrant:
 		qdrant/qdrant:latest
 	@echo "Qdrant disponível em http://localhost:6333"
 	@echo "Dashboard: http://localhost:6333/dashboard"
+
+# ── Qdrant Cloud Keep-Alive ───────────────────────────────────────────────────
+
+keep-alive:
+	$(PYTHON) -c "from rag_reviewer.vector_store import VectorStore; vs = VectorStore(); info = vs.collection_info(); print('Qdrant Connection Successful! Collection info:', info)"
 
 # ── Avaliação ────────────────────────────────────────────────────────────────
 
