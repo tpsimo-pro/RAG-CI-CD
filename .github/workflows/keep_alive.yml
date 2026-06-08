@@ -1,9 +1,6 @@
 name: Keep Qdrant Alive
 
 on:
-  push:
-    branches:
-      - main
   schedule:
     # Executa a cada 3 dias às 00:00 UTC (seguro para evitar a suspensão de 72h/inatividade)
     - cron: '0 0 */3 * *'
