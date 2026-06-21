@@ -49,7 +49,7 @@ class Settings(BaseSettings):
 
     # ── Retrieval ────────────────────────────────────────────────────────────
     top_k_chunks: int = Field(default=5, alias="TOP_K_CHUNKS")
-    score_threshold: float = Field(default=0.55, alias="SCORE_THRESHOLD")
+    score_threshold: float = Field(default=0.35, alias="SCORE_THRESHOLD")
     max_diff_tokens: int = Field(default=3000, alias="MAX_DIFF_TOKENS")
 
     # ── Comportamento ────────────────────────────────────────────────────────
