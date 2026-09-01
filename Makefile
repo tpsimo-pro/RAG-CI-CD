@@ -98,7 +98,7 @@ keep-alive:
 # ── Avaliação ────────────────────────────────────────────────────────────────
 
 evaluate:
-	set PYTHONIOENCODING=utf-8 && $(PYTHON) -m evaluation.run_evaluation
+	$(PYTHON) -m evaluation.run_evaluation
 
 # ── Limpeza ───────────────────────────────────────────────────────────────────
 

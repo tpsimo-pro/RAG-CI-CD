@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     # ── LLM ─────────────────────────────────────────────────────────────────
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
     llm_model: str = Field(default="llama-3.3-70b-versatile", alias="LLM_MODEL")
+    llm_temperature: float = Field(default=0.0, alias="LLM_TEMPERATURE")
 
     # ── Qdrant ───────────────────────────────────────────────────────────────
     qdrant_url: str = Field(default="http://localhost:6333", alias="QDRANT_URL")
