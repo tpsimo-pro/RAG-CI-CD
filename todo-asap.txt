@@ -1,0 +1,13 @@
+Estrutura & Metodologia (TCC-2)
+
+Objetivos: Manter OE-1 e OE-2.
+
+Avaliação: Remover a etapa de revisão humana; adotar Matriz de Confusão completa, Precisão, Recalle F1-Score, para avaliar as detecções do modelo.
+
+Escopo da Ferramenta (RAG-Reviewer): Focar estritamente na detecção e validação de regras/violações críticas pré-definidas, sem dispersão de escopo.
+
+Plano de Ação Técnico: Estudo de Validação
+
+Piloto Imediato (1 Regra): Validar o pipeline completo do RAG ponta a ponta com uma única regra arquitetural/código para provar viabilidade.
+
+Mensurar se a IA identifica corretamente os padrões.
