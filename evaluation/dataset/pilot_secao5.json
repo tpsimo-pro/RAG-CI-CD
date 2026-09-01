@@ -1,0 +1,2042 @@
+[
+  {
+    "pr_id": "PR-001",
+    "description": "Verificação de permissões de acesso ao painel administrativo",
+    "filename": "auth/permissions.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def can_access_dashboard(user, account):\n+    if user.is_admin == True:\n+        return True\n+    if account.suspended == False:\n+        allow_dashboard_access(user)\n+    return user.two_factor_enabled == True\n+    if account.owner is not None:\n+        log_account_access(account)\n+    if account.billing_profile is None:\n+        return False",
+    "added_lines": [
+      {
+        "line": "def can_access_dashboard(user, account):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if user.is_admin == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        return True",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if account.suspended == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        allow_dashboard_access(user)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return user.two_factor_enabled == True",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "    if account.owner is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        log_account_access(account)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if account.billing_profile is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        return False",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-002",
+    "description": "Validação de status de transação no gateway de pagamento",
+    "filename": "payments/gateway.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def process_transaction_result(transaction, gateway_response):\n+    if gateway_response.approved == True:\n+        transaction.mark_completed()\n+    if gateway_response.declined == False:\n+        retry_transaction(transaction)\n+    return transaction.refunded == True\n+    if transaction.is_recurring:\n+        schedule_next_charge(transaction)\n+    if not gateway_response.fraud_flag:\n+        log_transaction(transaction)",
+    "added_lines": [
+      {
+        "line": "def process_transaction_result(transaction, gateway_response):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if gateway_response.approved == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        transaction.mark_completed()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if gateway_response.declined == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        retry_transaction(transaction)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return transaction.refunded == True",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "    if transaction.is_recurring:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        schedule_next_charge(transaction)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not gateway_response.fraud_flag:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        log_transaction(transaction)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-003",
+    "description": "Invalidação de cache de sessão de usuário",
+    "filename": "cache/invalidation.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def invalidate_session_cache(session, cache_client):\n+    if session.dirty == True:\n+        cache_client.delete(session.key)\n+    if session.locked == False:\n+        cache_client.expire(session.key, 0)\n+    return session.revoked == True\n+    if session.region != cache_client.region:\n+        cache_client.sync(session)\n+    if session.version == cache_client.schema_version:\n+        purge_related_keys(session)",
+    "added_lines": [
+      {
+        "line": "def invalidate_session_cache(session, cache_client):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.dirty == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        cache_client.delete(session.key)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.locked == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        cache_client.expire(session.key, 0)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return session.revoked == True",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.region != cache_client.region:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        cache_client.sync(session)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.version == cache_client.schema_version:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        purge_related_keys(session)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-004",
+    "description": "Exportação de relatórios financeiros mensais",
+    "filename": "reports/export.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def build_monthly_export(report, options):\n+    if report.finalized == True:\n+        return generate_pdf(report)\n+    if options.include_charts == False:\n+        strip_chart_section(report)\n+    if report.has_errors == True:\n+        raise ExportError(report.id)\n+    assert report.draft_version is None\n+    cleanup_temp_files(report)\n+    return report.file_path is not None",
+    "added_lines": [
+      {
+        "line": "def build_monthly_export(report, options):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if report.finalized == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        return generate_pdf(report)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if options.include_charts == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        strip_chart_section(report)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if report.has_errors == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        raise ExportError(report.id)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert report.draft_version is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    cleanup_temp_files(report)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return report.file_path is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-005",
+    "description": "Despacho de notificações push para usuários ativos",
+    "filename": "notifications/dispatcher.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def dispatch_push_notification(user, notification):\n+    if user.push_enabled == True:\n+        send_to_device(user.device_token, notification)\n+    if notification.muted == False:\n+        increment_delivery_count(notification)\n+    if user.device_token is not None:\n+        log_dispatch(user, notification)\n+    if notification.scheduled_at is None:\n+        notification.scheduled_at = now()",
+    "added_lines": [
+      {
+        "line": "def dispatch_push_notification(user, notification):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if user.push_enabled == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        send_to_device(user.device_token, notification)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if notification.muted == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        increment_delivery_count(notification)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if user.device_token is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        log_dispatch(user, notification)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if notification.scheduled_at is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        notification.scheduled_at = now()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-006",
+    "description": "Verificação de disponibilidade de estoque",
+    "filename": "inventory/stock_check.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def check_stock_availability(product, warehouse):\n+    if product.discontinued == True:\n+        return False\n+    if warehouse.active == False:\n+        route_to_backup_warehouse(product)\n+    if product.backorder_allowed:\n+        trigger_low_stock_alert(product)\n+    if not warehouse.has_capacity:\n+        return warehouse.quantity_for(product)",
+    "added_lines": [
+      {
+        "line": "def check_stock_availability(product, warehouse):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if product.discontinued == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        return False",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if warehouse.active == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        route_to_backup_warehouse(product)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if product.backorder_allowed:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        trigger_low_stock_alert(product)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not warehouse.has_capacity:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        return warehouse.quantity_for(product)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-007",
+    "description": "Atualização de status de pedidos em processamento",
+    "filename": "orders/status.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def update_order_status(order, event):\n+    if event.cancelled == True:\n+        order.status = 'cancelled'\n+    if event.shipped == False:\n+        order.status = 'processing'\n+    return event.delivered == True\n+    if order.priority != event.priority:\n+        persist_order(order)\n+    if order.warehouse_id == event.warehouse_id:\n+        skip_reallocation(order)",
+    "added_lines": [
+      {
+        "line": "def update_order_status(order, event):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.cancelled == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        order.status = 'cancelled'",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.shipped == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        order.status = 'processing'",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return event.delivered == True",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "    if order.priority != event.priority:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        persist_order(order)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if order.warehouse_id == event.warehouse_id:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        skip_reallocation(order)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-008",
+    "description": "Geração de faturas para clientes com plano ativo",
+    "filename": "billing/invoices.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def generate_invoice(customer, plan):\n+    if plan.active == True:\n+        invoice = build_invoice(customer, plan)\n+    if customer.tax_exempt == False:\n+        invoice.apply_tax(plan.tax_rate)\n+    if plan.trial == True:\n+        invoice.apply_discount(plan.trial_discount)\n+    assert invoice.due_date is None\n+    invoice.due_date = calculate_due_date(plan)\n+    return invoice.total is not None",
+    "added_lines": [
+      {
+        "line": "def generate_invoice(customer, plan):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if plan.active == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        invoice = build_invoice(customer, plan)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if customer.tax_exempt == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        invoice.apply_tax(plan.tax_rate)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if plan.trial == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        invoice.apply_discount(plan.trial_discount)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert invoice.due_date is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    invoice.due_date = calculate_due_date(plan)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return invoice.total is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-009",
+    "description": "Aplicação de filtros de busca avançada no catálogo",
+    "filename": "search/filters.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def apply_search_filters(query, filters):\n+    if filters.in_stock_only == True:\n+        query = query.filter(in_stock=True)\n+    if filters.on_sale == False:\n+        query = query.exclude(on_sale=True)\n+    if filters.category is not None:\n+        query = query.filter(category=filters.category)\n+    if filters.price_range is None:\n+        filters.price_range = default_price_range()",
+    "added_lines": [
+      {
+        "line": "def apply_search_filters(query, filters):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if filters.in_stock_only == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        query = query.filter(in_stock=True)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if filters.on_sale == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        query = query.exclude(on_sale=True)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if filters.category is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        query = query.filter(category=filters.category)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if filters.price_range is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        filters.price_range = default_price_range()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-010",
+    "description": "Verificação de expiração de sessão de usuário",
+    "filename": "sessions/timeout.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def check_session_timeout(session, now):\n+    if session.expired == True:\n+        invalidate_session(session)\n+    if session.remember_me == False:\n+        session.ttl = SHORT_TTL\n+    if session.idle_too_long:\n+        force_logout(session)\n+    if not session.is_active:\n+        return session.ttl",
+    "added_lines": [
+      {
+        "line": "def check_session_timeout(session, now):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.expired == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        invalidate_session(session)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.remember_me == False:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        session.ttl = SHORT_TTL",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if session.idle_too_long:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        force_logout(session)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not session.is_active:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        return session.ttl",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-011",
+    "description": "Atualização de dados de perfil de usuário",
+    "filename": "users/profile.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def update_user_profile(user, payload):\n+    if payload.email != None:\n+        user.email = payload.email\n+    if payload.avatar_url == None:\n+        user.avatar_url = DEFAULT_AVATAR\n+    return payload.phone != None\n+    if payload.locale != user.locale:\n+        user.locale = payload.locale\n+    if payload.timezone == user.timezone:\n+        user.save()",
+    "added_lines": [
+      {
+        "line": "def update_user_profile(user, payload):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if payload.email != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        user.email = payload.email",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if payload.avatar_url == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        user.avatar_url = DEFAULT_AVATAR",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return payload.phone != None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if payload.locale != user.locale:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        user.locale = payload.locale",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if payload.timezone == user.timezone:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        user.save()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-012",
+    "description": "Processamento de upload de arquivos anexos",
+    "filename": "uploads/handler.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def process_uploaded_file(upload, storage):\n+    if upload.content_type != None:\n+        validate_content_type(upload.content_type)\n+    if upload.checksum == None:\n+        upload.checksum = compute_checksum(upload.data)\n+    if upload.virus_scan_result != None:\n+        quarantine_if_flagged(upload)\n+    assert upload.temp_path is None\n+    upload.temp_path = storage.write_temp(upload.data)\n+    return storage.finalize(upload) is not None",
+    "added_lines": [
+      {
+        "line": "def process_uploaded_file(upload, storage):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if upload.content_type != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        validate_content_type(upload.content_type)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if upload.checksum == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        upload.checksum = compute_checksum(upload.data)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if upload.virus_scan_result != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        quarantine_if_flagged(upload)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert upload.temp_path is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    upload.temp_path = storage.write_temp(upload.data)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return storage.finalize(upload) is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-013",
+    "description": "Agendamento de tarefas recorrentes",
+    "filename": "scheduling/tasks.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def schedule_recurring_task(task, scheduler):\n+    if task.cron_expression == None:\n+        raise InvalidScheduleError(task.id)\n+    if task.last_run != None:\n+        scheduler.skip_immediate_run(task)\n+    return task.owner == None\n+    if task.retry_policy is not None:\n+        task.retry_policy.attach(scheduler)\n+    if task.timeout is None:\n+        task.timeout = DEFAULT_TIMEOUT",
+    "added_lines": [
+      {
+        "line": "def schedule_recurring_task(task, scheduler):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if task.cron_expression == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        raise InvalidScheduleError(task.id)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if task.last_run != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        scheduler.skip_immediate_run(task)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return task.owner == None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if task.retry_policy is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        task.retry_policy.attach(scheduler)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if task.timeout is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        task.timeout = DEFAULT_TIMEOUT",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-014",
+    "description": "Rastreamento de eventos de analytics",
+    "filename": "analytics/tracker.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def track_event(event, session):\n+    if event.user_id != None:\n+        event.attach_user(session.user_id)\n+    if event.metadata == None:\n+        event.metadata = {}\n+    return session.referrer != None\n+    if event.is_anonymous:\n+        event.metadata['anonymous'] = True\n+    if not session.is_authenticated:\n+        event.metadata['guest'] = True",
+    "added_lines": [
+      {
+        "line": "def track_event(event, session):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.user_id != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        event.attach_user(session.user_id)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.metadata == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        event.metadata = {}",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return session.referrer != None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.is_anonymous:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        event.metadata['anonymous'] = True",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not session.is_authenticated:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        event.metadata['guest'] = True",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-015",
+    "description": "Consumo de mensagens da fila de processamento",
+    "filename": "messaging/queue.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def consume_queue_message(message, handler):\n+    if message.payload == None:\n+        reject_message(message)\n+    if message.correlation_id != None:\n+        handler.track_correlation(message.correlation_id)\n+    if message.retry_count != message.max_retries:\n+        handler.process(message)\n+    if message.priority == handler.default_priority:\n+        acknowledge(message)",
+    "added_lines": [
+      {
+        "line": "def consume_queue_message(message, handler):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if message.payload == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        reject_message(message)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if message.correlation_id != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        handler.track_correlation(message.correlation_id)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if message.retry_count != message.max_retries:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        handler.process(message)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if message.priority == handler.default_priority:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        acknowledge(message)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-016",
+    "description": "Aplicação de limite de requisições por usuário",
+    "filename": "rate_limit/throttle.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def check_rate_limit(client, window):\n+    if client.override_token != None:\n+        return True\n+    if window.remaining_quota == None:\n+        window.remaining_quota = window.max_quota\n+    window.remaining_quota -= 1\n+    log_rate_limit_check(client)\n+    assert client.blocked_until is None\n+    return window.remaining_quota is not None",
+    "added_lines": [
+      {
+        "line": "def check_rate_limit(client, window):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if client.override_token != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        return True",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if window.remaining_quota == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        window.remaining_quota = window.max_quota",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    window.remaining_quota -= 1",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    log_rate_limit_check(client)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert client.blocked_until is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return window.remaining_quota is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-017",
+    "description": "Avaliação de feature flags por ambiente",
+    "filename": "feature_flags/toggles.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def evaluate_feature_flag(flag, context):\n+    if flag.rollout_percentage == None:\n+        flag.rollout_percentage = 0\n+    if context.user_segment != None:\n+        apply_segment_override(flag, context.user_segment)\n+    return flag.expires_at == None\n+    if flag.description is not None:\n+        log_flag_description(flag)\n+    if context.experiment_id is None:\n+        return flag.enabled",
+    "added_lines": [
+      {
+        "line": "def evaluate_feature_flag(flag, context):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if flag.rollout_percentage == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        flag.rollout_percentage = 0",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if context.user_segment != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        apply_segment_override(flag, context.user_segment)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return flag.expires_at == None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if flag.description is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        log_flag_description(flag)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if context.experiment_id is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        return flag.enabled",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-018",
+    "description": "Formatação de mensagens de log estruturado",
+    "filename": "logging/formatter.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def format_log_entry(record, config):\n+    if record.trace_id != None:\n+        record.tags['trace_id'] = record.trace_id\n+    if record.exception == None:\n+        record.exception = 'none'\n+    return config.include_hostname != None\n+    if config.pretty_print:\n+        record.tags['pretty'] = True\n+    if not config.include_stack_trace:\n+        record.stack_trace = None",
+    "added_lines": [
+      {
+        "line": "def format_log_entry(record, config):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if record.trace_id != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        record.tags['trace_id'] = record.trace_id",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if record.exception == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        record.exception = 'none'",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return config.include_hostname != None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if config.pretty_print:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        record.tags['pretty'] = True",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not config.include_stack_trace:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        record.stack_trace = None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-019",
+    "description": "Agendamento de backups incrementais",
+    "filename": "backups/scheduler.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def schedule_incremental_backup(job, storage):\n+    if job.last_snapshot == None:\n+        job.last_snapshot = storage.latest_snapshot()\n+    if job.retention_days != None:\n+        storage.set_retention(job.retention_days)\n+    if job.compression != storage.default_compression:\n+        storage.enqueue(job)\n+    if job.destination == storage.primary_region:\n+        return job",
+    "added_lines": [
+      {
+        "line": "def schedule_incremental_backup(job, storage):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if job.last_snapshot == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        job.last_snapshot = storage.latest_snapshot()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if job.retention_days != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        storage.set_retention(job.retention_days)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if job.compression != storage.default_compression:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        storage.enqueue(job)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if job.destination == storage.primary_region:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        return job",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-020",
+    "description": "Rastreamento de status de envio de pedidos",
+    "filename": "shipping/tracking.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def update_shipping_status(shipment, carrier_event):\n+    if carrier_event.delivered_at == None:\n+        shipment.status = 'in_transit'\n+    if carrier_event.exception_code != None:\n+        shipment.flag_exception(carrier_event.exception_code)\n+    shipment.last_updated = carrier_event.timestamp\n+    notify_recipient(shipment)\n+    assert shipment.cancelled_at is None\n+    return shipment.delivered_at is not None",
+    "added_lines": [
+      {
+        "line": "def update_shipping_status(shipment, carrier_event):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if carrier_event.delivered_at == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        shipment.status = 'in_transit'",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if carrier_event.exception_code != None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        shipment.flag_exception(carrier_event.exception_code)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    shipment.last_updated = carrier_event.timestamp",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    notify_recipient(shipment)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert shipment.cancelled_at is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return shipment.delivered_at is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-021",
+    "description": "Validação de cupons de desconto no checkout",
+    "filename": "discounts/coupons.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def validate_coupon(coupon, cart):\n+    if coupon.expired == True:\n+        raise CouponExpiredError(coupon.code)\n+    return coupon.min_purchase != None\n+    if coupon.applicable_category == None:\n+        coupon.applicable_category = 'all'\n+    return coupon.single_use == False\n+    if coupon.owner_id is not None:\n+        validate_owner(coupon)\n+    if cart.applied_coupon is None:\n+        cart.applied_coupon = coupon.code",
+    "added_lines": [
+      {
+        "line": "def validate_coupon(coupon, cart):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if coupon.expired == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        raise CouponExpiredError(coupon.code)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return coupon.min_purchase != None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if coupon.applicable_category == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        coupon.applicable_category = 'all'",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return coupon.single_use == False",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "    if coupon.owner_id is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        validate_owner(coupon)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if cart.applied_coupon is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        cart.applied_coupon = coupon.code",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-022",
+    "description": "Moderação automática de avaliações de produtos",
+    "filename": "reviews/moderation.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def moderate_review(review, rules):\n+    if review.flagged == True:\n+        send_to_manual_review(review)\n+    return review.moderator_id != None\n+    if review.rejection_reason == None:\n+        review.rejection_reason = 'unspecified'\n+    return review.auto_approved == False\n+    if rules.strict_mode:\n+        queue_for_approval(review)\n+    if not rules.allow_profanity:\n+        flag_profanity(review)",
+    "added_lines": [
+      {
+        "line": "def moderate_review(review, rules):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if review.flagged == True:",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "        send_to_manual_review(review)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return review.moderator_id != None",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "    if review.rejection_reason == None:",
+        "viola": true,
+        "sub_regra": "nulo",
+        "hard_negative": false
+      },
+      {
+        "line": "        review.rejection_reason = 'unspecified'",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return review.auto_approved == False",
+        "viola": true,
+        "sub_regra": "booleano",
+        "hard_negative": false
+      },
+      {
+        "line": "    if rules.strict_mode:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        queue_for_approval(review)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not rules.allow_profanity:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        flag_profanity(review)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-023",
+    "description": "Renovação automática de assinaturas",
+    "filename": "subscriptions/renewal.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def renew_subscription(subscription, billing):\n+    days_remaining = subscription.days_until_expiration()\n+    invoice = billing.create_renewal_invoice(subscription)\n+    subscription.last_renewal_attempt = now()\n+    apply_proration(invoice, subscription)\n+    billing.charge(invoice)\n+    record_renewal_metrics(subscription)\n+    if subscription.plan_id != billing.default_plan_id:\n+        flag_plan_mismatch(subscription)\n+    if subscription.currency == billing.account_currency:\n+        skip_currency_conversion(invoice)",
+    "added_lines": [
+      {
+        "line": "def renew_subscription(subscription, billing):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    days_remaining = subscription.days_until_expiration()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    invoice = billing.create_renewal_invoice(subscription)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    subscription.last_renewal_attempt = now()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    apply_proration(invoice, subscription)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    billing.charge(invoice)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    record_renewal_metrics(subscription)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if subscription.plan_id != billing.default_plan_id:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        flag_plan_mismatch(subscription)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if subscription.currency == billing.account_currency:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        skip_currency_conversion(invoice)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-024",
+    "description": "Rastreamento de indicações de novos usuários",
+    "filename": "referrals/tracking.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def track_referral_signup(referral, new_user):\n+    referral.signup_count += 1\n+    reward = calculate_referral_reward(referral)\n+    referral.pending_rewards.append(reward)\n+    new_user.referred_by = referral.referrer_id\n+    check_milestone_progress(referral)\n+    notify_referrer(referral.referrer_id)\n+    log_referral_event(referral, new_user)\n+    update_leaderboard(referral.referrer_id)\n+    assert referral.processed_at is None\n+    return referral.reward_id is not None",
+    "added_lines": [
+      {
+        "line": "def track_referral_signup(referral, new_user):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    referral.signup_count += 1",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    reward = calculate_referral_reward(referral)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    referral.pending_rewards.append(reward)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    new_user.referred_by = referral.referrer_id",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    check_milestone_progress(referral)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    notify_referrer(referral.referrer_id)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    log_referral_event(referral, new_user)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    update_leaderboard(referral.referrer_id)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert referral.processed_at is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return referral.reward_id is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-025",
+    "description": "Abertura de tickets de suporte ao cliente",
+    "filename": "support/tickets.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def open_support_ticket(customer, subject, body_text):\n+    ticket = Ticket(customer_id=customer.id, subject=subject)\n+    ticket.body = body_text\n+    ticket.priority = determine_priority(subject)\n+    ticket.queue = route_to_queue(ticket.priority)\n+    ticket.save()\n+    notify_support_team(ticket)\n+    if customer.assigned_agent is not None:\n+        ticket.assigned_agent = customer.assigned_agent\n+    if ticket.sla_deadline is None:\n+        ticket.sla_deadline = calculate_sla_deadline(ticket.priority)",
+    "added_lines": [
+      {
+        "line": "def open_support_ticket(customer, subject, body_text):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    ticket = Ticket(customer_id=customer.id, subject=subject)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    ticket.body = body_text",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    ticket.priority = determine_priority(subject)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    ticket.queue = route_to_queue(ticket.priority)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    ticket.save()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    notify_support_team(ticket)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if customer.assigned_agent is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        ticket.assigned_agent = customer.assigned_agent",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if ticket.sla_deadline is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        ticket.sla_deadline = calculate_sla_deadline(ticket.priority)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-026",
+    "description": "Resolução de localização geográfica por IP",
+    "filename": "geolocation/resolver.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def resolve_ip_location(ip_address, geo_client):\n+    location = geo_client.lookup(ip_address)\n+    country_code = location.country_code\n+    region = location.region_name\n+    cache_key = build_cache_key(ip_address)\n+    cache.set(cache_key, location, ttl=CACHE_TTL)\n+    record_lookup_metrics(ip_address)\n+    if location.is_vpn:\n+        flag_suspicious_origin(location)\n+    if not location.is_trusted_source:\n+        increase_verification_level(location)",
+    "added_lines": [
+      {
+        "line": "def resolve_ip_location(ip_address, geo_client):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    location = geo_client.lookup(ip_address)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    country_code = location.country_code",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    region = location.region_name",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    cache_key = build_cache_key(ip_address)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    cache.set(cache_key, location, ttl=CACHE_TTL)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    record_lookup_metrics(ip_address)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if location.is_vpn:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        flag_suspicious_origin(location)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not location.is_trusted_source:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        increase_verification_level(location)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-027",
+    "description": "Disparo de webhooks para integrações externas",
+    "filename": "webhooks/dispatcher.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def dispatch_webhook(event, subscribers):\n+    payload = serialize_event(event)\n+    signature = sign_payload(payload, subscribers.secret)\n+    headers = build_webhook_headers(signature)\n+    response = http_post(subscribers.endpoint_url, payload, headers)\n+    record_delivery_attempt(subscribers, response)\n+    increment_dispatch_metrics(event.type)\n+    if event.retry_count != subscribers.max_retries:\n+        schedule_retry(event)\n+    if event.source == subscribers.trusted_source:\n+        skip_signature_check(event)",
+    "added_lines": [
+      {
+        "line": "def dispatch_webhook(event, subscribers):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    payload = serialize_event(event)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    signature = sign_payload(payload, subscribers.secret)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    headers = build_webhook_headers(signature)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    response = http_post(subscribers.endpoint_url, payload, headers)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    record_delivery_attempt(subscribers, response)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    increment_dispatch_metrics(event.type)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.retry_count != subscribers.max_retries:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        schedule_retry(event)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if event.source == subscribers.trusted_source:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        skip_signature_check(event)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-028",
+    "description": "Registro de eventos de auditoria do sistema",
+    "filename": "audit/log_writer.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def write_audit_entry(actor, action, target):\n+    entry = AuditEntry(actor_id=actor.id, action=action)\n+    entry.target_type = type(target).__name__\n+    entry.target_id = target.id\n+    entry.timestamp = current_timestamp()\n+    entry.ip_address = actor.last_known_ip\n+    audit_store.append(entry)\n+    flush_if_needed(audit_store)\n+    assert entry.reviewed_at is None\n+    return entry.checksum is not None",
+    "added_lines": [
+      {
+        "line": "def write_audit_entry(actor, action, target):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    entry = AuditEntry(actor_id=actor.id, action=action)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    entry.target_type = type(target).__name__",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    entry.target_id = target.id",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    entry.timestamp = current_timestamp()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    entry.ip_address = actor.last_known_ip",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    audit_store.append(entry)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    flush_if_needed(audit_store)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    assert entry.reviewed_at is None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return entry.checksum is not None",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-029",
+    "description": "Cálculo de preços com regras promocionais",
+    "filename": "pricing/calculator.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def calculate_final_price(product, promotions):\n+    base_price = product.list_price\n+    discount_total = sum(promo.amount for promo in promotions)\n+    if product.active_promotion is not None:\n+        discount_total += product.active_promotion.bonus\n+    if product.discount_cap is None:\n+        product.discount_cap = DEFAULT_DISCOUNT_CAP\n+    final_price = max(base_price - discount_total, MIN_PRICE)\n+    record_price_calculation(product, final_price)\n+    return round(final_price, 2)",
+    "added_lines": [
+      {
+        "line": "def calculate_final_price(product, promotions):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    base_price = product.list_price",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    discount_total = sum(promo.amount for promo in promotions)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if product.active_promotion is not None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        discount_total += product.active_promotion.bonus",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if product.discount_cap is None:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        product.discount_cap = DEFAULT_DISCOUNT_CAP",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    final_price = max(base_price - discount_total, MIN_PRICE)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    record_price_calculation(product, final_price)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return round(final_price, 2)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-030",
+    "description": "Fluxo de redefinição de senha de usuário",
+    "filename": "auth/password_reset.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def initiate_password_reset(user, request_ip):\n+    token = generate_reset_token()\n+    user.reset_token = token\n+    user.reset_token_expires = now() + RESET_TOKEN_TTL\n+    send_reset_email(user.email, token)\n+    log_reset_request(user.id, request_ip)\n+    if user.two_factor_enabled:\n+        flag_for_manual_review(user)\n+    if not user.email_verified:\n+        send_verification_reminder(user)\n+    return token",
+    "added_lines": [
+      {
+        "line": "def initiate_password_reset(user, request_ip):",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    token = generate_reset_token()",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    user.reset_token = token",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    user.reset_token_expires = now() + RESET_TOKEN_TTL",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    send_reset_email(user.email, token)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    log_reset_request(user.id, request_ip)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if user.two_factor_enabled:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        flag_for_manual_review(user)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    if not user.email_verified:",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        send_verification_reminder(user)",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return token",
+        "viola": false,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  }
+]
