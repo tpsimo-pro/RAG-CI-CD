@@ -11,6 +11,7 @@ Parâmetros padrão recomendados pelo planejamento:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -60,6 +61,9 @@ class RecursiveChunker:
 
     # Separadores em ordem de prioridade (do mais amplo ao mais granular)
     _SEPARATORS = ["\n\n", "\n", ". ", "! ", "? ", " "]
+
+    # Marca de abertura/fechamento de bloco cercado (```  ou ~~~).
+    _FENCE = re.compile(r"^[ \t]*(```|~~~)", re.MULTILINE)
 
     def __init__(
         self,
@@ -123,6 +127,17 @@ class RecursiveChunker:
             stripped = text.strip()
             return [stripped] if stripped else []
 
+        segmentos = self._protect_fences(text)
+        if len(segmentos) > 1:
+            # Trata cada bloco cercado como unidade indivisível e só divide a prosa.
+            resultado: list[str] = []
+            for seg in segmentos:
+                if self._FENCE.search(seg):
+                    resultado.append(seg.strip())
+                else:
+                    resultado.extend(self._split_text(seg))
+            return [r for r in resultado if r]
+
         # Tenta dividir pelo separador de maior prioridade que reduza o texto
         for separator in self._SEPARATORS:
             if separator in text:
@@ -131,6 +146,36 @@ class RecursiveChunker:
 
         # Fallback: divide por caractere (texto sem separadores naturais)
         return self._hard_split(text)
+
+    def _protect_fences(self, text: str) -> list[str]:
+        """
+        Fatia o texto em segmentos alternando prosa e blocos cercados inteiros.
+
+        Blocos cercados são ATÔMICOS: nunca são divididos. Um bloco partido
+        ao meio separa o exemplo Correto do Incorreto, destruindo o par que
+        dá ao chunk sua capacidade de casar com código (spec §1.3).
+        """
+        marcas = [m.start() for m in self._FENCE.finditer(text)]
+        if len(marcas) < 2:
+            return [text]
+
+        segmentos: list[str] = []
+        cursor = 0
+        # Consome as marcas aos pares: abertura e fechamento.
+        for i in range(0, len(marcas) - 1, 2):
+            inicio, fim_marca = marcas[i], marcas[i + 1]
+            fim_linha = text.find("\n", fim_marca)
+            fim = len(text) if fim_linha == -1 else fim_linha + 1
+
+            if inicio > cursor:
+                segmentos.append(text[cursor:inicio])
+            segmentos.append(text[inicio:fim])
+            cursor = fim
+
+        if cursor < len(text):
+            segmentos.append(text[cursor:])
+
+        return [s for s in segmentos if s.strip()]
 
     def _merge_splits(self, splits: list[str], separator: str) -> list[str]:
         """
