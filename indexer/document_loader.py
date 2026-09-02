@@ -38,6 +38,32 @@ class Document:
     section: str = ""
 
 
+def _fenced_spans(raw: str) -> list[tuple[int, int]]:
+    """
+    Devolve os intervalos [início, fim) ocupados por blocos de código cercados.
+
+    Cercas são linhas que começam com ``` ou ~~~ (com indentação opcional).
+    Uma cerca de abertura sem fechamento estende-se até o fim do arquivo —
+    tratar assim é conservador: prefere-se ignorar cabeçalhos reais a
+    fabricar seções fantasma a partir de comentários de código.
+    """
+    spans: list[tuple[int, int]] = []
+    abertura: int | None = None
+
+    for m in re.finditer(r"^[ \t]*(```|~~~)", raw, re.MULTILINE):
+        if abertura is None:
+            abertura = m.start()
+        else:
+            fim = raw.find("\n", m.end())
+            spans.append((abertura, len(raw) if fim == -1 else fim + 1))
+            abertura = None
+
+    if abertura is not None:
+        spans.append((abertura, len(raw)))
+
+    return spans
+
+
 class DocumentLoader:
     """
     Carrega documentos de múltiplos formatos e os converte em lista de Document.
@@ -164,7 +190,12 @@ class DocumentLoader:
         # Divide por cabeçalhos de nível 1, 2 ou 3
         # Regex: captura o cabeçalho e seu conteúdo até o próximo cabeçalho
         pattern = re.compile(r"^(#{1,3})\s+(.+)$", re.MULTILINE)
-        matches = list(pattern.finditer(raw))
+        spans = _fenced_spans(raw)
+        matches = [
+            m
+            for m in pattern.finditer(raw)
+            if not any(inicio <= m.start() < fim for inicio, fim in spans)
+        ]
 
         docs = []
         source = str(path)

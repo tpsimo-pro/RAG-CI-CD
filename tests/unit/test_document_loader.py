@@ -198,3 +198,82 @@ class TestLoadErrors:
         file.write_text("content", encoding="utf-8")
         with pytest.raises(NotADirectoryError):
             loader.load_directory(file)
+
+
+def test_comentario_dentro_de_bloco_cercado_nao_vira_secao(tmp_path):
+    """
+    Regressão nomeada: `# Correto` dentro de ```python é comentário Python,
+    não cabeçalho Markdown. Tratá-lo como cabeçalho arrancava os exemplos da
+    norma a que pertencem — a causa raiz dos chunks-lixo.
+    """
+    md = tmp_path / "guia.md"
+    md.write_text(
+        "## 2.3 Nomenclatura de Funções Booleanas\n"
+        "\n"
+        "Funções booleanas devem começar com `is_`.\n"
+        "\n"
+        "```python\n"
+        "# Correto\n"
+        "def is_active(user) -> bool: ...\n"
+        "\n"
+        "# Incorreto\n"
+        "def active(user): ...\n"
+        "```\n",
+        encoding="utf-8",
+    )
+
+    docs = DocumentLoader().load(md)
+    secoes = [d.section for d in docs]
+
+    assert "Correto" not in secoes
+    assert "Incorreto" not in secoes
+    assert secoes == ["2.3 Nomenclatura de Funções Booleanas"]
+
+
+def test_exemplos_permanecem_na_secao_da_norma(tmp_path):
+    """A norma e seus dois exemplos precisam sair no MESMO Document."""
+    md = tmp_path / "guia.md"
+    md.write_text(
+        "## 5. Comparações\n"
+        "\n"
+        "Não compare booleanos com == True.\n"
+        "\n"
+        "```python\n"
+        "# Correto\n"
+        "if is_valid:\n"
+        "# Incorreto\n"
+        "if is_valid == True:\n"
+        "```\n",
+        encoding="utf-8",
+    )
+
+    docs = DocumentLoader().load(md)
+
+    assert len(docs) == 1
+    texto = docs[0].text
+    assert "if is_valid:" in texto
+    assert "if is_valid == True:" in texto
+
+
+class TestCorpusRealSemSecoesFantasma:
+    """
+    Regressão (Ruling 8): trava no CI a invariante verificada manualmente
+    no Step 5 da Tarefa 4 — o corpus real de docs/style_guides não pode
+    mais produzir seções fantasma a partir de comentários dentro de blocos
+    de código cercados.
+    """
+
+    def test_corpus_real_nao_produz_secoes_fantasma(self):
+        style_guides_dir = Path(__file__).parent.parent.parent / "docs" / "style_guides"
+        if not style_guides_dir.is_dir():
+            pytest.skip(f"diretório não encontrado: {style_guides_dir}")
+
+        docs = DocumentLoader().load_directory(style_guides_dir)
+        fantasmas = [
+            d.section
+            for d in docs
+            if d.section.lower().startswith(("correto", "incorreto"))
+            or d.section in ("1. Stdlib", "2. Terceiros", "3. Internos")
+        ]
+
+        assert fantasmas == []
