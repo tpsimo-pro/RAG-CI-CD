@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from indexer.document_loader import Document, DocumentLoader
+from indexer.document_loader import Document, DocumentLoader, _fenced_spans
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -255,12 +255,74 @@ def test_exemplos_permanecem_na_secao_da_norma(tmp_path):
     assert "if is_valid == True:" in texto
 
 
+def test_marca_diferente_nao_fecha_cerca_de_outro_tipo():
+    """
+    Fix round 1 (achado do revisor independente): ``` e ~~~ NÃO são
+    intercambiáveis. Uma linha ``~~~`` dentro de uma cerca ```` ``` ````
+    aberta é conteúdo, não fechamento — do contrário a cerca ``` de
+    fechamento real vira uma abertura órfã que engole tudo até o EOF,
+    inclusive cabeçalhos legítimos.
+
+    Reprodução exata do revisor.
+    """
+    raw = (
+        "## A\n"
+        "```python\n"
+        "some code with a ~~~ inline literal-looking line\n"
+        "~~~\n"
+        "# not really a header\n"
+        "```\n"
+        "## B\n"
+    )
+
+    spans = _fenced_spans(raw)
+
+    # A cerca ```...``` deve fechar em si mesma; a linha "~~~" no meio é
+    # conteúdo do bloco, não um delimitador de fechamento.
+    fence_start = raw.index("```python")
+    fence_close_line_start = raw.rindex("```\n")
+    fence_close_end = fence_close_line_start + len("```\n")
+    assert spans == [(fence_start, fence_close_end)]
+
+    # "## B" fica FORA de qualquer span cercado.
+    b_pos = raw.index("## B")
+    assert not any(inicio <= b_pos < fim for inicio, fim in spans)
+
+
+def test_cabecalho_apos_cerca_mista_sobrevive_no_loader(tmp_path):
+    """Mesmo caso, mas de ponta a ponta via DocumentLoader — `## B` não pode sumir."""
+    md = tmp_path / "guia.md"
+    md.write_text(
+        "## A\n"
+        "\n"
+        "```python\n"
+        "some code with a ~~~ inline literal-looking line\n"
+        "~~~\n"
+        "# not really a header\n"
+        "```\n"
+        "\n"
+        "## B\n"
+        "\n"
+        "Conteúdo de B.\n",
+        encoding="utf-8",
+    )
+
+    docs = DocumentLoader().load(md)
+    secoes = [d.section for d in docs]
+
+    assert secoes == ["A", "B"]
+
+
 class TestCorpusRealSemSecoesFantasma:
     """
     Regressão (Ruling 8): trava no CI a invariante verificada manualmente
     no Step 5 da Tarefa 4 — o corpus real de docs/style_guides não pode
     mais produzir seções fantasma a partir de comentários dentro de blocos
     de código cercados.
+
+    Fix round 1: a ausência de fantasmas sozinha não pega o modo de falha
+    oposto (perder cabeçalho real por pareamento incorreto de ``` com ~~~),
+    então também travamos a contagem total de seções do corpus real.
     """
 
     def test_corpus_real_nao_produz_secoes_fantasma(self):
@@ -277,3 +339,6 @@ class TestCorpusRealSemSecoesFantasma:
         ]
 
         assert fantasmas == []
+        # Não apenas "sem fantasmas": também "sem perdas" — o corpus real
+        # produz hoje exatamente 52 seções (61 no L0 menos as 9 fantasma).
+        assert len(docs) == 52

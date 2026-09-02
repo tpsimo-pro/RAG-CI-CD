@@ -43,20 +43,31 @@ def _fenced_spans(raw: str) -> list[tuple[int, int]]:
     Devolve os intervalos [início, fim) ocupados por blocos de código cercados.
 
     Cercas são linhas que começam com ``` ou ~~~ (com indentação opcional).
-    Uma cerca de abertura sem fechamento estende-se até o fim do arquivo —
-    tratar assim é conservador: prefere-se ignorar cabeçalhos reais a
-    fabricar seções fantasma a partir de comentários de código.
+    ``` e ~~~ não são intercambiáveis: uma cerca só fecha com uma marca do
+    MESMO tipo que a abriu. Uma marca de tipo diferente encontrada com uma
+    cerca já aberta é conteúdo do bloco, não delimitador — do contrário a
+    cerca de fechamento real vira uma abertura órfã que engole tudo até o
+    fim do arquivo, inclusive cabeçalhos legítimos.
+
+    Uma cerca de abertura sem fechamento do mesmo tipo estende-se até o fim
+    do arquivo — tratar assim é conservador: prefere-se ignorar cabeçalhos
+    reais a fabricar seções fantasma a partir de comentários de código.
     """
     spans: list[tuple[int, int]] = []
     abertura: int | None = None
+    tipo_abertura: str | None = None
 
     for m in re.finditer(r"^[ \t]*(```|~~~)", raw, re.MULTILINE):
+        marca = m.group(1)
         if abertura is None:
             abertura = m.start()
-        else:
+            tipo_abertura = marca
+        elif marca == tipo_abertura:
             fim = raw.find("\n", m.end())
             spans.append((abertura, len(raw) if fim == -1 else fim + 1))
             abertura = None
+            tipo_abertura = None
+        # marca de tipo diferente com cerca já aberta: conteúdo, não fechamento.
 
     if abertura is not None:
         spans.append((abertura, len(raw)))
