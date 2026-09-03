@@ -43,8 +43,15 @@ def embedder(mock_sentence_transformer) -> Embedder:
 
 class TestEmbedderInit:
     def test_default_model_name(self):
+        """
+        Default multilíngue desde a Task 8 (L3): o corpus normativo é
+        integralmente em português.
+        """
         emb = Embedder()
-        assert emb.model_name == "all-MiniLM-L6-v2"
+        assert (
+            emb.model_name
+            == "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        )
 
     def test_custom_model_name(self):
         emb = Embedder(model_name="paraphrase-multilingual-MiniLM-L12-v2")
@@ -136,3 +143,21 @@ class TestImportError:
             emb._model = None  # garante que tentará carregar
             with pytest.raises((ImportError, TypeError)):
                 emb._ensure_model_loaded()
+
+
+# ── Testes: modelo default multilíngue (L3) ─────────────────────────────────────
+
+
+class TestModeloDefault:
+    def test_modelo_default_e_multilingue(self):
+        """
+        O corpus normativo é integralmente em português. Um modelo treinado em
+        inglês dá 0.597 entre traduções literais, quando o esperado é ~0.95
+        (spec §1.2).
+        """
+        from rag_reviewer.config import Settings
+
+        modelo = Settings().embedding_model
+        assert "multilingual" in modelo, (
+            f"modelo {modelo!r} nao e multilingue; o corpus e em portugues"
+        )

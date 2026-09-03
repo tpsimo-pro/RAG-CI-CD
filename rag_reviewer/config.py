@@ -46,7 +46,10 @@ class Settings(BaseSettings):
     )
 
     # ── Embedding ────────────────────────────────────────────────────────────
-    embedding_model: str = Field(default="all-MiniLM-L6-v2", alias="EMBEDDING_MODEL")
+    embedding_model: str = Field(
+        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        alias="EMBEDDING_MODEL",
+    )
 
     # ── Retrieval ────────────────────────────────────────────────────────────
     top_k_chunks: int = Field(default=5, alias="TOP_K_CHUNKS")
