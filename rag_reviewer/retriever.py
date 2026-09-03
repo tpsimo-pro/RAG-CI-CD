@@ -104,6 +104,9 @@ class Retriever:
         self._score_threshold = (
             score_threshold if score_threshold is not None else settings.score_threshold
         )
+        # Falha alto se a coleção foi indexada com outro modelo de embedding
+        # (spec §8.1) — buscar com modelos divergentes produz lixo silencioso.
+        self._store.assert_model_matches(self._embedder.model_name)
 
     # ── Propriedades ──────────────────────────────────────────────────────
 

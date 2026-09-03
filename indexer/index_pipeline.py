@@ -107,9 +107,12 @@ def run_indexing(
     store = VectorStore(collection_name=collection_name)
 
     if recreate:
-        store.recreate_collection(vector_size=embedder.vector_size)
+        store.recreate_collection(
+            vector_size=embedder.vector_size,
+            embedding_model=embedder.model_name,
+        )
 
-    store.upsert(chunks=chunks, embeddings=embeddings)
+    store.upsert(chunks=chunks, embeddings=embeddings, embedding_model=embedder.model_name)
 
     # ── Resumo final ─────────────────────────────────────────────────────
     elapsed = time.perf_counter() - start_time

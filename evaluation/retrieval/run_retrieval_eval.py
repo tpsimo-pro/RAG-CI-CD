@@ -85,6 +85,10 @@ def run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict:
 
     embedder = Embedder()
     store = VectorStore()
+    # Falha alto se a coleção foi indexada com outro modelo de embedding
+    # (spec §8.1) — buscar com modelos divergentes produz lixo silencioso,
+    # o que contaminaria justamente a métrica que esta avaliação mede.
+    store.assert_model_matches(settings.embedding_model)
 
     # Índice auxiliar: pr_id -> (filename, todas as linhas adicionadas)
     por_pr = {

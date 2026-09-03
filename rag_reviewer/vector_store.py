@@ -36,7 +36,7 @@ class VectorStore:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def recreate_collection(self, vector_size: int) -> None:
+    def recreate_collection(self, vector_size: int, embedding_model: str) -> None:
         """
         Recria a coleção do zero.
 
@@ -45,6 +45,8 @@ class VectorStore:
 
         Args:
             vector_size: Dimensão dos vetores (deve bater com o modelo de embedding).
+            embedding_model: Nome do modelo usado para gerar os vetores. Apenas
+                registrado no log; quem grava o payload é `upsert`.
         """
         from qdrant_client.models import (  # type: ignore
             Distance,
@@ -74,16 +76,20 @@ class VectorStore:
             ),
         )
         console.log(
-            f"[green]✅ Coleção '{self._collection}' criada com vetores de dim={vector_size}.[/green]"
+            f"[green]✅ Coleção '{self._collection}' criada "
+            f"(dim={vector_size}, modelo={embedding_model}).[/green]"
         )
 
-    def upsert(self, chunks: list, embeddings) -> None:
+    def upsert(self, chunks: list, embeddings, embedding_model: str) -> None:
         """
         Insere ou atualiza chunks no Qdrant.
 
         Args:
             chunks: Lista de objetos Chunk (de indexer/chunker.py).
             embeddings: Array numpy (N, D) com os vetores correspondentes.
+            embedding_model: Nome do modelo que gerou `embeddings`. Gravado no
+                payload de cada ponto — é o que `assert_model_matches` lê para
+                impedir buscas com um modelo diferente do indexado.
         """
         from qdrant_client.models import PointStruct  # type: ignore
 
@@ -99,6 +105,7 @@ class VectorStore:
                 "chunk_index": chunk.chunk_index,
                 "char_count": len(chunk.text),
                 "indexed_at": chunk.indexed_at,
+                "embedding_model": embedding_model,
             }
             points.append(
                 PointStruct(
@@ -156,6 +163,44 @@ class VectorStore:
             }
             for r in results
         ]
+
+    def assert_model_matches(self, embedding_model: str) -> None:
+        """
+        Falha alto se a coleção foi indexada com outro modelo de embedding.
+
+        Os modelos multilíngues candidatos também têm 384 dimensões, então o
+        Qdrant ACEITARIA a busca sem reclamar: vetores de consulta do modelo
+        novo contra vetores de chunk do modelo antigo. O resultado seria lixo
+        silencioso, indistinguível de retrieval ruim (spec §8.1).
+
+        Args:
+            embedding_model: Nome do modelo que o chamador pretende usar para
+                gerar o vetor de consulta.
+
+        Raises:
+            RuntimeError: Se a coleção estiver vazia ou indexada com um
+                modelo diferente de `embedding_model`.
+        """
+        client = self._get_client()
+        pontos, _ = client.scroll(
+            collection_name=self._collection, limit=1, with_payload=True
+        )
+
+        if not pontos:
+            raise RuntimeError(
+                f"Coleção '{self._collection}' está vazia. "
+                f"Execute: make index-recreate"
+            )
+
+        indexado = (pontos[0].payload or {}).get("embedding_model")
+        if indexado != embedding_model:
+            raise RuntimeError(
+                f"Divergência de modelo de embedding.\n"
+                f"  Indexado na coleção : {indexado!r}\n"
+                f"  Configurado agora   : {embedding_model!r}\n"
+                f"Buscar com modelos diferentes produz lixo silencioso.\n"
+                f"Execute: make index-recreate"
+            )
 
     def collection_info(self) -> dict:
         """Retorna informações da coleção (contagem de pontos, status, etc.)."""

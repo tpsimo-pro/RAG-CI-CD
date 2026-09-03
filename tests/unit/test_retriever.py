@@ -71,6 +71,10 @@ def make_store_mock(chunks: list | None = None) -> MagicMock:
     """Cria um mock do VectorStore que retorna chunks predefinidos."""
     mock = MagicMock()
     mock.search.return_value = chunks if chunks is not None else [make_chunk()]
+    # `assert_model_matches` colide com o prefixo `assert_` que o MagicMock
+    # reserva para suas próprias asserções — precisa ser configurado
+    # explicitamente, senão o MagicMock levanta AttributeError ao chamá-lo.
+    mock.assert_model_matches = MagicMock()
     return mock
 
 
@@ -265,6 +269,7 @@ class TestRetrieveForDiff:
             [make_chunk()],  # a.py → tem contexto
             [],  # b.py → sem contexto
         ]
+        store.assert_model_matches = MagicMock()
         embedder = make_embedder_mock()
         r = Retriever(embedder=embedder, store=store, top_k=3, score_threshold=0.55)
 
@@ -334,6 +339,7 @@ class TestRetrieveForDiff:
         chunk_b = make_chunk(text="Norma B", score=0.75)
         store = MagicMock()
         store.search.side_effect = [[chunk_a], [chunk_b]]
+        store.assert_model_matches = MagicMock()
         r = Retriever(
             embedder=make_embedder_mock(),
             store=store,
