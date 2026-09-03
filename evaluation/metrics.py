@@ -38,8 +38,13 @@ TARGET_PRECISION = 0.70
 TARGET_RECALL = 0.65
 TARGET_F1 = 0.67
 
-# Reconhece "Seção 5" / "Secão 5" / "seção 5.x" / "section 5" (case-insensitive).
-_SECTION_5_PATTERN = re.compile(r"se[cç][aã]o\s*5\b|section\s*5\b", re.IGNORECASE)
+# Reconhece "Seção 5" / "Seção: 5" / "Secão 5" / "section 5" (case-insensitive),
+# mas NÃO subseções ("5.1 Docstrings" pertence a outro documento). O regex
+# antigo exigia "Seção" seguida só de espaço antes do "5" — o corpus real usa
+# "Seção: 5. ..." (dois-pontos), então NUNCA casava (spec — Task 11).
+_SECTION_5_PATTERN = re.compile(
+    r"se[cç][aã]o[:\s]*5(?!\.\d)\b|section[:\s]*5(?!\.\d)\b", re.IGNORECASE
+)
 
 
 # ── Normalização (D-003) ────────────────────────────────────────────────────
