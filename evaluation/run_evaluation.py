@@ -21,8 +21,10 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import sys
+import time
 from pathlib import Path
 
 from rich.console import Console
@@ -41,6 +43,8 @@ for _stream in (sys.stdout, sys.stderr):
 # Raiz do projeto — garante imports independente do cwd
 _PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT))
+
+import groq  # noqa: E402
 
 from evaluation.metrics import (  # noqa: E402
     TARGET_F1,
@@ -154,6 +158,35 @@ def _build_pipeline() -> tuple[Retriever, LLMClient]:
     return retriever, llm
 
 
+def _review_with_backoff(
+    llm: LLMClient, context: RetrievedContext, max_attempts: int = 5
+) -> list:
+    """
+    Chama `llm.review`, reagindo a 429 (rate limit) do Groq com espera e
+    nova tentativa — não é um bug do pipeline, é o teto de tokens/minuto do
+    plano gratuito (D-006). Sem isso, `--repeticoes 3` em 30 PRs sequenciais
+    estoura o limite e a avaliação falha antes de terminar (falha alta,
+    conforme o script já faz — aqui só se dá mais chances antes de desistir).
+
+    Usa o tempo sugerido pela própria API (`retry_after`) quando disponível;
+    senão, um recuo fixo de 20s.
+    """
+    for attempt in range(max_attempts):
+        try:
+            return llm.review(context)
+        except groq.RateLimitError as exc:
+            if attempt == max_attempts - 1:
+                raise
+            retry_after = exc.response.headers.get("retry-after")
+            espera = float(retry_after) if retry_after else 20.0
+            console.log(
+                f"[yellow]⚠️  Rate limit da Groq (tentativa {attempt + 1}/"
+                f"{max_attempts}); aguardando {espera:.0f}s...[/yellow]"
+            )
+            time.sleep(espera)
+    return []  # inalcançável: o loop sempre retorna ou levanta
+
+
 def _retrieve_context(retriever: Retriever, file_diff: FileDiff) -> RetrievedContext | None:
     """
     Recupera o contexto normativo real do Qdrant para um arquivo do PR.
@@ -171,6 +204,58 @@ def _retrieve_context(retriever: Retriever, file_diff: FileDiff) -> RetrievedCon
             "todas as linhas deste PR contam como não sinalizadas.[/yellow]"
         )
     return context
+
+
+# ── Checkpoint (resiliência ao rate limit diário da Groq) ──────────────────────
+#
+# O plano free/on-demand da Groq tem um teto de tokens/dia (TPD) que, sob
+# `--repeticoes 3` em 30 PRs, fica no limite e força esperas de vários
+# minutos entre chamadas (ver `_review_with_backoff`). Sem checkpoint, uma
+# interrupção (kill do processo, sessão reiniciada) perde TODO o progresso —
+# `run_evaluation` só devolve resultado ao final do laço inteiro — e a
+# próxima tentativa reprocessaria PRs já concluídos, gastando ainda mais da
+# cota escassa do dia à toa. O checkpoint grava o resultado de cada PR assim
+# que suas `repeticoes` terminam, e é apagado só ao final de uma execução
+# bem-sucedida — nunca fica "furtando" trabalho de uma configuração diferente.
+
+_CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
+
+
+def _line_result_to_dict(r: LineResult) -> dict:
+    return dataclasses.asdict(r)
+
+
+def _line_result_from_dict(d: dict) -> LineResult:
+    return LineResult(**d)
+
+
+def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
+    """
+    Carrega o checkpoint se existir e for compatível com esta execução
+    (mesmo dataset e número de repetições). Checkpoint de uma configuração
+    diferente é ignorado — nunca aplicado por engano a outra.
+    """
+    if not _CHECKPOINT_PATH.exists():
+        return {}
+    try:
+        data = json.loads(_CHECKPOINT_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}  # checkpoint corrompido (ex.: kill a meio da escrita) — ignora
+    if data.get("dataset_path") != str(dataset_path) or data.get("repeticoes") != repeticoes:
+        return {}
+    return data.get("completed_prs", {})
+
+
+def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -> None:
+    """Escrita atômica (arquivo temporário + rename) — nunca deixa o checkpoint pela metade."""
+    payload = {
+        "dataset_path": str(dataset_path),
+        "repeticoes": repeticoes,
+        "completed_prs": completed_prs,
+    }
+    tmp = _CHECKPOINT_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(_CHECKPOINT_PATH)
 
 
 # ── Execução ──────────────────────────────────────────────────────────────────
@@ -206,27 +291,53 @@ def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvalu
     per_repetition_detections = [0] * repeticoes
     per_repetition_hallucinations = [0] * repeticoes
 
+    completed_prs = _load_checkpoint(dataset_path, repeticoes)
+    if completed_prs:
+        console.log(
+            f"[yellow]↺ Checkpoint encontrado:[/yellow] {len(completed_prs)} PR(s) já "
+            "concluído(s) nesta configuração — pulando reprocessamento."
+        )
+
     for pr_data in dataset:
         pr_id = pr_data["pr_id"]
         gold_lines = _build_gold_lines(pr_data)
-        file_diff = _build_file_diff(pr_data)
 
-        console.log(
-            f"[cyan]-> Avaliando [bold]{pr_id}[/bold]:[/cyan] "
-            f"{pr_data.get('description', '')} ({len(gold_lines)} linha(s))"
-        )
+        if pr_id in completed_prs:
+            per_pr_reps = completed_prs[pr_id]
+        else:
+            file_diff = _build_file_diff(pr_data)
 
-        context = _retrieve_context(retriever, file_diff)
+            console.log(
+                f"[cyan]-> Avaliando [bold]{pr_id}[/bold]:[/cyan] "
+                f"{pr_data.get('description', '')} ({len(gold_lines)} linha(s))"
+            )
 
-        for rep in range(repeticoes):
-            detections = llm.review(context) if context is not None else []
-            line_results, total_det, hallucinated = classify_lines(gold_lines, detections)
+            context = _retrieve_context(retriever, file_diff)
 
-            per_repetition_lines[rep].extend(line_results)
-            per_repetition_detections[rep] += total_det
-            per_repetition_hallucinations[rep] += hallucinated
+            per_pr_reps = []
+            for rep in range(repeticoes):
+                detections = _review_with_backoff(llm, context) if context is not None else []
+                line_results, total_det, hallucinated = classify_lines(gold_lines, detections)
+                per_pr_reps.append(
+                    {
+                        "line_results": [_line_result_to_dict(r) for r in line_results],
+                        "total_detections": total_det,
+                        "hallucinated_detections": hallucinated,
+                    }
+                )
+                _log_pr_repetition(rep, line_results)
 
-            _log_pr_repetition(rep, line_results)
+            completed_prs[pr_id] = per_pr_reps
+            _save_checkpoint(dataset_path, repeticoes, completed_prs)
+
+        for rep, rep_data in enumerate(per_pr_reps):
+            per_repetition_lines[rep].extend(
+                _line_result_from_dict(d) for d in rep_data["line_results"]
+            )
+            per_repetition_detections[rep] += rep_data["total_detections"]
+            per_repetition_hallucinations[rep] += rep_data["hallucinated_detections"]
+
+    _CHECKPOINT_PATH.unlink(missing_ok=True)  # execução completa — checkpoint não serve mais
 
     repetitions = [
         RepetitionResult(
