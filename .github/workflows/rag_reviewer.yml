@@ -32,6 +32,15 @@ jobs:
       - name: Instalar dependências
         run: pip install -r requirements.txt
 
+      # O modelo de embedding multilíngue (ADR-002) tem ~470MB, contra
+      # ~90MB do modelo em inglês anterior — baixado a cada execução sem
+      # cache, contra um timeout-minutes: 10 (spec §10.1).
+      - name: Cache do modelo de embedding
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ hashFiles('requirements.txt') }}
+
       - name: Executar RAG-Reviewer
         env:
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}

@@ -1,64 +1,77 @@
 # ADR-003 — Escolha do Modelo de Linguagem (LLM)
 
-**Status:** Aceito  
-**Data:** Maio de 2026  
-**Autor:** Thiago P. Simões  
+**Status:** Aceito (reescrito — a linhagem anterior foi descomissionada)
+**Data original:** Maio de 2026
+**Reescrita:** 2026-09-01 — ver D-006 (`docs/DECISIONS.md`)
+**Autor:** Thiago P. Simões
 **Contexto:** RAG-Reviewer — TCC, Universidade do Estado do Amazonas (UEA)
 
 ---
 
-## Contexto
+## Por que este ADR foi reescrito, não emendado
 
-O RAG-Reviewer usa um LLM para analisar o diff de um PR em conjunto com os trechos normativos recuperados do Qdrant e identificar violações em formato JSON estruturado.
+`llama-3.3-70b-versatile` (a decisão original) **não existe mais** no
+catálogo da Groq — confirmado via `models.list()`. Não há **nenhum** modelo
+Llama de propósito geral disponível na plataforma; os únicos `meta-llama/*`
+remanescentes são classificadores `prompt-guard` com 512 tokens de
+contexto, inúteis para este caso de uso. Toda a justificativa original
+(velocidade da LPU especificamente com Llama, qualidade do 70B) deixou de
+se aplicar — não é um ajuste de parâmetro, é uma decisão nova.
 
-Requisitos:
+## Requisitos (inalterados desde a decisão original)
+
 - **Resposta estruturada em JSON** confiável (sem alucinações de formato).
 - **Capacidade de análise de código** (Python, especificamente).
 - **Custo baixo ou gratuito** para viabilidade acadêmica.
 - **Integração com GitHub Actions** sem problemas de rate limiting.
-- **Janela de contexto suficiente** para diffs grandes (> 2000 tokens).
-
-## Histórico de Decisão
-
-O projeto passou por uma mudança de LLM durante o desenvolvimento:
-
-1. **Google Gemini API** — descartado por atingir quota gratuita durante os testes de integração.
-2. **Groq + Llama 3.3 70B** ✅ — adotado definitivamente pela alta velocidade de inferência e plano gratuito generoso.
+- **Janela de contexto suficiente** para diffs grandes (> 2.000 tokens).
 
 ## Decisão
 
-**Groq API com modelo `llama-3.3-70b-versatile`** foi selecionado como LLM do projeto.
-
-## Opções Consideradas
-
-| Modelo | Custo | Velocidade | Qualidade JSON | Contexto |
-|---|---|---|---|---|
-| **Groq + Llama 3.3 70B** ✅ | Gratuito (rate limit generoso) | ~500 tokens/s | Excelente | 128K tokens |
-| Google Gemini 1.5 Flash | Gratuito (quota baixa) | ~200 tokens/s | Boa | 1M tokens |
-| OpenAI GPT-4o | ~$5/1M tokens | ~100 tokens/s | Excelente | 128K tokens |
-| Anthropic Claude Sonnet 4.5 | ~$3/1M tokens | ~150 tokens/s | Excelente | 200K tokens |
-| Ollama + CodeLlama (local) | Gratuito | ~20 tokens/s (CPU) | Boa | 16K tokens |
+**`qwen/qwen3.8-27b`** (Alibaba Cloud, via Groq) — contexto 131.042 tokens,
+saída máxima 16.384 tokens.
 
 ## Justificativa
 
-1. **Custo zero:** Groq oferece acesso gratuito com rate limits suficientes para desenvolvimento e avaliação acadêmica (~14.400 requests/dia no plano free).
-2. **Velocidade extrema:** A plataforma Groq usa hardware proprietário (LPU) que executa Llama 3.3 a ~500 tokens/segundo — a revisão de um PR completo leva < 5 segundos.
-3. **Qualidade do Llama 3.3:** O modelo 70B demonstrou excelente capacidade de seguir instruções JSON estritas e analisar código Python com precisão.
-4. **Janela de contexto:** 128K tokens — suficiente para diffs com dezenas de arquivos modificados.
-5. **Compatibilidade OpenAI:** A API da Groq é compatível com o protocolo OpenAI (`chat.completions.create`), facilitando eventual migração.
+1. **Diversificação da linhagem.** Evita que o resultado do TCC dependa de
+   uma única família de modelos (a anterior já foi descontinuada uma vez).
+2. **Atende aos cinco critérios originais** deste ADR: custo zero no plano
+   Groq, mesma API compatível com OpenAI (sem mudança de integração no
+   `LLMClient` nem no workflow do Actions), contexto muito acima do mínimo
+   de 2.000 tokens exigido.
+3. **Risco real identificado e eliminado por teste**, não assumido: a
+   aderência ao schema JSON estrito nunca havia sido exercitada com este
+   modelo neste código. Smoke test em 2 PRs do dataset (PR-001, PR-011) —
+   ambos parsearam sem erro de formato.
+
+## Alternativas consideradas e rejeitadas
+
+| Modelo | Motivo da rejeição |
+|---|---|
+| `openai/gpt-oss-120b` | Maior modelo disponível e com execução prévia comprovada no repositório — preterido para não concentrar o trabalho numa única linhagem já testada. |
+| `openai/gpt-oss-20b` | Menor capacidade de análise é exatamente a variável sob medição neste TCC; um F1 baixo ficaria ambíguo entre "o RAG não ajuda" e "o modelo é pequeno demais". |
+| `groq/compound`, `groq/compound-mini` | **Rejeitados com prejuízo — não usar em nenhuma circunstância, mesmo que o desempenho pareça superior.** São sistemas agênticos com busca web e execução de código embutidas. Num estudo de RAG isso destrói a validade interna: o modelo poderia consultar a PEP-8 na internet e "acertar" sem usar o contexto recuperado do Qdrant, sem que se possa distinguir os dois casos. |
+| Comparativo com dois modelos | Enriqueceria a defesa, mas dobra o custo de avaliação (2 × 3 repetições × 30 PRs = 180 execuções) e contraria a exigência de "sem dispersão de escopo" (`todo-asap.txt`). Adiado para `docs/TODO-FUTURO.md` — comparar dois modelos antes de existir um número válido é otimizar na ordem errada. |
 
 ## Consequências
 
-- **Positivas:** Zero custo; inferência em segundos; JSON estruturado confiável; fácil substituição por outro modelo via `LLM_MODEL` no `.env`.
-- **Negativas:** Dependência de serviço externo; rate limiting em casos de alto volume de PRs simultâneos.
-- **Mitigação:** Retry com backoff exponencial implementado via exception handling no `LLMClient`; em produção corporativa, substituir pela OpenAI API ou Claude para SLA garantido.
+- **Positivas:** Zero custo; mesma API compatível com OpenAI usada pelo
+  `LLMClient`, nenhuma mudança de integração necessária; contexto amplo
+  (131K tokens) folgado para diffs de PR reais.
+- **Negativas:** Dependência de um provedor cuja disponibilidade de modelo
+  já mudou uma vez neste projeto — a mesma classe de risco que causou esta
+  reescrita pode se repetir.
+- **Mitigação:** `LLM_MODEL` permanece configurável via `.env`, sem
+  acoplamento de código a um modelo específico; `rag_reviewer/config.py`,
+  `.env.example` e `.env` locais atualizados para o novo default junto com
+  este ADR, fechando a pendência que D-006 deixou registrada.
 
 ## Configuração
 
 ```bash
 # .env
 GROQ_API_KEY=gsk_xxxxxxxxxxxx
-LLM_MODEL=llama-3.3-70b-versatile
+LLM_MODEL=qwen/qwen3.8-27b
 ```
 
 A chave é obtida gratuitamente em: https://console.groq.com

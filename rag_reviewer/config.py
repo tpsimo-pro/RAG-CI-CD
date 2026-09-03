@@ -35,7 +35,9 @@ class Settings(BaseSettings):
 
     # ── LLM ─────────────────────────────────────────────────────────────────
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
-    llm_model: str = Field(default="llama-3.3-70b-versatile", alias="LLM_MODEL")
+    # llama-3.3-70b-versatile foi descomissionado pela Groq (D-006); default
+    # atualizado para o substituto adotado no ADR-003 reescrito.
+    llm_model: str = Field(default="qwen/qwen3.8-27b", alias="LLM_MODEL")
     llm_temperature: float = Field(default=0.0, alias="LLM_TEMPERATURE")
 
     # ── Qdrant ───────────────────────────────────────────────────────────────
