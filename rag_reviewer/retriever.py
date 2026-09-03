@@ -3,10 +3,13 @@ retriever.py — Módulo RAG: Recuperação Semântica (Componente 3, Fase 2).
 
 Responsabilidades:
   1. Receber um PullRequestDiff (saída do diff_parser).
-  2. Para cada arquivo relevante, construir o texto de consulta via build_query_text.
-  3. Gerar o embedding da consulta usando o Embedder.
-  4. Buscar no Qdrant os top-K chunks do guia de estilo mais similares.
-  5. Retornar uma lista de RetrievedContext prontos para o LLM (Componente 4).
+  2. Para cada arquivo relevante, consultar o Qdrant UMA VEZ POR LINHA
+     adicionada (a unidade de recuperação é a linha, igual à unidade de
+     avaliação de D-001 — consultar por arquivo inteiro produz uma média
+     semântica que não representa nenhuma linha).
+  3. Unir e deduplicar os chunks recuperados de todas as linhas do arquivo,
+     cortando em `max_chunks` (o N da spec §4.3).
+  4. Retornar uma lista de RetrievedContext prontos para o LLM (Componente 4).
 
 Uso típico:
     retriever = Retriever(embedder=Embedder(), store=VectorStore())
@@ -24,7 +27,7 @@ from dataclasses import dataclass
 from rich.console import Console
 
 from rag_reviewer.config import get_settings
-from rag_reviewer.diff_parser import FileDiff, PullRequestDiff, build_query_text
+from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
 from rag_reviewer.embedder import Embedder
 from rag_reviewer.vector_store import VectorStore
 
@@ -68,10 +71,11 @@ class Retriever:
     Orquestra a recuperação de contexto normativo para cada arquivo do diff.
 
     Para cada arquivo do PullRequestDiff que contém linhas adicionadas:
-      1. Constrói um texto de consulta (arquivo + linhas adicionadas).
-      2. Gera o embedding desse texto via Embedder.
-      3. Consulta o VectorStore e retorna os top-K chunks relevantes.
-      4. Empacota o resultado em um RetrievedContext.
+      1. Para cada linha, gera o embedding via Embedder e consulta o
+         VectorStore pelos top-K chunks daquela linha.
+      2. Une os chunks de todas as linhas, deduplicados por (source, section)
+         e cortados em `max_chunks`.
+      3. Empacota o resultado em um RetrievedContext.
 
     Arquivos sem linhas adicionadas ou com score abaixo do threshold são
     silenciosamente ignorados.
@@ -83,6 +87,7 @@ class Retriever:
         store: VectorStore | None = None,
         top_k: int | None = None,
         score_threshold: float | None = None,
+        max_chunks: int | None = None,
     ) -> None:
         """
         Inicializa o Retriever.
@@ -94,8 +99,11 @@ class Retriever:
         Args:
             embedder: Instância do Embedder. Usa default se None.
             store: Instância do VectorStore. Usa default se None.
-            top_k: Número de chunks recuperados por arquivo.
+            top_k: Número de chunks recuperados por LINHA de consulta.
             score_threshold: Score mínimo de similaridade (0–1).
+            max_chunks: Teto de chunks entregues ao LLM por arquivo, após
+                deduplicar a união das buscas por linha (o N da spec §4.3).
+                Contexto excedente comprovadamente induz alucinação. Default 8.
         """
         settings = get_settings()
         self._embedder = embedder if embedder is not None else Embedder()
@@ -104,6 +112,7 @@ class Retriever:
         self._score_threshold = (
             score_threshold if score_threshold is not None else settings.score_threshold
         )
+        self._max_chunks = max_chunks if max_chunks is not None else 8
         # Falha alto se a coleção foi indexada com outro modelo de embedding
         # (spec §8.1) — buscar com modelos divergentes produz lixo silencioso.
         self._store.assert_model_matches(self._embedder.model_name)
@@ -182,30 +191,45 @@ class Retriever:
 
     def _retrieve_for_file(self, file_diff: FileDiff) -> RetrievedContext | None:
         """
-        Executa o ciclo embed → search para um único arquivo.
+        Consulta o Qdrant uma vez POR LINHA ADICIONADA e une os resultados.
+
+        A unidade de recuperação é a linha, igual à unidade de avaliação de
+        D-001. Consultar por arquivo concatenava linhas heterogêneas numa
+        média semântica que não representava nenhuma delas — a causa dos
+        scores comprimidos entre 0.3 e 0.5 (spec §3).
+
+        A granularidade da chamada ao LLM NÃO muda: continua uma por arquivo,
+        sobre a união deduplicada.
 
         Returns:
             RetrievedContext se houver chunks acima do threshold, None caso contrário.
         """
-        query_text = build_query_text(file_diff)
+        linhas = file_diff.added_lines
 
         console.log(
             f"[dim]Retriever:[/dim] buscando normas para "
-            f"[bold]{file_diff.filename}[/bold] "
-            f"({len(file_diff.added_lines)} linha(s) adicionada(s))..."
+            f"[bold]{file_diff.filename}[/bold] ({len(linhas)} linha(s))..."
         )
 
-        # Gera embedding — retorna array shape (1, D); pegamos a linha 0
-        embedding_matrix = self._embedder.embed([query_text])
-        query_vector: list = embedding_matrix[0].tolist()
+        vistos: set[tuple[str, str]] = set()
+        unidos: list[dict] = []
 
-        chunks = self._store.search(
-            query_vector=query_vector,
-            top_k=self._top_k,
-            score_threshold=self._score_threshold,
-        )
+        for linha in linhas:
+            embedding_matrix = self._embedder.embed([linha])
+            query_vector: list = embedding_matrix[0].tolist()
 
-        if not chunks:
+            for chunk in self._store.search(
+                query_vector=query_vector,
+                top_k=self._top_k,
+                score_threshold=self._score_threshold,
+            ):
+                chave = (chunk["source"], chunk["section"])
+                if chave in vistos:
+                    continue
+                vistos.add(chave)
+                unidos.append(chunk)
+
+        if not unidos:
             console.log(
                 f"[dim]Retriever:[/dim] nenhum chunk relevante para "
                 f"[bold]{file_diff.filename}[/bold] "
@@ -213,14 +237,19 @@ class Retriever:
             )
             return None
 
+        # Maior score primeiro, depois corta em max_chunks (o N da spec §4.3):
+        # contexto excedente comprovadamente induz alucinação.
+        unidos.sort(key=lambda c: c["score"], reverse=True)
+        unidos = unidos[: self._max_chunks]
+
         console.log(
-            f"[dim]Retriever:[/dim] {len(chunks)} chunk(s) recuperado(s) para "
+            f"[dim]Retriever:[/dim] {len(unidos)} chunk(s) para "
             f"[bold]{file_diff.filename}[/bold] "
-            f"(top score: {chunks[0]['score']:.3f})."
+            f"(top score: {unidos[0]['score']:.3f})."
         )
 
         return RetrievedContext(
             file_diff=file_diff,
-            chunks=chunks,
-            query_text=query_text,
+            chunks=unidos,
+            query_text="\n".join(linhas),
         )
