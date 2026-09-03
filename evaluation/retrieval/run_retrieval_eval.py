@@ -8,6 +8,7 @@ pode rodar quantas vezes for necessário durante a calibração (spec §6.3).
 Uso:
     python -m evaluation.retrieval.run_retrieval_eval --label L0
     python -m evaluation.retrieval.run_retrieval_eval --label L2 --per-line
+    python -m evaluation.retrieval.run_retrieval_eval --label L4 --per-line --hybrid
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from evaluation.retrieval.metrics import (
 from evaluation.retrieval.norm_map import norm_keys_of_chunk
 from rag_reviewer.config import get_settings
 from rag_reviewer.embedder import Embedder
+from rag_reviewer.sparse_encoder import SparseEncoder
 from rag_reviewer.vector_store import VectorStore
 
 console = Console(highlight=False)
@@ -44,13 +46,32 @@ def _retrieve_for_line(
     top_k: int,
     score_threshold: float,
 ) -> list[dict]:
-    """Recupera chunks para UMA linha (configurações L2 em diante)."""
+    """Recupera chunks para UMA linha, só denso (configurações L2/L3)."""
     vector = embedder.embed_single(line).tolist()
     return store.search(
         query_vector=vector,
         top_k=top_k,
         score_threshold=score_threshold,
     )
+
+
+def _retrieve_for_line_hybrid(
+    embedder: Embedder,
+    sparse_encoder: SparseEncoder,
+    store: VectorStore,
+    line: str,
+    top_k: int,
+) -> list[dict]:
+    """
+    Recupera chunks para UMA linha, denso + esparso BM25 com fusão RRF (L4).
+
+    Sem `score_threshold`: o score pós-fusão é de posto, não cosseno
+    (spec §4.4) — mesma razão pela qual `VectorStore.search_hybrid` não
+    aceita esse parâmetro.
+    """
+    vector = embedder.embed_single(line).tolist()
+    sparse = sparse_encoder.encode(line)
+    return store.search_hybrid(dense=vector, sparse=sparse, top_k=top_k)
 
 
 def _retrieve_for_file(
@@ -77,8 +98,25 @@ def _retrieve_for_file(
     )
 
 
-def run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict:
-    """Executa a avaliação de retrieval e devolve o dicionário de resultados."""
+def run_retrieval_eval(
+    dataset_path: Path, label: str, per_line: bool, hybrid: bool = False
+) -> dict:
+    """
+    Executa a avaliação de retrieval e devolve o dicionário de resultados.
+
+    Args:
+        hybrid: Ativa a busca híbrida densa+esparsa com fusão RRF (L4).
+            Exige `per_line=True` — a busca híbrida só existe por linha,
+            igual ao Retriever de produção (spec — Task 9).
+
+    Raises:
+        ValueError: Se `hybrid=True` e `per_line=False`.
+    """
+    if hybrid and not per_line:
+        raise ValueError(
+            "--hybrid exige --per-line: a busca híbrida só existe por linha."
+        )
+
     settings = get_settings()
     gold = build_gold(dataset_path)
     dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
@@ -89,6 +127,7 @@ def run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict:
     # (spec §8.1) — buscar com modelos divergentes produz lixo silencioso,
     # o que contaminaria justamente a métrica que esta avaliação mede.
     store.assert_model_matches(settings.embedding_model)
+    sparse_encoder = SparseEncoder() if hybrid else None
 
     # Índice auxiliar: pr_id -> (filename, todas as linhas adicionadas)
     por_pr = {
@@ -103,7 +142,11 @@ def run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict:
 
     for g in gold:
         filename, linhas = por_pr[g.pr_id]
-        if per_line:
+        if hybrid:
+            chunks = _retrieve_for_line_hybrid(
+                embedder, sparse_encoder, store, g.line, settings.top_k_chunks
+            )
+        elif per_line:
             chunks = _retrieve_for_line(
                 embedder, store, g.line, settings.top_k_chunks, settings.score_threshold
             )
@@ -130,6 +173,7 @@ def run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict:
         "label": label,
         "config": {
             "per_line": per_line,
+            "hybrid": hybrid,
             "embedding_model": settings.embedding_model,
             "top_k": settings.top_k_chunks,
             "score_threshold": settings.score_threshold,
@@ -169,10 +213,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Avalia a camada de recuperação.")
     parser.add_argument("--label", required=True, help="Rótulo da configuração (L0..L4).")
     parser.add_argument("--per-line", action="store_true", help="Consulta por linha.")
+    parser.add_argument(
+        "--hybrid",
+        action="store_true",
+        help="Busca híbrida densa+esparsa com fusão RRF (L4). Exige --per-line.",
+    )
     parser.add_argument("--dataset", type=Path, default=_DATASET)
     args = parser.parse_args()
 
-    r = run_retrieval_eval(args.dataset, args.label, args.per_line)
+    r = run_retrieval_eval(args.dataset, args.label, args.per_line, args.hybrid)
     _print_result(r)
 
     saida = Path(__file__).parent / f"results_{args.label}.json"

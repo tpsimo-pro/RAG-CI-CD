@@ -29,6 +29,7 @@ from rich.console import Console
 from rag_reviewer.config import get_settings
 from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
 from rag_reviewer.embedder import Embedder
+from rag_reviewer.sparse_encoder import SparseEncoder
 from rag_reviewer.vector_store import VectorStore
 
 console = Console()
@@ -88,6 +89,8 @@ class Retriever:
         top_k: int | None = None,
         score_threshold: float | None = None,
         max_chunks: int | None = None,
+        sparse_encoder: SparseEncoder | None = None,
+        hybrid: bool = True,
     ) -> None:
         """
         Inicializa o Retriever.
@@ -100,10 +103,16 @@ class Retriever:
             embedder: Instância do Embedder. Usa default se None.
             store: Instância do VectorStore. Usa default se None.
             top_k: Número de chunks recuperados por LINHA de consulta.
-            score_threshold: Score mínimo de similaridade (0–1).
+            score_threshold: Score mínimo de similaridade (0–1). Ignorado
+                quando `hybrid=True` — a fusão RRF produz um score de posto,
+                não cosseno (spec §4.4).
             max_chunks: Teto de chunks entregues ao LLM por arquivo, após
                 deduplicar a união das buscas por linha (o N da spec §4.3).
                 Contexto excedente comprovadamente induz alucinação. Default 8.
+            sparse_encoder: Instância do SparseEncoder. Usa default se None.
+            hybrid: Se True (default), cada busca por linha usa
+                `store.search_hybrid` (denso + esparso BM25 com fusão RRF,
+                L4). Se False, usa `store.search` (só denso, L0–L3).
         """
         settings = get_settings()
         self._embedder = embedder if embedder is not None else Embedder()
@@ -113,9 +122,15 @@ class Retriever:
             score_threshold if score_threshold is not None else settings.score_threshold
         )
         self._max_chunks = max_chunks if max_chunks is not None else 8
-        # Falha alto se a coleção foi indexada com outro modelo de embedding
-        # (spec §8.1) — buscar com modelos divergentes produz lixo silencioso.
-        self._store.assert_model_matches(self._embedder.model_name)
+        self._hybrid = hybrid
+        self._sparse_encoder = (
+            sparse_encoder if sparse_encoder is not None else SparseEncoder()
+        )
+        # A guarda (spec §8.1) só dispara ao primeiro uso real de busca — ver
+        # `_ensure_model_guard`. Checá-la aqui, no __init__, forçaria uma
+        # conexão de rede com o Qdrant mesmo quando o PR não tem nenhum
+        # arquivo revisável (ex.: diff vazio), o que nunca chega a buscar.
+        self._guarda_verificada = False
 
     # ── Propriedades ──────────────────────────────────────────────────────
 
@@ -179,6 +194,21 @@ class Retriever:
 
     # ── Internos ──────────────────────────────────────────────────────────
 
+    def _ensure_model_guard(self) -> None:
+        """
+        Falha alto, uma única vez, se a coleção foi indexada com outro
+        modelo de embedding (spec §8.1) — buscar com modelos divergentes
+        produz lixo silencioso.
+
+        Verificada sob demanda (na primeira busca real), não no `__init__`:
+        checar ali forçaria uma conexão de rede com o Qdrant mesmo para um
+        PR sem nenhum arquivo revisável.
+        """
+        if self._guarda_verificada:
+            return
+        self._store.assert_model_matches(self._embedder.model_name)
+        self._guarda_verificada = True
+
     def _filter_candidates(self, files: list[FileDiff]) -> list[FileDiff]:
         """
         Filtra apenas arquivos com linhas adicionadas que merecem revisão.
@@ -204,6 +234,8 @@ class Retriever:
         Returns:
             RetrievedContext se houver chunks acima do threshold, None caso contrário.
         """
+        self._ensure_model_guard()
+
         linhas = file_diff.added_lines
 
         console.log(
@@ -218,11 +250,23 @@ class Retriever:
             embedding_matrix = self._embedder.embed([linha])
             query_vector: list = embedding_matrix[0].tolist()
 
-            for chunk in self._store.search(
-                query_vector=query_vector,
-                top_k=self._top_k,
-                score_threshold=self._score_threshold,
-            ):
+            if self._hybrid:
+                # Denso + esparso BM25 com fusão RRF (L4): o esparso cobre o
+                # casamento lexical (`== True`, `!= None`) que o denso sozinho
+                # erra por ser um problema de string, não de significado.
+                resultados = self._store.search_hybrid(
+                    dense=query_vector,
+                    sparse=self._sparse_encoder.encode(linha),
+                    top_k=self._top_k,
+                )
+            else:
+                resultados = self._store.search(
+                    query_vector=query_vector,
+                    top_k=self._top_k,
+                    score_threshold=self._score_threshold,
+                )
+
+            for chunk in resultados:
                 chave = (chunk["source"], chunk["section"])
                 if chave in vistos:
                     continue

@@ -28,6 +28,7 @@ from rich.table import Table
 from indexer.chunker import RecursiveChunker
 from indexer.document_loader import DocumentLoader
 from rag_reviewer.embedder import Embedder
+from rag_reviewer.sparse_encoder import SparseEncoder
 from rag_reviewer.vector_store import VectorStore
 
 # Garante que o pacote raiz está no sys.path ao executar diretamente
@@ -102,6 +103,12 @@ def run_indexing(
     embeddings = embedder.embed(texts)
     console.print(f"[green]✅ Embeddings gerados. Shape: {embeddings.shape}[/green]\n")
 
+    # Vetores esparsos BM25 (L4): cobrem o lado lexical (`== True`, `!= None`)
+    # que um modelo semântico não deveria ter que casar sozinho (spec §1.3).
+    sparse_encoder = SparseEncoder()
+    sparse = sparse_encoder.encode_batch(texts)
+    console.print(f"[green]✅ Vetores esparsos BM25 gerados para {len(sparse)} chunk(s).[/green]\n")
+
     # ── Etapa 4: Inserção no Qdrant ───────────────────────────────────────
     console.rule("[bold]Etapa 4 — Inserção no Qdrant[/bold]")
     store = VectorStore(collection_name=collection_name)
@@ -112,7 +119,12 @@ def run_indexing(
             embedding_model=embedder.model_name,
         )
 
-    store.upsert(chunks=chunks, embeddings=embeddings, embedding_model=embedder.model_name)
+    store.upsert(
+        chunks=chunks,
+        embeddings=embeddings,
+        sparse=sparse,
+        embedding_model=embedder.model_name,
+    )
 
     # ── Resumo final ─────────────────────────────────────────────────────
     elapsed = time.perf_counter() - start_time

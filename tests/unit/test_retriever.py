@@ -70,7 +70,9 @@ def make_embedder_mock(vector_size: int = 4) -> MagicMock:
 def make_store_mock(chunks: list | None = None) -> MagicMock:
     """Cria um mock do VectorStore que retorna chunks predefinidos."""
     mock = MagicMock()
-    mock.search.return_value = chunks if chunks is not None else [make_chunk()]
+    valor = chunks if chunks is not None else [make_chunk()]
+    mock.search.return_value = valor
+    mock.search_hybrid.return_value = valor
     # `assert_model_matches` colide com o prefixo `assert_` que o MagicMock
     # reserva para suas próprias asserções — precisa ser configurado
     # explicitamente, senão o MagicMock levanta AttributeError ao chamá-lo.
@@ -78,12 +80,27 @@ def make_store_mock(chunks: list | None = None) -> MagicMock:
     return mock
 
 
+def make_sparse_encoder_mock() -> MagicMock:
+    """Cria um mock do SparseEncoder que retorna um par (índices, valores) fixo."""
+    mock = MagicMock()
+    mock.encode.return_value = ([1, 2, 3], [0.5, 0.3, 0.1])
+    return mock
+
+
 def make_retriever(
     chunks: list | None = None,
     top_k: int = 3,
     score_threshold: float = 0.55,
+    hybrid: bool = False,
 ) -> tuple[Retriever, MagicMock, MagicMock]:
-    """Retorna (retriever, embedder_mock, store_mock) prontos para testes."""
+    """
+    Retorna (retriever, embedder_mock, store_mock) prontos para testes.
+
+    `hybrid=False` por padrão: a maioria dos testes deste arquivo cobre o
+    caminho denso (`store.search`), que continua sendo o caminho usado por
+    L0-L3 no harness de avaliação. O caminho híbrido (`store.search_hybrid`,
+    default de produção desde a Task 9/L4) tem sua própria classe de testes.
+    """
     embedder = make_embedder_mock()
     store = make_store_mock(chunks)
     retriever = Retriever(
@@ -91,6 +108,8 @@ def make_retriever(
         store=store,
         top_k=top_k,
         score_threshold=score_threshold,
+        sparse_encoder=make_sparse_encoder_mock(),
+        hybrid=hybrid,
     )
     return retriever, embedder, store
 
@@ -276,7 +295,9 @@ class TestRetrieveForDiff:
         ]
         store.assert_model_matches = MagicMock()
         embedder = make_embedder_mock()
-        r = Retriever(embedder=embedder, store=store, top_k=3, score_threshold=0.55)
+        r = Retriever(
+            embedder=embedder, store=store, top_k=3, score_threshold=0.55, hybrid=False
+        )
 
         pr = make_pr_diff(
             files=[
@@ -354,6 +375,7 @@ class TestRetrieveForDiff:
             store=store,
             top_k=3,
             score_threshold=0.55,
+            hybrid=False,
         )
         pr = make_pr_diff(
             files=[
@@ -416,7 +438,9 @@ class TestRetrieveForFilePorLinha:
         embedder = _RecordingEmbedder()
         store = _FakeStore(chunks=[make_chunk()])
 
-        Retriever(embedder=embedder, store=store).retrieve_for_file(file_diff)
+        Retriever(embedder=embedder, store=store, hybrid=False).retrieve_for_file(
+            file_diff
+        )
 
         assert embedder.textos_recebidos == [
             "if x == True:",
@@ -430,7 +454,7 @@ class TestRetrieveForFilePorLinha:
         store = _FakeStore(chunks=[mesmo])  # devolve o mesmo chunk para toda linha
 
         ctx = Retriever(
-            embedder=_RecordingEmbedder(), store=store
+            embedder=_RecordingEmbedder(), store=store, hybrid=False
         ).retrieve_for_file(file_diff)
 
         assert ctx is not None
@@ -445,7 +469,7 @@ class TestRetrieveForFilePorLinha:
         store = _FakeStore(chunks=chunks)
 
         ctx = Retriever(
-            embedder=_RecordingEmbedder(), store=store, max_chunks=3
+            embedder=_RecordingEmbedder(), store=store, max_chunks=3, hybrid=False
         ).retrieve_for_file(file_diff)
 
         assert ctx is not None
@@ -455,10 +479,85 @@ class TestRetrieveForFilePorLinha:
         """Resultado legítimo, não erro (spec §8.3)."""
         file_diff = make_file_diff(added_lines=["y = 1"])
         ctx = Retriever(
-            embedder=_RecordingEmbedder(), store=_FakeStore(chunks=[])
+            embedder=_RecordingEmbedder(), store=_FakeStore(chunks=[]), hybrid=False
         ).retrieve_for_file(file_diff)
 
         assert ctx is None
+
+
+# ── Testes: busca híbrida densa + esparsa (L4) ──────────────────────────────────
+
+
+class TestRetrieveForFileHibrido:
+    def test_hybrid_e_o_default_de_producao(self):
+        """`Retriever()` sem `hybrid=` explícito usa a busca híbrida (L4)."""
+        embedder = make_embedder_mock()
+        store = make_store_mock(chunks=[make_chunk()])
+        r = Retriever(
+            embedder=embedder, store=store, sparse_encoder=make_sparse_encoder_mock()
+        )
+        fd = make_file_diff(added_lines=["if x == True:"])
+
+        r.retrieve_for_file(fd)
+
+        store.search_hybrid.assert_called_once()
+        store.search.assert_not_called()
+
+    def test_sparse_encoder_chamado_uma_vez_por_linha(self):
+        sparse_encoder = make_sparse_encoder_mock()
+        r, _, _ = make_retriever(hybrid=True)
+        r._sparse_encoder = sparse_encoder  # sobrepõe o da fixture
+        fd = make_file_diff(added_lines=["if x == True:", "if y == False:"])
+
+        r.retrieve_for_file(fd)
+
+        assert sparse_encoder.encode.call_count == 2
+        sparse_encoder.encode.assert_any_call("if x == True:")
+        sparse_encoder.encode.assert_any_call("if y == False:")
+
+    def test_search_hybrid_recebe_denso_e_esparso_da_linha(self):
+        embedder = make_embedder_mock()
+        store = make_store_mock(chunks=[make_chunk()])
+        sparse_encoder = make_sparse_encoder_mock()
+        r = Retriever(
+            embedder=embedder,
+            store=store,
+            top_k=3,
+            sparse_encoder=sparse_encoder,
+            hybrid=True,
+        )
+        fd = make_file_diff(added_lines=["if x == True:"])
+
+        r.retrieve_for_file(fd)
+
+        call_kwargs = store.search_hybrid.call_args.kwargs
+        assert call_kwargs["sparse"] == ([1, 2, 3], [0.5, 0.3, 0.1])
+        assert call_kwargs["top_k"] == 3
+        assert np.allclose(call_kwargs["dense"], [0.1, 0.2, 0.3, 0.4], atol=1e-6)
+        # score_threshold não se aplica ao caminho híbrido: o score pós-RRF
+        # não é cosseno (spec §4.4).
+        assert "score_threshold" not in call_kwargs
+
+    def test_chunks_do_search_hybrid_sao_deduplicados_e_limitados(self):
+        chunks = [
+            make_chunk(text=f"norma {i}", section=f"secao {i}", score=0.9 - i * 0.1)
+            for i in range(3)
+        ]
+        embedder = make_embedder_mock()
+        store = make_store_mock(chunks=chunks)
+        r = Retriever(
+            embedder=embedder,
+            store=store,
+            max_chunks=2,
+            sparse_encoder=make_sparse_encoder_mock(),
+            hybrid=True,
+        )
+        fd = make_file_diff(added_lines=["if x == True:", "if y == False:"])
+
+        ctx = r.retrieve_for_file(fd)
+
+        assert ctx is not None
+        assert len(ctx.chunks) == 2
 
 
 # ── Testes: texto enviado ao embedder por linha ────────────────────────────────

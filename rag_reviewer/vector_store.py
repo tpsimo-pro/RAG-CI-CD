@@ -51,6 +51,7 @@ class VectorStore:
         from qdrant_client.models import (  # type: ignore
             Distance,
             HnswConfigDiff,
+            SparseVectorParams,
             VectorParams,
         )
 
@@ -64,12 +65,15 @@ class VectorStore:
                 f"[yellow]VectorStore:[/yellow] coleção '{self._collection}' removida."
             )
 
+        # O vetor denso passa a ser NOMEADO ("dense"): a Query API precisa
+        # endereçar as duas modalidades (densa e esparsa "bm25") por nome
+        # em `search_hybrid` (spec — busca híbrida, L4).
         client.create_collection(
             collection_name=self._collection,
-            vectors_config=VectorParams(
-                size=vector_size,
-                distance=Distance.COSINE,
-            ),
+            vectors_config={
+                "dense": VectorParams(size=vector_size, distance=Distance.COSINE)
+            },
+            sparse_vectors_config={"bm25": SparseVectorParams()},
             hnsw_config=HnswConfigDiff(
                 m=16,
                 ef_construct=100,
@@ -80,23 +84,31 @@ class VectorStore:
             f"(dim={vector_size}, modelo={embedding_model}).[/green]"
         )
 
-    def upsert(self, chunks: list, embeddings, embedding_model: str) -> None:
+    def upsert(
+        self,
+        chunks: list,
+        embeddings,
+        sparse: list[tuple[list[int], list[float]]],
+        embedding_model: str,
+    ) -> None:
         """
-        Insere ou atualiza chunks no Qdrant.
+        Insere ou atualiza chunks no Qdrant, com vetor denso E esparso.
 
         Args:
             chunks: Lista de objetos Chunk (de indexer/chunker.py).
-            embeddings: Array numpy (N, D) com os vetores correspondentes.
+            embeddings: Array numpy (N, D) com os vetores densos correspondentes.
+            sparse: Lista paralela de (índices, valores) esparsos BM25, uma
+                por chunk — ver `SparseEncoder.encode_batch`.
             embedding_model: Nome do modelo que gerou `embeddings`. Gravado no
                 payload de cada ponto — é o que `assert_model_matches` lê para
                 impedir buscas com um modelo diferente do indexado.
         """
-        from qdrant_client.models import PointStruct  # type: ignore
+        from qdrant_client.models import PointStruct, SparseVector  # type: ignore
 
         client = self._get_client()
 
         points = []
-        for chunk, vector in zip(chunks, embeddings):
+        for chunk, vector, (idx, vals) in zip(chunks, embeddings, sparse):
             payload = {
                 "text": chunk.text,
                 "source": chunk.source,
@@ -110,7 +122,10 @@ class VectorStore:
             points.append(
                 PointStruct(
                     id=str(uuid.uuid4()),
-                    vector=vector.tolist(),
+                    vector={
+                        "dense": vector.tolist(),
+                        "bm25": SparseVector(indices=idx, values=vals),
+                    },
                     payload=payload,
                 )
             )
@@ -133,36 +148,88 @@ class VectorStore:
         score_threshold: float = 0.55,
     ) -> list[dict]:
         """
-        Busca os top-K chunks mais similares ao vetor de consulta.
+        Busca apenas densa. Mantida para as configurações L0–L3.
 
         Args:
-            query_vector: Vetor de consulta (lista de floats).
+            query_vector: Vetor de consulta denso (lista de floats).
             top_k: Número máximo de resultados.
-            score_threshold: Score mínimo de similaridade (0–1).
+            score_threshold: Score mínimo de similaridade cosine (0–1).
 
         Returns:
             Lista de dicts com: text, source, section, score.
         """
         client = self._get_client()
 
-        results = client.search(
+        results = client.query_points(
             collection_name=self._collection,
-            query_vector=query_vector,
+            query=query_vector,
+            using="dense",
             limit=top_k,
             score_threshold=score_threshold,
             with_payload=True,
-        )
+        ).points
 
-        return [
-            {
-                "text": r.payload["text"],
-                "source": r.payload["source"],
-                "section": r.payload.get("section", ""),
-                "page": r.payload.get("page", 0),
-                "score": r.score,
-            }
-            for r in results
-        ]
+        return [self._to_dict(r) for r in results]
+
+    def search_hybrid(
+        self,
+        dense: list,
+        sparse: tuple[list[int], list[float]],
+        top_k: int = 5,
+        prefetch_limit: int = 20,
+    ) -> list[dict]:
+        """
+        Busca híbrida densa + esparsa com fusão Reciprocal Rank Fusion (L4).
+
+        `== True` e `!= None` são padrões lexicais que um modelo semântico
+        não deveria ter que casar sozinho (spec §1.3) — o vetor esparso BM25
+        cobre esse lado, o denso cobre a paráfrase/tradução.
+
+        Após a fusão o score é POSTO (RRF), não cosseno — por isso o
+        `score_threshold` absoluto não se aplica aqui e foi removido do
+        caminho híbrido (spec §4.4). O corte passa a ser `top_k`, calibrado
+        contra o gabarito.
+
+        Args:
+            dense: Vetor de consulta denso.
+            sparse: (índices, valores) do vetor de consulta esparso BM25.
+            top_k: Número de resultados após a fusão.
+            prefetch_limit: Quantos candidatos cada modalidade contribui
+                antes da fusão.
+
+        Returns:
+            Lista de dicts com: text, source, section, score (RRF).
+        """
+        from qdrant_client import models  # type: ignore
+
+        client = self._get_client()
+        indices, values = sparse
+        results = client.query_points(
+            collection_name=self._collection,
+            prefetch=[
+                models.Prefetch(query=dense, using="dense", limit=prefetch_limit),
+                models.Prefetch(
+                    query=models.SparseVector(indices=indices, values=values),
+                    using="bm25",
+                    limit=prefetch_limit,
+                ),
+            ],
+            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            limit=top_k,
+            with_payload=True,
+        ).points
+
+        return [self._to_dict(r) for r in results]
+
+    @staticmethod
+    def _to_dict(point) -> dict:
+        return {
+            "text": point.payload["text"],
+            "source": point.payload["source"],
+            "section": point.payload.get("section", ""),
+            "page": point.payload.get("page", 0),
+            "score": point.score,
+        }
 
     def assert_model_matches(self, embedding_model: str) -> None:
         """
