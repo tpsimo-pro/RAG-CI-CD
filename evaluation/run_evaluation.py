@@ -154,7 +154,18 @@ def _build_pipeline() -> tuple[Retriever, LLMClient]:
     # Temperatura forçada a 0.0 (D-005), independente do que estiver no
     # .env: a avaliação do TCC não deve depender de configuração externa
     # correta para ser determinística.
-    llm = LLMClient(temperature=0.0)
+    #
+    # max_tokens reduzido de 2048 (default do LLMClient) para 900: o plano
+    # on-demand da Groq para qwen/qwen3.8-27b tem um teto de OTPM (output
+    # tokens por minuto) de 1000 — um max_tokens de 2048 faz TODA requisição
+    # ser rejeitada com 429 "Request too large", nao um throttle temporário
+    # que backoff resolve. Confirmado em produção: matou a Task 13 no PR-011
+    # apos consumir as 5 tentativas de _review_with_backoff inutilmente,
+    # porque a mesma requisição excede o teto de novo a cada retry. 900 fica
+    # com folga sob o teto de 1000 e é generoso para uma lista de violações
+    # em JSON de um diff de PR (poucas centenas de tokens observados nos
+    # runs concluídos até aqui).
+    llm = LLMClient(temperature=0.0, max_tokens=900)
     return retriever, llm
 
 
