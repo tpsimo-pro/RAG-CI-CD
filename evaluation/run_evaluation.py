@@ -1,378 +1,521 @@
 """
 run_evaluation.py — Script principal de avaliação do RAG-Reviewer.
 
-Executa o sistema contra o dataset sintético de PRs, calcula as métricas
-de Precision, Recall e F1-Score e gera um relatório detalhado.
+Executa o sistema **real** (retrieval no Qdrant + geração no Groq, via os
+módulos de `rag_reviewer/`) contra o dataset do piloto — Seção 5 do guia de
+estilo Python (Comparações booleanas e com `None`, D-002) — e produz a
+matriz de confusão completa (TP/FP/FN/TN) e as métricas derivadas definidas
+em `docs/DECISIONS.md` (D-001, D-003, D-005).
+
+Este script **não usa mocks**. Se `GROQ_API_KEY` não estiver configurada ou
+o Qdrant estiver inacessível, a execução falha com uma mensagem de erro
+clara — nunca cai silenciosamente em dados simulados.
 
 Uso:
     python -m evaluation.run_evaluation
-    python -m evaluation.run_evaluation --dataset evaluation/dataset/prs_with_violations.json
+    python -m evaluation.run_evaluation --dataset evaluation/dataset/pilot_secao5.json
+    python -m evaluation.run_evaluation --repeticoes 1   # desenvolvimento — poupa cota da API
     python -m evaluation.run_evaluation --output evaluation/results.json
-
-O script usa mocks para as dependências externas (Qdrant, Groq API),
-permitindo a execução completa sem chamadas de rede reais.
-A resposta do LLM é simulada diretamente a partir do gabarito do dataset,
-garantindo que a avaliação meça a capacidade do sistema de ponta a ponta
-(diff → retrieval → prompt → parse → publicação) sem depender da LLM.
 """
 
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import sys
 import time
-from dataclasses import asdict
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 from rich.console import Console
 from rich.table import Table
+
+# Força UTF-8 na saída padrão, independente do console/codepage do SO.
+# Evita depender de `set PYTHONIOENCODING=utf-8` no shell que invoca o
+# script (frágil no Windows: `make` só passa por um shell POSIX quando a
+# receita contém metacaracteres, e nesse caso caminhos com `\` quebram).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError, OSError):
+        pass  # stream não suporta reconfigure (ex.: redirecionado de forma incomum)
 
 # Raiz do projeto — garante imports independente do cwd
 _PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+import groq  # noqa: E402
+
 from evaluation.metrics import (  # noqa: E402
-    AggregatedResult,
-    EvaluationResult,
-    aggregate_results,
-    evaluate_pr,
+    TARGET_F1,
+    TARGET_PRECISION,
+    TARGET_RECALL,
+    AggregatedEvaluation,
+    GoldLine,
+    LineResult,
+    RepetitionResult,
+    check_targets,
+    classify_lines,
 )
+from rag_reviewer.diff_parser import FileDiff  # noqa: E402
+from rag_reviewer.embedder import Embedder  # noqa: E402
+from rag_reviewer.llm_client import LLMClient  # noqa: E402
+from rag_reviewer.retriever import RetrievedContext, Retriever  # noqa: E402
+from rag_reviewer.vector_store import VectorStore  # noqa: E402
 
 console = Console(highlight=False)
 
-_DEFAULT_DATASET = _PROJECT_ROOT / "evaluation" / "dataset" / "prs_with_violations.json"
+_DEFAULT_DATASET = _PROJECT_ROOT / "evaluation" / "dataset" / "pilot_secao5.json"
 _DEFAULT_OUTPUT = _PROJECT_ROOT / "evaluation" / "results.json"
-
-# Chunks normativos simulados — representam o que o Qdrant retornaria
-_MOCK_CHUNKS = [
-    {
-        "text": (
-            "Comparações booleanas: Não compare valores booleanos com "
-            "== True ou == False. Use diretamente o valor booleano. "
-            "Comparações de nulos: Sempre use 'is' ou 'is not' ao comparar com None."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 5: Práticas de Código e Idiomas Pythonicos",
-        "score": 0.92,
-    },
-    {
-        "text": (
-            "Importações com asterisco (from module import *) são completamente "
-            "proibidas, pois poluem o namespace e dificultam a rastreabilidade. "
-            "Importações devem ser preferencialmente em linhas separadas."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 3.2: Regras de Importação",
-        "score": 0.89,
-    },
-    {
-        "text": (
-            "Tamanho Máximo de Linha: O limite estrito de comprimento para todas "
-            "as linhas de código é de 79 caracteres."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 1.1: Tamanho Máximo de Linha",
-        "score": 0.85,
-    },
-    {
-        "text": (
-            "Classes devem usar PascalCase. "
-            "Funções e variáveis devem usar snake_case. "
-            "Constantes devem usar UPPER_SNAKE_CASE."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 2: Nomenclatura e Convenções",
-        "score": 0.88,
-    },
-    {
-        "text": (
-            "Nomes de 1 caractere: Nunca use os caracteres l (L minúsculo), "
-            "O (O maiúsculo) ou I (i maiúsculo) como variáveis de uma única letra, "
-            "pois são confusos visualmente."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 2.1: Regras de Nomenclatura Restritas",
-        "score": 0.91,
-    },
-    {
-        "text": (
-            "Evite espaços extras imediatamente dentro de parênteses, chaves ou "
-            "colchetes. Sempre cerque operadores matemáticos, de comparação e de "
-            "atribuição com um único espaço de cada lado."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 4: Uso de Espaços em Branco em Expressões",
-        "score": 0.87,
-    },
-    {
-        "text": (
-            "Early Return: Para evitar aninhamento excessivo, use a técnica de "
-            "retorno antecipado, invertendo condições e retornando cedo."
-        ),
-        "source": "guia_python_pep8.md",
-        "section": "Seção 5: Práticas de Código e Idiomas Pythonicos",
-        "score": 0.83,
-    },
-]
+_DEFAULT_REPETICOES = 3
 
 
-def _build_mock_llm_response(expected_violations: list[dict]) -> str:
+# ── Carregamento e validação do dataset ─────────────────────────────────────
+
+
+def _load_dataset(path: Path) -> list[dict]:
     """
-    Constrói uma resposta JSON simulada do LLM com base no gabarito.
+    Carrega e valida a forma mínima do dataset contra o contrato do schema.
 
-    Em um sistema real, o LLM receberia o diff + chunks e geraria as
-    violações. Aqui, simulamos a resposta ideal para validar o pipeline
-    de parsing e avaliação.
+    Falha ruidosamente (ValueError) se algum PR ou linha adicionada não tiver
+    os campos obrigatórios — não há caminho silencioso para dados malformados.
     """
-    violations = []
-    for v in expected_violations:
-        violations.append(
-            {
-                "line_content": v["line_content"],
-                "violation_description": (
-                    f"Violação detectada em: {v['line_content']}"
-                ),
-                "norm_reference": v["norm_reference"],
-                "severity": v["severity"],
-                "suggestion": "Corrigir conforme a norma referenciada.",
-            }
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(raw, list) or not raw:
+        raise ValueError(f"Dataset vazio ou em formato inválido: {path}")
+
+    for pr in raw:
+        for required in ("pr_id", "filename", "patch", "added_lines"):
+            if required not in pr:
+                raise ValueError(
+                    f"PR malformado em {path} (pr_id={pr.get('pr_id', '?')}): "
+                    f"campo obrigatório '{required}' ausente."
+                )
+        for added_line in pr["added_lines"]:
+            for required in ("line", "viola"):
+                if required not in added_line:
+                    raise ValueError(
+                        f"Linha adicionada malformada em {pr['pr_id']}: "
+                        f"campo obrigatório '{required}' ausente."
+                    )
+    return raw
+
+
+def _build_gold_lines(pr_data: dict) -> list[GoldLine]:
+    """Converte `added_lines` do dataset no gabarito tipado (GoldLine)."""
+    return [
+        GoldLine(
+            pr_id=pr_data["pr_id"],
+            line=al["line"],
+            viola=bool(al["viola"]),
+            sub_regra=al.get("sub_regra"),
+            hard_negative=bool(al.get("hard_negative", False)),
         )
-    return json.dumps({"violations": violations})
+        for al in pr_data["added_lines"]
+    ]
 
 
-def run_evaluation(dataset_path: Path) -> AggregatedResult:
+def _build_file_diff(pr_data: dict) -> FileDiff:
     """
-    Executa o RAG-Reviewer contra todos os PRs do dataset.
+    Constrói o FileDiff de produção a partir de um PR do dataset.
 
-    Usa mocks para Qdrant e LLM, mas exercita todo o pipeline de
-    parsing, retrieval e geração real.
+    As `added_lines` do FileDiff vêm diretamente do gabarito (D-001 define a
+    unidade de avaliação como "os itens de added_lines de cada PR do
+    dataset") — o mesmo texto que carrega o rótulo é o que alimenta o
+    retriever e o LLM reais, garantindo que se avalia exatamente o que foi
+    rotulado.
+    """
+    added_lines = [al["line"] for al in pr_data["added_lines"]]
+    return FileDiff(
+        filename=pr_data["filename"],
+        patch=pr_data.get("patch", ""),
+        status="modified",
+        additions=len(added_lines),
+        deletions=0,
+        added_lines=added_lines,
+    )
 
-    Args:
-        dataset_path: Caminho para o JSON com os PRs do dataset.
+
+# ── Pipeline real (sem mocks) ────────────────────────────────────────────────
+
+
+def _build_pipeline() -> tuple[Retriever, LLMClient]:
+    """
+    Instancia os componentes reais do sistema via `rag_reviewer/`.
+
+    Nenhuma dependência é mockada: `Embedder` carrega o modelo
+    sentence-transformers real, `VectorStore` conecta ao Qdrant real, e
+    `LLMClient` chama a API da Groq real. Falhas de configuração ou rede
+    propagam como exceção — ver `main()`.
+    """
+    embedder = Embedder()
+    store = VectorStore()
+    retriever = Retriever(embedder=embedder, store=store)
+    # Temperatura forçada a 0.0 (D-005), independente do que estiver no
+    # .env: a avaliação do TCC não deve depender de configuração externa
+    # correta para ser determinística.
+    #
+    # max_tokens reduzido de 2048 (default do LLMClient) para 900: o plano
+    # on-demand da Groq para qwen/qwen3.8-27b tem um teto de OTPM (output
+    # tokens por minuto) de 1000 — um max_tokens de 2048 faz TODA requisição
+    # ser rejeitada com 429 "Request too large", nao um throttle temporário
+    # que backoff resolve. Confirmado em produção: matou a Task 13 no PR-011
+    # apos consumir as 5 tentativas de _review_with_backoff inutilmente,
+    # porque a mesma requisição excede o teto de novo a cada retry. 900 fica
+    # com folga sob o teto de 1000 e é generoso para uma lista de violações
+    # em JSON de um diff de PR (poucas centenas de tokens observados nos
+    # runs concluídos até aqui).
+    llm = LLMClient(temperature=0.0, max_tokens=900)
+    return retriever, llm
+
+
+def _review_with_backoff(
+    llm: LLMClient, context: RetrievedContext, max_attempts: int = 5
+) -> list:
+    """
+    Chama `llm.review`, reagindo a 429 (rate limit) do Groq com espera e
+    nova tentativa — não é um bug do pipeline, é o teto de tokens/minuto do
+    plano gratuito (D-006). Sem isso, `--repeticoes 3` em 30 PRs sequenciais
+    estoura o limite e a avaliação falha antes de terminar (falha alta,
+    conforme o script já faz — aqui só se dá mais chances antes de desistir).
+
+    Usa o tempo sugerido pela própria API (`retry_after`) quando disponível;
+    senão, um recuo fixo de 20s.
+    """
+    for attempt in range(max_attempts):
+        try:
+            return llm.review(context)
+        except groq.RateLimitError as exc:
+            if attempt == max_attempts - 1:
+                raise
+            retry_after = exc.response.headers.get("retry-after")
+            espera = float(retry_after) if retry_after else 20.0
+            console.log(
+                f"[yellow]⚠️  Rate limit da Groq (tentativa {attempt + 1}/"
+                f"{max_attempts}); aguardando {espera:.0f}s...[/yellow]"
+            )
+            time.sleep(espera)
+    return []  # inalcançável: o loop sempre retorna ou levanta
+
+
+def _retrieve_context(retriever: Retriever, file_diff: FileDiff) -> RetrievedContext | None:
+    """
+    Recupera o contexto normativo real do Qdrant para um arquivo do PR.
+
+    `None` é um resultado legítimo (nenhum chunk atingiu `score_threshold`)
+    e não um erro: nesse caso o LLM não é chamado, e todas as linhas do PR
+    são avaliadas como não sinalizadas nesta execução — exatamente o que o
+    sistema em produção faria.
+    """
+    context = retriever.retrieve_for_file(file_diff)
+    if context is None:
+        console.log(
+            f"[yellow]⚠️  Nenhum chunk normativo acima do threshold para "
+            f"[bold]{file_diff.filename}[/bold] — nenhuma chamada ao LLM será feita; "
+            "todas as linhas deste PR contam como não sinalizadas.[/yellow]"
+        )
+    return context
+
+
+# ── Checkpoint (resiliência ao rate limit diário da Groq) ──────────────────────
+#
+# O plano free/on-demand da Groq tem um teto de tokens/dia (TPD) que, sob
+# `--repeticoes 3` em 30 PRs, fica no limite e força esperas de vários
+# minutos entre chamadas (ver `_review_with_backoff`). Sem checkpoint, uma
+# interrupção (kill do processo, sessão reiniciada) perde TODO o progresso —
+# `run_evaluation` só devolve resultado ao final do laço inteiro — e a
+# próxima tentativa reprocessaria PRs já concluídos, gastando ainda mais da
+# cota escassa do dia à toa. O checkpoint grava o resultado de cada PR assim
+# que suas `repeticoes` terminam, e é apagado só ao final de uma execução
+# bem-sucedida — nunca fica "furtando" trabalho de uma configuração diferente.
+
+_CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
+
+
+def _line_result_to_dict(r: LineResult) -> dict:
+    return dataclasses.asdict(r)
+
+
+def _line_result_from_dict(d: dict) -> LineResult:
+    return LineResult(**d)
+
+
+def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
+    """
+    Carrega o checkpoint se existir e for compatível com esta execução
+    (mesmo dataset e número de repetições). Checkpoint de uma configuração
+    diferente é ignorado — nunca aplicado por engano a outra.
+    """
+    if not _CHECKPOINT_PATH.exists():
+        return {}
+    try:
+        data = json.loads(_CHECKPOINT_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}  # checkpoint corrompido (ex.: kill a meio da escrita) — ignora
+    if data.get("dataset_path") != str(dataset_path) or data.get("repeticoes") != repeticoes:
+        return {}
+    return data.get("completed_prs", {})
+
+
+def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -> None:
+    """Escrita atômica (arquivo temporário + rename) — nunca deixa o checkpoint pela metade."""
+    payload = {
+        "dataset_path": str(dataset_path),
+        "repeticoes": repeticoes,
+        "completed_prs": completed_prs,
+    }
+    tmp = _CHECKPOINT_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(_CHECKPOINT_PATH)
+
+
+# ── Execução ──────────────────────────────────────────────────────────────────
+
+
+def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvaluation, str]:
+    """
+    Executa o RAG-Reviewer real contra todos os PRs do dataset, `repeticoes`
+    vezes cada (D-005), e agrega o resultado.
+
+    O retrieval é determinístico (embedding + busca por cosine similarity
+    não têm componente aleatório) e por isso é feito uma única vez por PR;
+    apenas a chamada ao LLM é repetida, que é onde a variância entra mesmo
+    com temperatura 0.0.
 
     Returns:
-        AggregatedResult com as métricas calculadas.
+        Tupla (AggregatedEvaluation, nome do modelo Groq efetivamente usado)
+        — o nome do modelo é registrado em `results.json` para
+        reprodutibilidade: qual modelo produziu quais números.
     """
-    dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
-    results: list[EvaluationResult] = []
+    dataset = _load_dataset(dataset_path)
+    retriever, llm = _build_pipeline()
 
-    console.rule("[bold cyan]RAG-Reviewer — Avaliação[/bold cyan]")
+    console.rule("[bold cyan]RAG-Reviewer — Avaliação (sistema real)[/bold cyan]")
     console.print(
-        f"\n[+] Dataset: [bold]{dataset_path}[/bold] "
-        f"({len(dataset)} PRs)\n"
+        f"\n[+] Dataset: [bold]{dataset_path}[/bold] ({len(dataset)} PRs) | "
+        f"Modelo: [bold]{llm.model}[/bold] | "
+        f"Temperatura: [bold]{llm.temperature}[/bold] | "
+        f"Repetições: [bold]{repeticoes}[/bold]\n"
     )
+
+    per_repetition_lines: list[list[LineResult]] = [[] for _ in range(repeticoes)]
+    per_repetition_detections = [0] * repeticoes
+    per_repetition_hallucinations = [0] * repeticoes
+
+    completed_prs = _load_checkpoint(dataset_path, repeticoes)
+    if completed_prs:
+        console.log(
+            f"[yellow]↺ Checkpoint encontrado:[/yellow] {len(completed_prs)} PR(s) já "
+            "concluído(s) nesta configuração — pulando reprocessamento."
+        )
 
     for pr_data in dataset:
         pr_id = pr_data["pr_id"]
-        expected_violations = pr_data["expected_violations"]
+        gold_lines = _build_gold_lines(pr_data)
 
-        console.log(
-            f"[cyan]-> Avaliando [bold]{pr_id}[/bold]:[/cyan] "
-            f"{pr_data['description']}"
+        if pr_id in completed_prs:
+            per_pr_reps = completed_prs[pr_id]
+        else:
+            file_diff = _build_file_diff(pr_data)
+
+            console.log(
+                f"[cyan]-> Avaliando [bold]{pr_id}[/bold]:[/cyan] "
+                f"{pr_data.get('description', '')} ({len(gold_lines)} linha(s))"
+            )
+
+            context = _retrieve_context(retriever, file_diff)
+
+            per_pr_reps = []
+            for rep in range(repeticoes):
+                detections = _review_with_backoff(llm, context) if context is not None else []
+                line_results, total_det, hallucinated = classify_lines(gold_lines, detections)
+                per_pr_reps.append(
+                    {
+                        "line_results": [_line_result_to_dict(r) for r in line_results],
+                        "total_detections": total_det,
+                        "hallucinated_detections": hallucinated,
+                    }
+                )
+                _log_pr_repetition(rep, line_results)
+
+            completed_prs[pr_id] = per_pr_reps
+            _save_checkpoint(dataset_path, repeticoes, completed_prs)
+
+        for rep, rep_data in enumerate(per_pr_reps):
+            per_repetition_lines[rep].extend(
+                _line_result_from_dict(d) for d in rep_data["line_results"]
+            )
+            per_repetition_detections[rep] += rep_data["total_detections"]
+            per_repetition_hallucinations[rep] += rep_data["hallucinated_detections"]
+
+    _CHECKPOINT_PATH.unlink(missing_ok=True)  # execução completa — checkpoint não serve mais
+
+    repetitions = [
+        RepetitionResult(
+            repetition_index=i,
+            line_results=per_repetition_lines[i],
+            total_detections=per_repetition_detections[i],
+            hallucinated_detections=per_repetition_hallucinations[i],
         )
-
-        start_time = time.time()
-        detected_violations = _run_pr_through_pipeline(pr_data)
-        elapsed = time.time() - start_time
-
-        result = evaluate_pr(
-            pr_id=pr_id,
-            detected_violations=detected_violations,
-            expected_violations=expected_violations,
-        )
-        results.append(result)
-
-        _log_pr_result(result, elapsed)
-
-    aggregated = aggregate_results(results)
-    return aggregated
-
-
-def _run_pr_through_pipeline(pr_data: dict) -> list[dict]:
-    """
-    Executa o pipeline do RAG-Reviewer para um PR simulado.
-
-    Mocka as dependências externas (env vars, Qdrant, LLM) e retorna
-    as violações detectadas como lista de dicts.
-    """
-    from rag_reviewer.config import get_settings
-    from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
-    from rag_reviewer.llm_client import LLMClient
-    from rag_reviewer.retriever import RetrievedContext
-
-    # Monta o FileDiff a partir dos dados do dataset
-    file_diff = FileDiff(
-        filename=pr_data["filename"],
-        patch=pr_data["patch"],
-        status="modified",
-        additions=len(pr_data["added_lines"]),
-        deletions=0,
-        added_lines=pr_data["added_lines"],
-    )
-
-    # Simula o contexto que o Retriever retornaria do Qdrant
-    context = RetrievedContext(
-        file_diff=file_diff,
-        chunks=_MOCK_CHUNKS,
-        query_text=" ".join(pr_data["added_lines"][:5]),
-    )
-
-    # Mock da API Groq — responde com o gabarito do dataset
-    mock_response_json = _build_mock_llm_response(pr_data["expected_violations"])
-
-    mock_choice = MagicMock()
-    mock_choice.message.content = mock_response_json
-    mock_completion = MagicMock()
-    mock_completion.choices = [mock_choice]
-
-    detected: list[dict] = []
-
-    env_patch = {
-        "GROQ_API_KEY": "mock-key-for-evaluation",
-        "QDRANT_URL": "http://localhost:6333",
-        "GITHUB_TOKEN": "mock-token",
-        "REPO_FULL_NAME": "org/repo",
-        "PR_NUMBER": "1",
-        "PR_HEAD_SHA": "abc123",
-    }
-
-    with patch.dict("os.environ", env_patch):
-        get_settings.cache_clear()
-
-        with patch("groq.Groq") as mock_groq_class:
-            mock_client = MagicMock()
-            mock_client.chat.completions.create.return_value = mock_completion
-            mock_groq_class.return_value = mock_client
-
-            llm = LLMClient()
-            violations = llm.review(context)
-
-    for v in violations:
-        detected.append(
-            {
-                "line_content": v.line_content,
-                "violation_description": v.violation_description,
-                "norm_reference": v.norm_reference,
-                "severity": v.severity,
-                "suggestion": v.suggestion,
-            }
-        )
-
-    return detected
-
-
-def _log_pr_result(result: EvaluationResult, elapsed: float) -> None:
-    """Imprime o resultado de um PR individual no console."""
-    ok = result.false_positives == 0 and result.false_negatives == 0
-    status = "[OK]" if ok else "[!!]"
-    console.log(
-        f"  {status} TP={result.true_positives} "
-        f"FP={result.false_positives} "
-        f"FN={result.false_negatives} "
-        f"P={result.precision:.2f} "
-        f"R={result.recall:.2f} "
-        f"F1={result.f1_score:.2f} "
-        f"({elapsed:.2f}s)"
-    )
-
-
-def _print_summary_table(aggregated: AggregatedResult) -> None:
-    """Imprime a tabela de resultados por PR e as métricas globais."""
-    console.rule("\n[bold green]Resultados por PR[/bold green]")
-
-    table = Table(show_header=True, header_style="bold cyan")
-    table.add_column("PR", style="bold")
-    table.add_column("TP", justify="right")
-    table.add_column("FP", justify="right")
-    table.add_column("FN", justify="right")
-    table.add_column("Precision", justify="right")
-    table.add_column("Recall", justify="right")
-    table.add_column("F1-Score", justify="right")
-
-    for r in aggregated.pr_results:
-        fp_style = "red" if r.false_positives > 0 else "green"
-        fn_style = "red" if r.false_negatives > 0 else "green"
-        table.add_row(
-            r.pr_id,
-            str(r.true_positives),
-            f"[{fp_style}]{r.false_positives}[/{fp_style}]",
-            f"[{fn_style}]{r.false_negatives}[/{fn_style}]",
-            f"{r.precision:.2f}",
-            f"{r.recall:.2f}",
-            f"[bold]{r.f1_score:.2f}[/bold]",
-        )
-
-    console.print(table)
-
-    console.rule("[bold green]Métricas Globais[/bold green]")
-    console.print(
-        f"\n  [bold]Micro-Average[/bold]  "
-        f"Precision: [cyan]{aggregated.micro_precision:.4f}[/cyan]  "
-        f"Recall: [cyan]{aggregated.micro_recall:.4f}[/cyan]  "
-        f"F1: [bold cyan]{aggregated.micro_f1:.4f}[/bold cyan]"
-    )
-    console.print(
-        f"  [bold]Macro-Average[/bold]  "
-        f"Precision: [cyan]{aggregated.macro_precision:.4f}[/cyan]  "
-        f"Recall: [cyan]{aggregated.macro_recall:.4f}[/cyan]  "
-        f"F1: [bold cyan]{aggregated.macro_f1:.4f}[/bold cyan]"
-    )
-    console.print(
-        f"\n  Total TPs: {aggregated.total_tp} | "
-        f"Total FPs: {aggregated.total_fp} | "
-        f"Total FNs: {aggregated.total_fn}\n"
-    )
-
-    # Metas do TCC
-    _print_targets(aggregated)
-
-
-def _print_targets(aggregated: AggregatedResult) -> None:
-    """Verifica se as métricas atingiram as metas do TCC."""
-    console.rule("[bold yellow]Metas do TCC[/bold yellow]")
-
-    targets = [
-        ("Precision (micro) >= 0.70", aggregated.micro_precision >= 0.70),
-        ("Recall (micro) >= 0.65", aggregated.micro_recall >= 0.65),
-        ("F1-Score (micro) >= 0.67", aggregated.micro_f1 >= 0.67),
+        for i in range(repeticoes)
     ]
+    return AggregatedEvaluation(repetitions=repetitions), llm.model
 
-    for label, achieved in targets:
+
+def _log_pr_repetition(rep_index: int, line_results: list[LineResult]) -> None:
+    """Imprime a contagem de células de uma repetição de um PR no console."""
+    tp = sum(1 for r in line_results if r.cell == "TP")
+    fp = sum(1 for r in line_results if r.cell == "FP")
+    fn = sum(1 for r in line_results if r.cell == "FN")
+    tn = sum(1 for r in line_results if r.cell == "TN")
+    ok = fp == 0 and fn == 0
+    status = "[OK]" if ok else "[!!]"
+    console.log(f"  {status} rep={rep_index} TP={tp} FP={fp} FN={fn} TN={tn}")
+
+
+# ── Apresentação ──────────────────────────────────────────────────────────────
+
+
+def _print_summary(agg: AggregatedEvaluation) -> None:
+    """Imprime as métricas agregadas: média±desvio entre repetições e as matrizes publicadas."""
+    console.rule("\n[bold green]Métricas primárias — média ± desvio-padrão entre repetições[/bold green]")
+    console.print(
+        f"\n  Precisão: [cyan]{agg.precision_mean:.4f}[/cyan] ± {agg.precision_stdev:.4f}\n"
+        f"  Recall:   [cyan]{agg.recall_mean:.4f}[/cyan] ± {agg.recall_stdev:.4f}\n"
+        f"  F1-Score: [bold cyan]{agg.f1_mean:.4f}[/bold cyan] ± {agg.f1_stdev:.4f}\n"
+    )
+
+    published = agg.median_f1_repetition
+    console.rule(
+        f"[bold green]Matriz de confusão — linha adicionada "
+        f"(repetição de F1 mediano, idx={published.repetition_index})[/bold green]"
+    )
+    cm = published.confusion_matrix
+    line_table = Table(show_header=True, header_style="bold cyan")
+    line_table.add_column("")
+    line_table.add_column("Sistema sinalizou", justify="right")
+    line_table.add_column("Sistema não sinalizou", justify="right")
+    line_table.add_row("Linha viola", f"TP = {cm['tp']}", f"FN = {cm['fn']}")
+    line_table.add_row("Linha não viola", f"FP = {cm['fp']}", f"TN = {cm['tn']}")
+    console.print(line_table)
+    console.print(f"\n  N = {cm['n']} linha(s) avaliada(s) (TP+FP+FN+TN == N)\n")
+
+    console.print(
+        f"  [yellow]Acurácia (SECUNDÁRIA, NÃO-REPRESENTATIVA — conjunto desbalanceado, "
+        f"~80% negativos):[/yellow] {published.accuracy:.4f}"
+    )
+    console.print(
+        f"  Taxa de alucinação de localização: {published.hallucination_rate:.4f} "
+        f"({published.hallucinated_detections}/{published.total_detections} detecções)"
+    )
+    norm_prec = published.norm_reference_precision
+    norm_prec_str = f"{norm_prec:.4f}" if norm_prec is not None else "N/A (nenhum TP nesta execução)"
+    console.print(f"  Precisão de referência normativa (entre os TPs): {norm_prec_str}\n")
+
+    gate_cm = published.pr_gate_confusion_matrix()
+    console.rule("[bold green]Matriz de confusão — nível de PR (gate de CI/CD)[/bold green]")
+    gate_table = Table(show_header=True, header_style="bold cyan")
+    gate_table.add_column("")
+    gate_table.add_column("Sistema bloqueia", justify="right")
+    gate_table.add_column("Sistema não bloqueia", justify="right")
+    gate_table.add_row("PR viola", f"TP = {gate_cm['tp']}", f"FN = {gate_cm['fn']}")
+    gate_table.add_row("PR limpo", f"FP = {gate_cm['fp']}", f"TN = {gate_cm['tn']}")
+    console.print(gate_table)
+    console.print(f"\n  N = {gate_cm['n']} PR(s) avaliado(s)\n")
+
+    _print_targets(agg)
+
+
+def _print_targets(agg: AggregatedEvaluation) -> None:
+    """Verifica as métricas médias contra as metas de §15.3 do planejamento."""
+    console.rule("[bold yellow]Metas do TCC (§15.3)[/bold yellow]")
+
+    checks = check_targets(agg.precision_mean, agg.recall_mean, agg.f1_mean)
+    labels = {
+        "precision": f"Precisão (média) >= {TARGET_PRECISION:.2f}",
+        "recall": f"Recall (média) >= {TARGET_RECALL:.2f}",
+        "f1": f"F1-Score (média) >= {TARGET_F1:.2f}",
+    }
+    for key in ("precision", "recall", "f1"):
+        achieved = checks[key]
         icon = "[OK]" if achieved else "[FAIL]"
         style = "green" if achieved else "red"
-        console.print(f"  {icon} [{style}]{label}[/{style}]")
-
+        console.print(f"  {icon} [{style}]{labels[key]}[/{style}]")
     console.print()
 
 
-def _save_results(aggregated: AggregatedResult, output_path: Path) -> None:
-    """Salva os resultados em JSON para análise posterior."""
+def _save_results(
+    agg: AggregatedEvaluation,
+    dataset_path: Path,
+    repeticoes: int,
+    model: str,
+    output_path: Path,
+) -> None:
+    """Salva o conjunto completo de métricas em JSON para análise posterior."""
+    published = agg.median_f1_repetition
+    checks = check_targets(agg.precision_mean, agg.recall_mean, agg.f1_mean)
+
     output = {
-        "summary": {
-            "total_prs": len(aggregated.pr_results),
-            "total_tp": aggregated.total_tp,
-            "total_fp": aggregated.total_fp,
-            "total_fn": aggregated.total_fn,
-            "micro_precision": round(aggregated.micro_precision, 4),
-            "micro_recall": round(aggregated.micro_recall, 4),
-            "micro_f1": round(aggregated.micro_f1, 4),
-            "macro_precision": round(aggregated.macro_precision, 4),
-            "macro_recall": round(aggregated.macro_recall, 4),
-            "macro_f1": round(aggregated.macro_f1, 4),
+        "config": {
+            "dataset": str(dataset_path),
+            "repeticoes": repeticoes,
+            "model": model,
+            "temperature": 0.0,
         },
-        "per_pr": [
+        "repetitions": [
             {
-                "pr_id": r.pr_id,
-                "true_positives": r.true_positives,
-                "false_positives": r.false_positives,
-                "false_negatives": r.false_negatives,
+                "repetition_index": r.repetition_index,
+                "confusion_matrix": r.confusion_matrix,
                 "precision": round(r.precision, 4),
                 "recall": round(r.recall, 4),
-                "f1_score": round(r.f1_score, 4),
+                "f1": round(r.f1, 4),
+                "accuracy": round(r.accuracy, 4),
+                "hallucination_rate": round(r.hallucination_rate, 4),
+                "norm_reference_precision": (
+                    round(r.norm_reference_precision, 4)
+                    if r.norm_reference_precision is not None
+                    else None
+                ),
+                "total_detections": r.total_detections,
+                "hallucinated_detections": r.hallucinated_detections,
             }
-            for r in aggregated.pr_results
+            for r in agg.repetitions
+        ],
+        "summary": {
+            "precision_mean": round(agg.precision_mean, 4),
+            "precision_stdev": round(agg.precision_stdev, 4),
+            "recall_mean": round(agg.recall_mean, 4),
+            "recall_stdev": round(agg.recall_stdev, 4),
+            "f1_mean": round(agg.f1_mean, 4),
+            "f1_stdev": round(agg.f1_stdev, 4),
+            "median_f1_repetition_index": published.repetition_index,
+        },
+        "published": {
+            "line_confusion_matrix": published.confusion_matrix,
+            "pr_gate_confusion_matrix": published.pr_gate_confusion_matrix(),
+            "accuracy": {
+                "value": round(published.accuracy, 4),
+                "note": (
+                    "SECUNDÁRIA e NÃO-REPRESENTATIVA: conjunto desbalanceado "
+                    "(~80% de linhas negativas, D-004). Não usar para comparar desempenho."
+                ),
+            },
+            "hallucination_rate": round(published.hallucination_rate, 4),
+            "norm_reference_precision": (
+                round(published.norm_reference_precision, 4)
+                if published.norm_reference_precision is not None
+                else None
+            ),
+        },
+        "targets": checks,
+        "per_pr_gate": [
+            {
+                "pr_id": g.pr_id,
+                "expected_positive": g.expected_positive,
+                "predicted_positive": g.predicted_positive,
+                "cell": g.cell,
+            }
+            for g in published.pr_gate_results()
         ],
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -380,9 +523,15 @@ def _save_results(aggregated: AggregatedResult, output_path: Path) -> None:
     console.print(f"[+] Resultados salvos em [bold]{output_path}[/bold]\n")
 
 
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Avalia o RAG-Reviewer contra o dataset sintético de PRs."
+        description=(
+            "Avalia o RAG-Reviewer contra o dataset do piloto (Seção 5 do guia "
+            "Python — Comparações), usando Qdrant e Groq reais."
+        )
     )
     parser.add_argument(
         "--dataset",
@@ -396,6 +545,16 @@ def _parse_args() -> argparse.Namespace:
         default=_DEFAULT_OUTPUT,
         help="Caminho para salvar os resultados em JSON.",
     )
+    parser.add_argument(
+        "--repeticoes",
+        type=int,
+        default=_DEFAULT_REPETICOES,
+        help=(
+            "Número de execuções completas e independentes do dataset (D-005). "
+            f"Padrão: {_DEFAULT_REPETICOES} (execução oficial). Use 1 em "
+            "desenvolvimento para poupar cota da API Groq."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -403,14 +562,28 @@ def main() -> None:
     args = _parse_args()
 
     if not args.dataset.exists():
+        console.print(f"[bold red]Erro:[/bold red] Dataset não encontrado: {args.dataset}")
+        sys.exit(1)
+
+    if args.repeticoes < 1:
+        console.print("[bold red]Erro:[/bold red] --repeticoes deve ser >= 1.")
+        sys.exit(1)
+
+    try:
+        aggregated, model = run_evaluation(args.dataset, args.repeticoes)
+    except Exception as exc:  # noqa: BLE001 — erro fatal, sem fallback para mocks
+        # show_locals=False: locals de LLMClient/VectorStore podem conter
+        # segredos (API keys) — nunca imprimir isso, mesmo em erro.
+        console.print_exception(show_locals=False)
         console.print(
-            f"[bold red]Erro:[/bold red] Dataset não encontrado: {args.dataset}"
+            f"\n[bold red]Erro fatal durante a avaliação:[/bold red] {exc}\n"
+            "[dim]Nenhum fallback para dados simulados é aplicado. Verifique "
+            "GROQ_API_KEY, QDRANT_URL/QDRANT_API_KEY e a conectividade de rede.[/dim]"
         )
         sys.exit(1)
 
-    aggregated = run_evaluation(args.dataset)
-    _print_summary_table(aggregated)
-    _save_results(aggregated, args.output)
+    _print_summary(aggregated)
+    _save_results(aggregated, args.dataset, args.repeticoes, model, args.output)
 
 
 if __name__ == "__main__":

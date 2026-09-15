@@ -36,7 +36,7 @@ class VectorStore:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def recreate_collection(self, vector_size: int) -> None:
+    def recreate_collection(self, vector_size: int, embedding_model: str) -> None:
         """
         Recria a coleção do zero.
 
@@ -45,10 +45,13 @@ class VectorStore:
 
         Args:
             vector_size: Dimensão dos vetores (deve bater com o modelo de embedding).
+            embedding_model: Nome do modelo usado para gerar os vetores. Apenas
+                registrado no log; quem grava o payload é `upsert`.
         """
         from qdrant_client.models import (  # type: ignore
             Distance,
             HnswConfigDiff,
+            SparseVectorParams,
             VectorParams,
         )
 
@@ -62,35 +65,50 @@ class VectorStore:
                 f"[yellow]VectorStore:[/yellow] coleção '{self._collection}' removida."
             )
 
+        # O vetor denso passa a ser NOMEADO ("dense"): a Query API precisa
+        # endereçar as duas modalidades (densa e esparsa "bm25") por nome
+        # em `search_hybrid` (spec — busca híbrida, L4).
         client.create_collection(
             collection_name=self._collection,
-            vectors_config=VectorParams(
-                size=vector_size,
-                distance=Distance.COSINE,
-            ),
+            vectors_config={
+                "dense": VectorParams(size=vector_size, distance=Distance.COSINE)
+            },
+            sparse_vectors_config={"bm25": SparseVectorParams()},
             hnsw_config=HnswConfigDiff(
                 m=16,
                 ef_construct=100,
             ),
         )
         console.log(
-            f"[green]✅ Coleção '{self._collection}' criada com vetores de dim={vector_size}.[/green]"
+            f"[green]✅ Coleção '{self._collection}' criada "
+            f"(dim={vector_size}, modelo={embedding_model}).[/green]"
         )
 
-    def upsert(self, chunks: list, embeddings) -> None:
+    def upsert(
+        self,
+        chunks: list,
+        embeddings,
+        sparse: list[tuple[list[int], list[float]]],
+        embedding_model: str,
+    ) -> None:
         """
-        Insere ou atualiza chunks no Qdrant.
+        Insere ou atualiza chunks no Qdrant, com vetor denso E esparso.
 
         Args:
             chunks: Lista de objetos Chunk (de indexer/chunker.py).
-            embeddings: Array numpy (N, D) com os vetores correspondentes.
+            embeddings: Array numpy (N, D) com os vetores densos correspondentes.
+            sparse: Lista paralela de (índices, valores) esparsos BM25, uma
+                por chunk — ver `SparseEncoder.encode_batch`.
+            embedding_model: Nome do modelo que gerou `embeddings`. Gravado no
+                payload de cada ponto — é o que `assert_model_matches` lê para
+                impedir buscas com um modelo diferente do indexado.
         """
-        from qdrant_client.models import PointStruct  # type: ignore
+        from qdrant_client.models import PointStruct, SparseVector  # type: ignore
 
         client = self._get_client()
 
         points = []
-        for chunk, vector in zip(chunks, embeddings):
+        for chunk, vector, (idx, vals) in zip(chunks, embeddings, sparse):
             payload = {
                 "text": chunk.text,
                 "source": chunk.source,
@@ -99,11 +117,15 @@ class VectorStore:
                 "chunk_index": chunk.chunk_index,
                 "char_count": len(chunk.text),
                 "indexed_at": chunk.indexed_at,
+                "embedding_model": embedding_model,
             }
             points.append(
                 PointStruct(
                     id=str(uuid.uuid4()),
-                    vector=vector.tolist(),
+                    vector={
+                        "dense": vector.tolist(),
+                        "bm25": SparseVector(indices=idx, values=vals),
+                    },
                     payload=payload,
                 )
             )
@@ -126,36 +148,126 @@ class VectorStore:
         score_threshold: float = 0.55,
     ) -> list[dict]:
         """
-        Busca os top-K chunks mais similares ao vetor de consulta.
+        Busca apenas densa. Mantida para as configurações L0–L3.
 
         Args:
-            query_vector: Vetor de consulta (lista de floats).
+            query_vector: Vetor de consulta denso (lista de floats).
             top_k: Número máximo de resultados.
-            score_threshold: Score mínimo de similaridade (0–1).
+            score_threshold: Score mínimo de similaridade cosine (0–1).
 
         Returns:
             Lista de dicts com: text, source, section, score.
         """
         client = self._get_client()
 
-        results = client.search(
+        results = client.query_points(
             collection_name=self._collection,
-            query_vector=query_vector,
+            query=query_vector,
+            using="dense",
             limit=top_k,
             score_threshold=score_threshold,
             with_payload=True,
+        ).points
+
+        return [self._to_dict(r) for r in results]
+
+    def search_hybrid(
+        self,
+        dense: list,
+        sparse: tuple[list[int], list[float]],
+        top_k: int = 5,
+        prefetch_limit: int = 20,
+    ) -> list[dict]:
+        """
+        Busca híbrida densa + esparsa com fusão Reciprocal Rank Fusion (L4).
+
+        `== True` e `!= None` são padrões lexicais que um modelo semântico
+        não deveria ter que casar sozinho (spec §1.3) — o vetor esparso BM25
+        cobre esse lado, o denso cobre a paráfrase/tradução.
+
+        Após a fusão o score é POSTO (RRF), não cosseno — por isso o
+        `score_threshold` absoluto não se aplica aqui e foi removido do
+        caminho híbrido (spec §4.4). O corte passa a ser `top_k`, calibrado
+        contra o gabarito.
+
+        Args:
+            dense: Vetor de consulta denso.
+            sparse: (índices, valores) do vetor de consulta esparso BM25.
+            top_k: Número de resultados após a fusão.
+            prefetch_limit: Quantos candidatos cada modalidade contribui
+                antes da fusão.
+
+        Returns:
+            Lista de dicts com: text, source, section, score (RRF).
+        """
+        from qdrant_client import models  # type: ignore
+
+        client = self._get_client()
+        indices, values = sparse
+        results = client.query_points(
+            collection_name=self._collection,
+            prefetch=[
+                models.Prefetch(query=dense, using="dense", limit=prefetch_limit),
+                models.Prefetch(
+                    query=models.SparseVector(indices=indices, values=values),
+                    using="bm25",
+                    limit=prefetch_limit,
+                ),
+            ],
+            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            limit=top_k,
+            with_payload=True,
+        ).points
+
+        return [self._to_dict(r) for r in results]
+
+    @staticmethod
+    def _to_dict(point) -> dict:
+        return {
+            "text": point.payload["text"],
+            "source": point.payload["source"],
+            "section": point.payload.get("section", ""),
+            "page": point.payload.get("page", 0),
+            "score": point.score,
+        }
+
+    def assert_model_matches(self, embedding_model: str) -> None:
+        """
+        Falha alto se a coleção foi indexada com outro modelo de embedding.
+
+        Os modelos multilíngues candidatos também têm 384 dimensões, então o
+        Qdrant ACEITARIA a busca sem reclamar: vetores de consulta do modelo
+        novo contra vetores de chunk do modelo antigo. O resultado seria lixo
+        silencioso, indistinguível de retrieval ruim (spec §8.1).
+
+        Args:
+            embedding_model: Nome do modelo que o chamador pretende usar para
+                gerar o vetor de consulta.
+
+        Raises:
+            RuntimeError: Se a coleção estiver vazia ou indexada com um
+                modelo diferente de `embedding_model`.
+        """
+        client = self._get_client()
+        pontos, _ = client.scroll(
+            collection_name=self._collection, limit=1, with_payload=True
         )
 
-        return [
-            {
-                "text": r.payload["text"],
-                "source": r.payload["source"],
-                "section": r.payload.get("section", ""),
-                "page": r.payload.get("page", 0),
-                "score": r.score,
-            }
-            for r in results
-        ]
+        if not pontos:
+            raise RuntimeError(
+                f"Coleção '{self._collection}' está vazia. "
+                f"Execute: make index-recreate"
+            )
+
+        indexado = (pontos[0].payload or {}).get("embedding_model")
+        if indexado != embedding_model:
+            raise RuntimeError(
+                f"Divergência de modelo de embedding.\n"
+                f"  Indexado na coleção : {indexado!r}\n"
+                f"  Configurado agora   : {embedding_model!r}\n"
+                f"Buscar com modelos diferentes produz lixo silencioso.\n"
+                f"Execute: make index-recreate"
+            )
 
     def collection_info(self) -> dict:
         """Retorna informações da coleção (contagem de pontos, status, etc.)."""

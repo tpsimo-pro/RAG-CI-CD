@@ -11,6 +11,7 @@ Parâmetros padrão recomendados pelo planejamento:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -60,6 +61,9 @@ class RecursiveChunker:
 
     # Separadores em ordem de prioridade (do mais amplo ao mais granular)
     _SEPARATORS = ["\n\n", "\n", ". ", "! ", "? ", " "]
+
+    # Marca de abertura/fechamento de bloco cercado (```  ou ~~~).
+    _FENCE = re.compile(r"^[ \t]*(```|~~~)", re.MULTILINE)
 
     def __init__(
         self,
@@ -123,7 +127,24 @@ class RecursiveChunker:
             stripped = text.strip()
             return [stripped] if stripped else []
 
-        # Tenta dividir pelo separador de maior prioridade que reduza o texto
+        segmentos = self._protect_fences(text)
+        if any(is_fence for _, is_fence in segmentos):
+            # Há ao menos um bloco cercado completo: trata cada bloco cercado
+            # como unidade indivisível e só divide a prosa ao redor — mesmo
+            # quando o bloco cercado é o único segmento (texto inteiro é uma
+            # cerca) ou quando o restante da prosa contém uma marca órfã sem
+            # par (essa prosa segue para a recursão normalmente, pois seu
+            # próprio segmento não é atômico).
+            resultado: list[str] = []
+            for seg, is_fence in segmentos:
+                if is_fence:
+                    resultado.append(seg.strip())
+                else:
+                    resultado.extend(self._split_text(seg))
+            return [r for r in resultado if r]
+
+        # Nenhum bloco cercado completo (sem cercas, ou só marca(s) órfã(s)):
+        # segue a divisão normal por separador.
         for separator in self._SEPARATORS:
             if separator in text:
                 parts = text.split(separator)
@@ -131,6 +152,49 @@ class RecursiveChunker:
 
         # Fallback: divide por caractere (texto sem separadores naturais)
         return self._hard_split(text)
+
+    def _protect_fences(self, text: str) -> list[tuple[str, bool]]:
+        """
+        Fatia o texto em segmentos TIPADOS, alternando prosa e blocos
+        cercados inteiros.
+
+        Cada segmento vem com uma flag: True quando é um bloco cercado
+        completo (par abertura/fechamento) e atômico — nunca deve ser
+        dividido; False quando é prosa comum, sujeita à divisão normal por
+        `_split_text`. Uma marca de cerca órfã (sem par, ex.: um ``` solto
+        mencionado em prosa) nunca produz um segmento atômico sozinha — ela
+        permanece dentro do texto de prosa em que caiu, e essa prosa segue
+        para a recursão e a checagem de `chunk_size` normalmente. O chamador
+        decide pelo tipo do segmento, nunca por uma nova busca de regex, que
+        poderia casar essa marca órfã e confundi-la com um bloco atômico.
+
+        Blocos cercados são ATÔMICOS: nunca são divididos. Um bloco partido
+        ao meio separa o exemplo Correto do Incorreto, destruindo o par que
+        dá ao chunk sua capacidade de casar com código (spec §1.3).
+        """
+        marcas = [m.start() for m in self._FENCE.finditer(text)]
+        if len(marcas) < 2:
+            return [(text, False)]
+
+        segmentos: list[tuple[str, bool]] = []
+        cursor = 0
+        # Consome as marcas aos pares: abertura e fechamento. Uma marca
+        # sobrando (contagem ímpar) não é consumida aqui — ela cai no
+        # segmento de prosa final, sem se tornar atômica.
+        for i in range(0, len(marcas) - 1, 2):
+            inicio, fim_marca = marcas[i], marcas[i + 1]
+            fim_linha = text.find("\n", fim_marca)
+            fim = len(text) if fim_linha == -1 else fim_linha + 1
+
+            if inicio > cursor:
+                segmentos.append((text[cursor:inicio], False))
+            segmentos.append((text[inicio:fim], True))
+            cursor = fim
+
+        if cursor < len(text):
+            segmentos.append((text[cursor:], False))
+
+        return [(s, is_fence) for s, is_fence in segmentos if s.strip()]
 
     def _merge_splits(self, splits: list[str], separator: str) -> list[str]:
         """

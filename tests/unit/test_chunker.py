@@ -192,3 +192,73 @@ class TestSplitByParagraph:
         # Deve haver mais de 1 chunk dado o tamanho pequeno
         assert len(chunks) >= 1
         assert all(len(c.text.strip()) > 0 for c in chunks)
+
+
+# ── Testes: blocos cercados são atômicos (Tarefa 5) ──────────────────────────
+
+from indexer.document_loader import Document
+from indexer.chunker import RecursiveChunker
+
+
+def _conta_cercas(texto: str) -> int:
+    return sum(1 for linha in texto.splitlines() if linha.strip().startswith("```"))
+
+
+def test_bloco_cercado_nunca_e_partido_entre_chunks():
+    """
+    Um bloco de código partido ao meio perde o par Correto/Incorreto, que é
+    justamente o que dá +42% de margem de discriminação (spec §1.3).
+    """
+    corpo = "Texto normativo. " * 400  # força a divisão por tamanho
+    doc = Document(
+        text=(
+            "5. Comparações\n\n"
+            + corpo
+            + "\n\n```python\n# Correto\nif is_valid:\n# Incorreto\nif is_valid == True:\n```\n"
+        ),
+        source="guia.md",
+        section="5. Comparações",
+    )
+
+    chunks = RecursiveChunker(chunk_size=100, chunk_overlap=10).split([doc])
+
+    assert len(chunks) > 1, "o teste precisa de um documento que realmente divida"
+    for c in chunks:
+        assert _conta_cercas(c.text) % 2 == 0, (
+            f"chunk com cerca desemparelhada:\n{c.text}"
+        )
+
+
+def test_documento_pequeno_vira_um_unico_chunk():
+    doc = Document(
+        text="5. Comparações\n\nNão compare booleanos com == True.\n\n"
+        "```python\nif is_valid:\n```",
+        source="guia.md",
+        section="5. Comparações",
+    )
+    chunks = RecursiveChunker(chunk_size=512, chunk_overlap=64).split([doc])
+    assert len(chunks) == 1
+    assert "if is_valid:" in chunks[0].text
+
+
+def test_bloco_cercado_com_linha_em_branco_interna_nao_e_partido():
+    """
+    Regressão (achada por verificação manual durante a Tarefa 5): antes da
+    correção, uma linha em branco DENTRO do bloco cercado fazia o separador
+    de parágrafo ('\n\n') cortar a própria cerca ao meio — cada metade
+    ficava com uma marca ``` desemparelhada em chunks diferentes.
+    """
+    texto = (
+        "5. Comparações\n\n"
+        "```python\n# Correto\nif is_valid:\n\n# Incorreto\nif is_valid == True:\n```\n"
+    )
+    doc = Document(text=texto, source="guia.md", section="5. Comparações")
+
+    chunks = RecursiveChunker(chunk_size=10, chunk_overlap=2).split([doc])
+
+    for c in chunks:
+        assert _conta_cercas(c.text) % 2 == 0, (
+            f"chunk com cerca desemparelhada:\n{c.text}"
+        )
+    # O bloco cercado inteiro deve estar junto em um único chunk.
+    assert any("# Correto" in c.text and "# Incorreto" in c.text for c in chunks)

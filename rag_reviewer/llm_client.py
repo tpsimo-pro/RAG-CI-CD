@@ -75,6 +75,7 @@ class LLMClient:
         self,
         model: str | None = None,
         max_tokens: int = 2048,
+        temperature: float | None = None,
     ) -> None:
         """
         Inicializa o cliente.
@@ -82,11 +83,17 @@ class LLMClient:
         Args:
             model: Nome do modelo Groq. Usa LLM_MODEL do .env se None.
             max_tokens: Limite de tokens na resposta do LLM.
+            temperature: Temperatura de amostragem (0–2). Usa LLM_TEMPERATURE
+                do .env se None. A avaliação do TCC força ``0.0`` (D-005) para
+                minimizar a variância entre execuções.
         """
         settings = get_settings()
         self._api_key = settings.groq_api_key
         self._model = model or settings.llm_model
         self._max_tokens = max_tokens
+        self._temperature = (
+            temperature if temperature is not None else settings.llm_temperature
+        )
         self._client = None  # lazy — importado em _get_client()
 
         self._system_prompt = self._load_prompt("system_prompt.txt")
@@ -97,6 +104,10 @@ class LLMClient:
     @property
     def model(self) -> str:
         return self._model
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
 
     # ── Interface pública ─────────────────────────────────────────────────
 
@@ -164,6 +175,7 @@ class LLMClient:
             response = client.chat.completions.create(
                 model=self._model,
                 max_tokens=self._max_tokens,
+                temperature=self._temperature,
                 messages=[
                     {"role": "system", "content": self._system_prompt},
                     {"role": "user", "content": user_message},

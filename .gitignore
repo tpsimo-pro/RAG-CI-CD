@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Checkpoint de evaluation.run_evaluation (resiliência ao rate limit da Groq)
+evaluation/.eval_checkpoint.json*

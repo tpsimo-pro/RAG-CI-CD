@@ -5,7 +5,10 @@ sentence-transformers==3.0.1
 torch
 
 # Banco de vetores
-qdrant-client==1.9.1
+# >=1.10 exigido pela Query API (query_points/Prefetch/FusionQuery) usada
+# na busca hibrida densa+esparsa (L4); 1.9.1 nao tem esses simbolos.
+qdrant-client==1.11.3
+fastembed>=0.4.0
 
 # Orquestração LLM
 groq==0.13.1

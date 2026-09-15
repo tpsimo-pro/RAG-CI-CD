@@ -94,6 +94,7 @@ def make_llm_client(api_key: str = "sk-test") -> LLMClient:
         client._api_key = api_key
         client._model = "groq-test"
         client._max_tokens = 1024
+        client._temperature = 0.0
         client._client = None
         client._system_prompt = "system mock"
         client._review_template = "## Arquivo\n{filename}\n## Linhas\n{added_lines}\n## Normas\n{retrieved_chunks}"

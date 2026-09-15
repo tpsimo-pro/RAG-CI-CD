@@ -1,115 +1,283 @@
 {
-  "summary": {
-    "total_prs": 11,
-    "total_tp": 17,
-    "total_fp": 0,
-    "total_fn": 0,
-    "micro_precision": 1.0,
-    "micro_recall": 1.0,
-    "micro_f1": 1.0,
-    "macro_precision": 1.0,
-    "macro_recall": 1.0,
-    "macro_f1": 1.0
+  "config": {
+    "dataset": "C:\\Users\\Thiago-PC\\Desktop\\TCC\\RAG-CI-CD\\evaluation\\dataset\\pilot_secao5.json",
+    "repeticoes": 3,
+    "model": "qwen/qwen3.8-27b",
+    "temperature": 0.0
   },
-  "per_pr": [
+  "repetitions": [
+    {
+      "repetition_index": 0,
+      "confusion_matrix": {
+        "tp": 60,
+        "fp": 32,
+        "fn": 0,
+        "tn": 208,
+        "n": 300
+      },
+      "precision": 0.6522,
+      "recall": 1.0,
+      "f1": 0.7895,
+      "accuracy": 0.8933,
+      "hallucination_rate": 0.0,
+      "norm_reference_precision": 1.0,
+      "total_detections": 116,
+      "hallucinated_detections": 0
+    },
+    {
+      "repetition_index": 1,
+      "confusion_matrix": {
+        "tp": 60,
+        "fp": 32,
+        "fn": 0,
+        "tn": 208,
+        "n": 300
+      },
+      "precision": 0.6522,
+      "recall": 1.0,
+      "f1": 0.7895,
+      "accuracy": 0.8933,
+      "hallucination_rate": 0.0,
+      "norm_reference_precision": 1.0,
+      "total_detections": 117,
+      "hallucinated_detections": 0
+    },
+    {
+      "repetition_index": 2,
+      "confusion_matrix": {
+        "tp": 60,
+        "fp": 32,
+        "fn": 0,
+        "tn": 208,
+        "n": 300
+      },
+      "precision": 0.6522,
+      "recall": 1.0,
+      "f1": 0.7895,
+      "accuracy": 0.8933,
+      "hallucination_rate": 0.0,
+      "norm_reference_precision": 1.0,
+      "total_detections": 117,
+      "hallucinated_detections": 0
+    }
+  ],
+  "summary": {
+    "precision_mean": 0.6522,
+    "precision_stdev": 0.0,
+    "recall_mean": 1.0,
+    "recall_stdev": 0.0,
+    "f1_mean": 0.7895,
+    "f1_stdev": 0.0,
+    "median_f1_repetition_index": 1
+  },
+  "published": {
+    "line_confusion_matrix": {
+      "tp": 60,
+      "fp": 32,
+      "fn": 0,
+      "tn": 208,
+      "n": 300
+    },
+    "pr_gate_confusion_matrix": {
+      "tp": 22,
+      "fp": 8,
+      "fn": 0,
+      "tn": 0,
+      "n": 30
+    },
+    "accuracy": {
+      "value": 0.8933,
+      "note": "SECUNDÁRIA e NÃO-REPRESENTATIVA: conjunto desbalanceado (~80% de linhas negativas, D-004). Não usar para comparar desempenho."
+    },
+    "hallucination_rate": 0.0,
+    "norm_reference_precision": 1.0
+  },
+  "targets": {
+    "precision": false,
+    "recall": true,
+    "f1": true,
+    "all": false
+  },
+  "per_pr_gate": [
     {
       "pr_id": "PR-001",
-      "true_positives": 1,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-002",
-      "true_positives": 1,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-003",
-      "true_positives": 2,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-004",
-      "true_positives": 2,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-005",
-      "true_positives": 1,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-006",
-      "true_positives": 2,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-007",
-      "true_positives": 3,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-008",
-      "true_positives": 3,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-009",
-      "true_positives": 2,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-010",
-      "true_positives": 0,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-011",
-      "true_positives": 0,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-012",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-013",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-014",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-015",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-016",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-017",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-018",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-019",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-020",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-021",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-022",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-023",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-024",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-025",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-026",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-027",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-028",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-029",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-030",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
     }
   ]
 }

@@ -1,7 +1,7 @@
 # RAG-Reviewer — Makefile
 # Atalhos para tarefas de desenvolvimento
 
-.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant keep-alive evaluate clean
+.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant keep-alive evaluate eval-retrieval clean
 
 # ── Intérprete Python — sempre usa o .venv do projeto ────────────────────────
 # Detecta Windows (Scripts/) vs Unix (bin/)
@@ -98,7 +98,10 @@ keep-alive:
 # ── Avaliação ────────────────────────────────────────────────────────────────
 
 evaluate:
-	set PYTHONIOENCODING=utf-8 && $(PYTHON) -m evaluation.run_evaluation
+	$(PYTHON) -m evaluation.run_evaluation
+
+eval-retrieval:
+	$(PYTHON) -m evaluation.retrieval.run_retrieval_eval --label $(LABEL)
 
 # ── Limpeza ───────────────────────────────────────────────────────────────────
 

@@ -70,7 +70,20 @@ def make_embedder_mock(vector_size: int = 4) -> MagicMock:
 def make_store_mock(chunks: list | None = None) -> MagicMock:
     """Cria um mock do VectorStore que retorna chunks predefinidos."""
     mock = MagicMock()
-    mock.search.return_value = chunks if chunks is not None else [make_chunk()]
+    valor = chunks if chunks is not None else [make_chunk()]
+    mock.search.return_value = valor
+    mock.search_hybrid.return_value = valor
+    # `assert_model_matches` colide com o prefixo `assert_` que o MagicMock
+    # reserva para suas próprias asserções — precisa ser configurado
+    # explicitamente, senão o MagicMock levanta AttributeError ao chamá-lo.
+    mock.assert_model_matches = MagicMock()
+    return mock
+
+
+def make_sparse_encoder_mock() -> MagicMock:
+    """Cria um mock do SparseEncoder que retorna um par (índices, valores) fixo."""
+    mock = MagicMock()
+    mock.encode.return_value = ([1, 2, 3], [0.5, 0.3, 0.1])
     return mock
 
 
@@ -78,8 +91,16 @@ def make_retriever(
     chunks: list | None = None,
     top_k: int = 3,
     score_threshold: float = 0.55,
+    hybrid: bool = False,
 ) -> tuple[Retriever, MagicMock, MagicMock]:
-    """Retorna (retriever, embedder_mock, store_mock) prontos para testes."""
+    """
+    Retorna (retriever, embedder_mock, store_mock) prontos para testes.
+
+    `hybrid=False` por padrão: a maioria dos testes deste arquivo cobre o
+    caminho denso (`store.search`), que continua sendo o caminho usado por
+    L0-L3 no harness de avaliação. O caminho híbrido (`store.search_hybrid`,
+    default de produção desde a Task 9/L4) tem sua própria classe de testes.
+    """
     embedder = make_embedder_mock()
     store = make_store_mock(chunks)
     retriever = Retriever(
@@ -87,6 +108,8 @@ def make_retriever(
         store=store,
         top_k=top_k,
         score_threshold=score_threshold,
+        sparse_encoder=make_sparse_encoder_mock(),
+        hybrid=hybrid,
     )
     return retriever, embedder, store
 
@@ -189,12 +212,17 @@ class TestRetrieveForFile:
         assert ctx is None
 
     def test_query_text_is_stored_in_context(self):
+        """
+        Desde a consulta por linha (L2), `query_text` é a união das linhas
+        consultadas — não inclui mais o nome do arquivo (era parte do texto
+        de consulta por arquivo, hoje aposentado em favor de uma consulta
+        por linha via `embedder.embed`).
+        """
         r, _, _ = make_retriever()
-        fd = make_file_diff(filename="src/svc.py", added_lines=["x = 1"])
+        fd = make_file_diff(filename="src/svc.py", added_lines=["x = 1", "y = 2"])
         ctx = r.retrieve_for_file(fd)
         assert ctx is not None
-        assert "src/svc.py" in ctx.query_text
-        assert "x = 1" in ctx.query_text
+        assert ctx.query_text == "x = 1\ny = 2"
 
     def test_embedder_is_called_with_query_text(self):
         r, embedder, _ = make_retriever()
@@ -208,7 +236,7 @@ class TestRetrieveForFile:
     def test_store_search_called_with_correct_params(self):
         """Verifica top_k e score_threshold; compara o vetor com tolerância float32."""
         r, embedder, store = make_retriever(top_k=3, score_threshold=0.7)
-        fd = make_file_diff()
+        fd = make_file_diff(added_lines=["line"])  # uma linha → uma busca
         r.retrieve_for_file(fd)
 
         store.search.assert_called_once()
@@ -259,19 +287,22 @@ class TestRetrieveForDiff:
 
     def test_files_with_no_chunks_are_excluded(self):
         """Arquivos cujo diff não recupera normas relevantes não aparecem no resultado."""
-        # Primeiro arquivo retorna chunks, segundo não
+        # Um arquivo (uma linha, uma busca) retorna chunks, o outro não
         store = MagicMock()
         store.search.side_effect = [
             [make_chunk()],  # a.py → tem contexto
             [],  # b.py → sem contexto
         ]
+        store.assert_model_matches = MagicMock()
         embedder = make_embedder_mock()
-        r = Retriever(embedder=embedder, store=store, top_k=3, score_threshold=0.55)
+        r = Retriever(
+            embedder=embedder, store=store, top_k=3, score_threshold=0.55, hybrid=False
+        )
 
         pr = make_pr_diff(
             files=[
-                make_file_diff(filename="a.py"),
-                make_file_diff(filename="b.py"),
+                make_file_diff(filename="a.py", added_lines=["x"]),
+                make_file_diff(filename="b.py", added_lines=["y"]),
             ]
         )
         contexts = r.retrieve_for_diff(pr)
@@ -293,31 +324,35 @@ class TestRetrieveForDiff:
         )
         assert r.retrieve_for_diff(pr) == []
 
-    def test_embedder_called_once_per_candidate_file(self):
+    def test_embedder_called_once_per_added_line(self):
+        """
+        Consulta por linha (L2): `embed` é chamado uma vez POR LINHA
+        adicionada, não uma vez por arquivo.
+        """
         chunks = [make_chunk()]
         r, embedder, _ = make_retriever(chunks=chunks)
         pr = make_pr_diff(
             files=[
-                make_file_diff(filename="a.py"),
-                make_file_diff(filename="b.py"),
+                make_file_diff(filename="a.py", added_lines=["x", "y"]),
+                make_file_diff(filename="b.py", added_lines=["z"]),
                 make_file_diff(filename="c.py", added_lines=[]),  # ignorado
             ]
         )
         r.retrieve_for_diff(pr)
-        # Dois arquivos com added_lines → embed chamado 2x
-        assert embedder.embed.call_count == 2
+        # a.py (2 linhas) + b.py (1 linha) → embed chamado 3x
+        assert embedder.embed.call_count == 3
 
-    def test_store_search_called_once_per_candidate_file(self):
+    def test_store_search_called_once_per_added_line(self):
         chunks = [make_chunk()]
         r, _, store = make_retriever(chunks=chunks)
         pr = make_pr_diff(
             files=[
-                make_file_diff(filename="a.py"),
-                make_file_diff(filename="b.py"),
+                make_file_diff(filename="a.py", added_lines=["x", "y"]),
+                make_file_diff(filename="b.py", added_lines=["z"]),
             ]
         )
         r.retrieve_for_diff(pr)
-        assert store.search.call_count == 2
+        assert store.search.call_count == 3
 
     def test_contexts_preserve_correct_file_diff(self):
         chunks = [make_chunk()]
@@ -334,16 +369,18 @@ class TestRetrieveForDiff:
         chunk_b = make_chunk(text="Norma B", score=0.75)
         store = MagicMock()
         store.search.side_effect = [[chunk_a], [chunk_b]]
+        store.assert_model_matches = MagicMock()
         r = Retriever(
             embedder=make_embedder_mock(),
             store=store,
             top_k=3,
             score_threshold=0.55,
+            hybrid=False,
         )
         pr = make_pr_diff(
             files=[
-                make_file_diff(filename="a.py"),
-                make_file_diff(filename="b.py"),
+                make_file_diff(filename="a.py", added_lines=["x"]),
+                make_file_diff(filename="b.py", added_lines=["y"]),
             ]
         )
         contexts = r.retrieve_for_diff(pr)
@@ -352,11 +389,188 @@ class TestRetrieveForDiff:
         assert [chunk_b] in all_chunks
 
 
-# ── Testes: integração com build_query_text ───────────────────────────────────
+# ── Fakes para os testes de consulta por linha (L2) ────────────────────────────
+
+
+class _RecordingEmbedder:
+    """
+    Fake embedder que registra, na ordem, todo texto passado a `embed()`.
+
+    Ao contrário de `make_embedder_mock`, permite verificar quantas VEZES e
+    com QUAIS textos o embedder foi chamado — necessário para provar que a
+    consulta por linha embeda cada linha separadamente, não o arquivo inteiro.
+    """
+
+    def __init__(self) -> None:
+        self.textos_recebidos: list[str] = []
+        self.model_name = "fake-model"
+
+    def embed(self, texts: list[str]) -> np.ndarray:
+        self.textos_recebidos.extend(texts)
+        return np.array([[0.1, 0.2, 0.3, 0.4]] * len(texts), dtype=np.float32)
+
+
+class _FakeStore:
+    """Fake store que devolve sempre os mesmos chunks, na ordem fornecida."""
+
+    def __init__(self, chunks: list[dict]) -> None:
+        self._chunks = chunks
+
+    def search(self, query_vector, top_k, score_threshold) -> list[dict]:
+        return list(self._chunks)
+
+    def assert_model_matches(self, embedding_model: str) -> None:
+        pass
+
+
+# ── Testes: consulta por linha (L2) ─────────────────────────────────────────────
+
+
+class TestRetrieveForFilePorLinha:
+    def test_consulta_uma_vez_por_linha_adicionada(self):
+        """
+        D-001 define a linha como unidade de avaliação. Consultar por arquivo
+        produz uma média semântica que não representa nenhuma das linhas.
+        """
+        file_diff = make_file_diff(
+            added_lines=["if x == True:", "y = 1", "if z != None:"]
+        )
+        embedder = _RecordingEmbedder()
+        store = _FakeStore(chunks=[make_chunk()])
+
+        Retriever(embedder=embedder, store=store, hybrid=False).retrieve_for_file(
+            file_diff
+        )
+
+        assert embedder.textos_recebidos == [
+            "if x == True:",
+            "y = 1",
+            "if z != None:",
+        ]
+
+    def test_chunks_repetidos_entre_linhas_sao_deduplicados(self):
+        file_diff = make_file_diff(added_lines=["if x == True:", "if y == False:"])
+        mesmo = make_chunk(text="mesma norma")
+        store = _FakeStore(chunks=[mesmo])  # devolve o mesmo chunk para toda linha
+
+        ctx = Retriever(
+            embedder=_RecordingEmbedder(), store=store, hybrid=False
+        ).retrieve_for_file(file_diff)
+
+        assert ctx is not None
+        assert len(ctx.chunks) == 1
+
+    def test_uniao_e_limitada_por_max_chunks(self):
+        file_diff = make_file_diff(added_lines=["linha um", "linha dois"])
+        chunks = [
+            make_chunk(text=f"norma {i}", section=f"secao {i}", score=0.5 + i * 0.01)
+            for i in range(5)
+        ]
+        store = _FakeStore(chunks=chunks)
+
+        ctx = Retriever(
+            embedder=_RecordingEmbedder(), store=store, max_chunks=3, hybrid=False
+        ).retrieve_for_file(file_diff)
+
+        assert ctx is not None
+        assert len(ctx.chunks) == 3
+
+    def test_arquivo_sem_nenhum_chunk_retorna_none(self):
+        """Resultado legítimo, não erro (spec §8.3)."""
+        file_diff = make_file_diff(added_lines=["y = 1"])
+        ctx = Retriever(
+            embedder=_RecordingEmbedder(), store=_FakeStore(chunks=[]), hybrid=False
+        ).retrieve_for_file(file_diff)
+
+        assert ctx is None
+
+
+# ── Testes: busca híbrida densa + esparsa (L4) ──────────────────────────────────
+
+
+class TestRetrieveForFileHibrido:
+    def test_hybrid_e_o_default_de_producao(self):
+        """`Retriever()` sem `hybrid=` explícito usa a busca híbrida (L4)."""
+        embedder = make_embedder_mock()
+        store = make_store_mock(chunks=[make_chunk()])
+        r = Retriever(
+            embedder=embedder, store=store, sparse_encoder=make_sparse_encoder_mock()
+        )
+        fd = make_file_diff(added_lines=["if x == True:"])
+
+        r.retrieve_for_file(fd)
+
+        store.search_hybrid.assert_called_once()
+        store.search.assert_not_called()
+
+    def test_sparse_encoder_chamado_uma_vez_por_linha(self):
+        sparse_encoder = make_sparse_encoder_mock()
+        r, _, _ = make_retriever(hybrid=True)
+        r._sparse_encoder = sparse_encoder  # sobrepõe o da fixture
+        fd = make_file_diff(added_lines=["if x == True:", "if y == False:"])
+
+        r.retrieve_for_file(fd)
+
+        assert sparse_encoder.encode.call_count == 2
+        sparse_encoder.encode.assert_any_call("if x == True:")
+        sparse_encoder.encode.assert_any_call("if y == False:")
+
+    def test_search_hybrid_recebe_denso_e_esparso_da_linha(self):
+        embedder = make_embedder_mock()
+        store = make_store_mock(chunks=[make_chunk()])
+        sparse_encoder = make_sparse_encoder_mock()
+        r = Retriever(
+            embedder=embedder,
+            store=store,
+            top_k=3,
+            sparse_encoder=sparse_encoder,
+            hybrid=True,
+        )
+        fd = make_file_diff(added_lines=["if x == True:"])
+
+        r.retrieve_for_file(fd)
+
+        call_kwargs = store.search_hybrid.call_args.kwargs
+        assert call_kwargs["sparse"] == ([1, 2, 3], [0.5, 0.3, 0.1])
+        assert call_kwargs["top_k"] == 3
+        assert np.allclose(call_kwargs["dense"], [0.1, 0.2, 0.3, 0.4], atol=1e-6)
+        # score_threshold não se aplica ao caminho híbrido: o score pós-RRF
+        # não é cosseno (spec §4.4).
+        assert "score_threshold" not in call_kwargs
+
+    def test_chunks_do_search_hybrid_sao_deduplicados_e_limitados(self):
+        chunks = [
+            make_chunk(text=f"norma {i}", section=f"secao {i}", score=0.9 - i * 0.1)
+            for i in range(3)
+        ]
+        embedder = make_embedder_mock()
+        store = make_store_mock(chunks=chunks)
+        r = Retriever(
+            embedder=embedder,
+            store=store,
+            max_chunks=2,
+            sparse_encoder=make_sparse_encoder_mock(),
+            hybrid=True,
+        )
+        fd = make_file_diff(added_lines=["if x == True:", "if y == False:"])
+
+        ctx = r.retrieve_for_file(fd)
+
+        assert ctx is not None
+        assert len(ctx.chunks) == 2
+
+
+# ── Testes: texto enviado ao embedder por linha ────────────────────────────────
 
 
 class TestQueryTextIntegration:
-    def test_query_text_includes_filename_and_code(self):
+    def test_cada_linha_e_embedada_como_esta_sem_nome_de_arquivo(self):
+        """
+        Desde a consulta por linha (L2), o retriever não usa mais
+        `build_query_text` (que prefixava o nome do arquivo). Cada linha vai
+        ao embedder exatamente como está — o nome do arquivo não entra mais
+        no texto de consulta.
+        """
         r, embedder, _ = make_retriever()
         fd = make_file_diff(
             filename="src/services/payment.py",
@@ -364,16 +578,18 @@ class TestQueryTextIntegration:
         )
         r.retrieve_for_file(fd)
 
-        # Verifica o que foi passado ao embedder
-        embedded_text = embedder.embed.call_args[0][0][0]
-        assert "src/services/payment.py" in embedded_text
-        assert "amount = total * 1.1" in embedded_text
-        assert "return amount" in embedded_text
+        textos = [c.args[0][0] for c in embedder.embed.call_args_list]
+        assert textos == ["amount = total * 1.1", "return amount"]
 
-    def test_long_diff_is_truncated_before_embedding(self):
-        """O build_query_text deve truncar diffs gigantes antes de embedar."""
+    def test_linha_longa_e_passada_sem_alteracao_ao_embedder(self):
+        """
+        A truncagem de `build_query_text` existia para a consulta por
+        arquivo, que concatenava várias linhas numa string só. Na consulta
+        por linha não há concatenação a truncar — cada linha vai ao
+        embedder inteira.
+        """
         r, embedder, _ = make_retriever()
         fd = make_file_diff(added_lines=["x" * 3000])
         r.retrieve_for_file(fd)
         embedded_text = embedder.embed.call_args[0][0][0]
-        assert len(embedded_text) <= 2000  # _MAX_QUERY_CHARS default
+        assert embedded_text == "x" * 3000
