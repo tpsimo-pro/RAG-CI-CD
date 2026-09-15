@@ -19,7 +19,7 @@ console = Console(highlight=False)
 
 _AQUI = Path(__file__).parent
 _ORDEM = ["L0", "L1", "L2", "L3", "L4"]
-_METRICAS = ["recall_at_1", "recall_at_3", "recall_at_5", "mrr", "context_precision_at_5"]
+_METRICAS = ["recall_at_1", "recall_at_3", "recall_at_5", "context_precision_at_5"]
 
 
 def carregar() -> list[dict]:

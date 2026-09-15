@@ -24,7 +24,6 @@ from evaluation.retrieval.gold import GoldLine, build_gold
 from evaluation.retrieval.metrics import (
     RetrievalOutcome,
     context_precision_at_k,
-    mrr,
     recall_at_k,
 )
 from evaluation.retrieval.norm_map import norm_keys_of_chunk
@@ -183,7 +182,6 @@ def run_retrieval_eval(
         "recall_at_1": round(recall_at_k(outcomes, 1), 4),
         "recall_at_3": round(recall_at_k(outcomes, 3), 4),
         "recall_at_5": round(recall_at_k(outcomes, 5), 4),
-        "mrr": round(mrr(outcomes), 4),
         "context_precision_at_5": round(context_precision_at_k(outcomes, 5), 4),
     }
     return resultado
@@ -197,7 +195,6 @@ def _print_result(r: dict) -> None:
         "recall_at_1",
         "recall_at_3",
         "recall_at_5",
-        "mrr",
         "context_precision_at_5",
     ):
         table.add_row(chave, f"{r[chave]:.4f}")

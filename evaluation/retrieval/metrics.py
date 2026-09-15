@@ -1,5 +1,5 @@
 """
-metrics.py — Métricas de recuperação: recall@k, MRR e precisão de contexto.
+metrics.py — Métricas de recuperação: recall@k e precisão de contexto.
 
 Todas operam sobre `RetrievalOutcome`, que guarda, para uma linha do
 gabarito, as chaves normativas de cada chunk recuperado NA ORDEM do ranking.
@@ -40,18 +40,6 @@ def recall_at_k(outcomes: list[RetrievalOutcome], k: int) -> float:
         if (r := o.first_hit_rank()) is not None and r <= k
     )
     return acertos / len(outcomes)
-
-
-def mrr(outcomes: list[RetrievalOutcome]) -> float:
-    """Mean Reciprocal Rank — distingue achar em 1º de achar em 5º."""
-    if not outcomes:
-        return 0.0
-    total = 0.0
-    for o in outcomes:
-        rank = o.first_hit_rank()
-        if rank is not None:
-            total += 1.0 / rank
-    return total / len(outcomes)
 
 
 def context_precision_at_k(outcomes: list[RetrievalOutcome], k: int) -> float:

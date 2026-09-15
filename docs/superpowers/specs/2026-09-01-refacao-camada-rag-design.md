@@ -281,10 +281,9 @@ cobertas onde já estavam: nos FP e TN da matriz de detecção.
 | Métrica | O que responde |
 |---|---|
 | **recall@k** (k = 1, 3, 5) | A norma certa chegou ao LLM? |
-| **MRR** | Chegou em que posição? |
 | **Precisão de contexto@5** | Que fração do que foi entregue prestava? |
 
-`recall@5` é a principal, porque 5 é o que o LLM efetivamente vê. A terceira não
+`recall@5` é a principal, porque 5 é o que o LLM efetivamente vê. A segunda não
 é decorativa: chunks-lixo comprovadamente induzem alucinação (ver §1.1).
 
 ### 6.3 Propriedade valiosa
@@ -317,7 +316,7 @@ medindo quase só a metade esparsa.
 Protege contra atribuir à busca híbrida um ganho que L1+L2 já haviam entregue —
 o erro clássico da ablação puramente cumulativa.
 
-Cada passo reporta `recall@1/3/5`, MRR e precisão de contexto@5 sobre o mesmo
+Cada passo reporta `recall@1/3/5` e precisão de contexto@5 sobre o mesmo
 gabarito. A tabela resultante é material direto do TCC.
 
 ---
@@ -369,7 +368,7 @@ Demais alvos:
 
 - `retriever`: construção por linha, união e deduplicação por arquivo, corte em N;
 - `vector_store`: a trava de divergência de modelo dispara;
-- métricas: `recall@k` e MRR sobre fixtures sintéticas;
+- métricas: `recall@k` sobre fixtures sintéticas;
 - se o modelo escolhido for da família e5: os prefixos `query:`/`passage:` são
   aplicados.
 

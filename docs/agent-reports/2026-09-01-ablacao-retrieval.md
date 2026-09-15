@@ -13,13 +13,13 @@ sem chamar o LLM (avaliação offline, determinística, custo zero de API).
 
 ## Tabela de ablação
 
-| Config | recall@1 | recall@3 | recall@5 | MRR | context_precision@5 | Δ recall@5 |
-|---|---|---|---|---|---|---|
-| **L0** — loader/chunker atuais, consulta por arquivo, MiniLM inglês, denso, threshold 0.35 | 0.0833 | 0.1500 | 0.1500 | 0.1056 | 0.1000 | — |
-| **L1** — + loader ciente de cercas + chunker estrutural | 0.0833 | 0.1500 | 0.2167 | 0.1222 | 0.1133 | +0.0667 |
-| **L2** — + consulta por linha (D-001) | 0.0667 | 0.0667 | 0.0667 | 0.0667 | 0.0667 | **−0.1500** |
-| **L3** — + modelo de embedding multilíngue | 0.5333 | 0.6833 | 0.7500 | 0.6103 | 0.2053 | +0.6833 |
-| **L4** — + busca híbrida (denso + esparso BM25, fusão RRF) | 0.8333 | 1.0000 | **1.0000** | 0.9167 | 0.2000 | +0.2500 |
+| Config | recall@1 | recall@3 | recall@5 | context_precision@5 | Δ recall@5 |
+|---|---|---|---|---|---|
+| **L0** — loader/chunker atuais, consulta por arquivo, MiniLM inglês, denso, threshold 0.35 | 0.0833 | 0.1500 | 0.1500 | 0.1000 | — |
+| **L1** — + loader ciente de cercas + chunker estrutural | 0.0833 | 0.1500 | 0.2167 | 0.1133 | +0.0667 |
+| **L2** — + consulta por linha (D-001) | 0.0667 | 0.0667 | 0.0667 | 0.0667 | **−0.1500** |
+| **L3** — + modelo de embedding multilíngue | 0.5333 | 0.6833 | 0.7500 | 0.2053 | +0.6833 |
+| **L4** — + busca híbrida (denso + esparso BM25, fusão RRF) | 0.8333 | 1.0000 | **1.0000** | 0.2000 | +0.2500 |
 
 Gerada por `python -m evaluation.retrieval.ablation`, consumindo
 `evaluation/retrieval/results_{L0..L4}.json`.
@@ -85,17 +85,17 @@ EMBEDDING_MODEL=all-MiniLM-L6-v2 python -m indexer.index_pipeline --docs-dir doc
 EMBEDDING_MODEL=all-MiniLM-L6-v2 python -m evaluation.retrieval.run_retrieval_eval --label L4_sem_multilingue --per-line --hybrid
 ```
 
-| Config | recall@1 | recall@3 | recall@5 | MRR | context_precision@5 |
-|---|---|---|---|---|---|
-| L4 (multilíngue + híbrida) | 0.8333 | 1.0000 | 1.0000 | 0.9167 | 0.2000 |
-| **L4_sem_multilingue** (inglês + híbrida) | 0.8000 | 1.0000 | **1.0000** | 0.9000 | 0.2000 |
+| Config | recall@1 | recall@3 | recall@5 | context_precision@5 |
+|---|---|---|---|---|
+| L4 (multilíngue + híbrida) | 0.8333 | 1.0000 | 1.0000 | 0.2000 |
+| **L4_sem_multilingue** (inglês + híbrida) | 0.8000 | 1.0000 | **1.0000** | 0.2000 |
 
 **Resultado: recall@5 idêntico (1.0000) com o modelo em inglês.** No gabarito
 do piloto (30 violações booleanas + 30 de nulos, todas com padrões lexicais
 exatos — `== True`, `== False`, `!= None`), o casamento BM25 por token
 sozinho já encontra a norma certa; o componente denso (seja ele inglês ou
-multilíngue) contribui pouco a mais nesse recorte específico. As únicas
-diferenças aparecem em `recall@1` (0.80 vs 0.8333) e MRR (0.90 vs 0.9167) —
+multilíngue) contribui pouco a mais nesse recorte específico. A única
+diferença aparece em `recall@1` (0.80 vs 0.8333) —
 o multilíngue ainda ajuda a colocar a norma certa mais perto do topo do
 ranking, só não muda quem entra no top-5.
 

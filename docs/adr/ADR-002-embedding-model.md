@@ -93,7 +93,7 @@ leave-one-out (Task 10) mostrou que, **especificamente no gabarito do
 piloto** (violações booleanas e de nulos, ambas padrões lexicais exatos),
 `recall@5` fica **idêntico** (1.0000) com ou sem o modelo multilíngue — o
 componente esparso BM25 sozinho já encontra a norma certa por casamento de
-token. As diferenças aparecem só em `recall@1`/MRR, onde o multilíngue ainda
+token. A diferença aparece só em `recall@1`, onde o multilíngue ainda
 ajuda a rankear melhor. Isso **não** justifica reverter esta decisão: o
 corpus completo tem normas não-lexicais (nomenclatura, tamanho de função,
 docstrings) onde a paráfrase semântica multilíngue provavelmente segue

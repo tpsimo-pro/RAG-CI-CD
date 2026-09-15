@@ -205,7 +205,6 @@ O gabarito é **derivado** do dataset, não escrito à mão: `pilot_secao5.json`
   - `build_gold(dataset_path: Path) -> list[GoldLine]`
   - `RetrievalOutcome` dataclass com `gold: GoldLine`, `ranked_norm_keys: list[set[str]]`
   - `recall_at_k(outcomes: list[RetrievalOutcome], k: int) -> float`
-  - `mrr(outcomes: list[RetrievalOutcome]) -> float`
   - `context_precision_at_k(outcomes: list[RetrievalOutcome], k: int) -> float`
 
 - [ ] **Step 1: Write the failing test**
@@ -216,7 +215,6 @@ from evaluation.retrieval.gold import GoldLine
 from evaluation.retrieval.metrics import (
     RetrievalOutcome,
     context_precision_at_k,
-    mrr,
     recall_at_k,
 )
 
@@ -245,16 +243,6 @@ def test_recall_at_k_e_media_entre_linhas():
     assert recall_at_k([acerta, erra], k=5) == 0.5
 
 
-def test_mrr_usa_a_primeira_posicao_correta():
-    assert mrr([_outcome({NORM})]) == 1.0
-    assert mrr([_outcome(set(), {NORM})]) == 0.5
-    assert mrr([_outcome(set(), set(), {NORM})]) == 1 / 3
-
-
-def test_mrr_e_zero_quando_a_norma_nunca_aparece():
-    assert mrr([_outcome({OUTRA}, {OUTRA})]) == 0.0
-
-
 def test_context_precision_mede_fracao_util_do_que_foi_entregue():
     # 1 chunk util entre 4 entregues
     o = _outcome({NORM}, {OUTRA}, set(), set())
@@ -263,7 +251,6 @@ def test_context_precision_mede_fracao_util_do_que_foi_entregue():
 
 def test_metricas_com_lista_vazia_nao_quebram():
     assert recall_at_k([], k=5) == 0.0
-    assert mrr([]) == 0.0
     assert context_precision_at_k([], k=5) == 0.0
 ```
 
@@ -348,7 +335,7 @@ def build_gold(dataset_path: Path) -> list[GoldLine]:
 ```python
 # evaluation/retrieval/metrics.py
 """
-metrics.py — Métricas de recuperação: recall@k, MRR e precisão de contexto.
+metrics.py — Métricas de recuperação: recall@k e precisão de contexto.
 
 Todas operam sobre `RetrievalOutcome`, que guarda, para uma linha do
 gabarito, as chaves normativas de cada chunk recuperado NA ORDEM do ranking.
@@ -389,18 +376,6 @@ def recall_at_k(outcomes: list[RetrievalOutcome], k: int) -> float:
         if (r := o.first_hit_rank()) is not None and r <= k
     )
     return acertos / len(outcomes)
-
-
-def mrr(outcomes: list[RetrievalOutcome]) -> float:
-    """Mean Reciprocal Rank — distingue achar em 1º de achar em 5º."""
-    if not outcomes:
-        return 0.0
-    total = 0.0
-    for o in outcomes:
-        rank = o.first_hit_rank()
-        if rank is not None:
-            total += 1.0 / rank
-    return total / len(outcomes)
 
 
 def context_precision_at_k(outcomes: list[RetrievalOutcome], k: int) -> float:
@@ -462,7 +437,7 @@ git commit -m "feat(eval): gabarito de retrieval e metricas recall@k/MRR"
 - Modify: `Makefile` (alvo `eval-retrieval`)
 
 **Interfaces:**
-- Consumes: `build_gold`, `RetrievalOutcome`, `recall_at_k`, `mrr`, `context_precision_at_k`, `norm_keys_of_chunk`.
+- Consumes: `build_gold`, `RetrievalOutcome`, `recall_at_k`, `context_precision_at_k`, `norm_keys_of_chunk`.
 - Produces: `run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict`
 
 - [ ] **Step 1: Write the harness**
@@ -493,7 +468,6 @@ from evaluation.retrieval.gold import GoldLine, build_gold
 from evaluation.retrieval.metrics import (
     RetrievalOutcome,
     context_precision_at_k,
-    mrr,
     recall_at_k,
 )
 from evaluation.retrieval.norm_map import norm_keys_of_chunk
@@ -605,7 +579,6 @@ def run_retrieval_eval(dataset_path: Path, label: str, per_line: bool) -> dict:
         "recall_at_1": round(recall_at_k(outcomes, 1), 4),
         "recall_at_3": round(recall_at_k(outcomes, 3), 4),
         "recall_at_5": round(recall_at_k(outcomes, 5), 4),
-        "mrr": round(mrr(outcomes), 4),
         "context_precision_at_5": round(context_precision_at_k(outcomes, 5), 4),
     }
     return resultado
@@ -619,7 +592,6 @@ def _print_result(r: dict) -> None:
         "recall_at_1",
         "recall_at_3",
         "recall_at_5",
-        "mrr",
         "context_precision_at_5",
     ):
         table.add_row(chave, f"{r[chave]:.4f}")
@@ -1744,7 +1716,7 @@ console = Console(highlight=False)
 
 _AQUI = Path(__file__).parent
 _ORDEM = ["L0", "L1", "L2", "L3", "L4"]
-_METRICAS = ["recall_at_1", "recall_at_3", "recall_at_5", "mrr", "context_precision_at_5"]
+_METRICAS = ["recall_at_1", "recall_at_3", "recall_at_5", "context_precision_at_5"]
 
 
 def carregar() -> list[dict]:

@@ -94,16 +94,16 @@ Pergunta: a busca híbrida por si só torna a troca de modelo dispensável?
 Isso importa porque o modelo multilíngue é a camada mais cara em produção
 (~470MB baixados a cada execução do GitHub Actions).
 
-| Config | recall@5 | recall@1 | MRR |
-|---|---|---|---|
-| L4 (multilíngue + híbrida) | 1.0000 | 0.8333 | 0.9167 |
-| L4_sem_multilingue (inglês + híbrida) | **1.0000** | 0.8000 | 0.9000 |
+| Config | recall@5 | recall@1 |
+|---|---|---|
+| L4 (multilíngue + híbrida) | 1.0000 | 0.8333 |
+| L4_sem_multilingue (inglês + híbrida) | **1.0000** | 0.8000 |
 
 `recall@5` idêntico com o modelo em inglês, no piloto de Seção 5. Isso
 acontece porque o gabarito desse piloto (violações de `== True`/`== False`/
 `!= None`) é majoritariamente lexical — o BM25 sozinho já encontra a norma
 certa; o componente denso ajuda pouco a mais **nesse recorte específico**
-(a diferença aparece só em recall@1 e MRR, não em recall@5).
+(a diferença aparece só em recall@1, não em recall@5).
 
 **Isso não invalida a decisão de manter o modelo multilíngue em produção**
 — o corpus completo tem normas que não são padrões lexicais exatos

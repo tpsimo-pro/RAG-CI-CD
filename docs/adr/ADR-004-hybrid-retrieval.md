@@ -43,10 +43,10 @@ Busca híbrida: vetor **denso** (embedding semântico, ADR-002) + vetor
 
 ## Resultado medido
 
-| Config | recall@1 | recall@3 | recall@5 | MRR |
-|---|---|---|---|---|
-| L3 (denso multilíngue, sem híbrida) | 0.5333 | 0.6833 | 0.7500 | 0.6103 |
-| **L4 (+ híbrida, RRF)** | **0.8333** | **1.0000** | **1.0000** | **0.9167** |
+| Config | recall@1 | recall@3 | recall@5 |
+|---|---|---|---|
+| L3 (denso multilíngue, sem híbrida) | 0.5333 | 0.6833 | 0.7500 |
+| **L4 (+ híbrida, RRF)** | **0.8333** | **1.0000** | **1.0000** |
 
 `recall@5` fecha a lacuna até a meta do plano (>= 0.95): **1.0000**, com
 `config.hybrid: true` registrado em `results_L4.json` como prova de que a
@@ -68,7 +68,7 @@ ao `all-MiniLM-L6-v2`, mantendo BM25 + RRF (detalhe completo em
 **No gabarito específico deste piloto** (30 violações booleanas + 30 de
 nulos, todas com padrões lexicais exatos), a camada esparsa sozinha já
 resolve o recall — o ganho do modelo multilíngue nesse recorte aparece só
-em `recall@1`/MRR (rankeamento mais próximo do topo), não em quem entra no
+em `recall@1` (rankeamento mais próximo do topo), não em quem entra no
 top-5. Isso **não invalida ADR-002**: o corpus completo tem normas
 não-lexicais (nomenclatura de funções, tamanho máximo, docstrings) onde a
 paráfrase semântica multilíngue provavelmente segue sendo necessária — só
