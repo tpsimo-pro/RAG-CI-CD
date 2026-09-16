@@ -15,6 +15,38 @@ from rag_reviewer.config import get_settings
 console = Console()
 
 
+def ordenar_deterministico(chunks: list[dict], top_k: int) -> list[dict]:
+    """
+    Ordena por score decrescente com desempate total, e corta em `top_k`.
+
+    A fusão RRF produz scores que são somas de frações pequenas, então empates
+    exatos são comuns. O Qdrant devolve sempre os MESMOS scores, mas a ordem
+    entre empatados — e qual empatado sobrevive ao corte — variava entre
+    execuções, tornando a recuperação não reprodutível.
+
+    O desempate é por `(source, section, id)`: os dois primeiros porque são o
+    que identifica a norma para quem lê, o `id` porque garante ordem total
+    mesmo entre dois chunks da mesma seção.
+
+    Args:
+        chunks: Candidatos, em qualquer ordem.
+        top_k: Quantos manter.
+
+    Returns:
+        Os `top_k` primeiros, em ordem estável entre execuções.
+    """
+    ordenados = sorted(
+        chunks,
+        key=lambda c: (
+            -c["score"],
+            c["source"],
+            c["section"],
+            str(c.get("id", "")),
+        ),
+    )
+    return ordenados[:top_k]
+
+
 class VectorStore:
     """
     Interface com o Qdrant para armazenamento e consulta de embeddings.
@@ -169,7 +201,7 @@ class VectorStore:
             with_payload=True,
         ).points
 
-        return [self._to_dict(r) for r in results]
+        return ordenar_deterministico([self._to_dict(r) for r in results], top_k)
 
     def search_hybrid(
         self,
@@ -215,11 +247,14 @@ class VectorStore:
                 ),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF),
-            limit=top_k,
+            # Pede o POOL fundido inteiro (no máximo uma vez o prefetch de cada
+            # modalidade) em vez de `top_k`: cortar no servidor é exatamente
+            # onde o empate era decidido de forma arbitrária.
+            limit=prefetch_limit * 2,
             with_payload=True,
         ).points
 
-        return [self._to_dict(r) for r in results]
+        return ordenar_deterministico([self._to_dict(r) for r in results], top_k)
 
     def search_batch(
         self,
@@ -258,7 +293,10 @@ class VectorStore:
             ],
         )
 
-        return [[self._to_dict(p) for p in r.points] for r in respostas]
+        return [
+            ordenar_deterministico([self._to_dict(p) for p in r.points], top_k)
+            for r in respostas
+        ]
 
     def search_hybrid_batch(
         self,
@@ -309,14 +347,18 @@ class VectorStore:
                         ),
                     ],
                     query=models.FusionQuery(fusion=models.Fusion.RRF),
-                    limit=top_k,
+                    # Pool fundido inteiro, não `top_k` — ver `search_hybrid`.
+                    limit=prefetch_limit * 2,
                     with_payload=True,
                 )
                 for d, (idx, vals) in zip(dense, sparse)
             ],
         )
 
-        return [[self._to_dict(p) for p in r.points] for r in respostas]
+        return [
+            ordenar_deterministico([self._to_dict(p) for p in r.points], top_k)
+            for r in respostas
+        ]
 
     @staticmethod
     def _to_dict(point) -> dict:
@@ -326,6 +368,9 @@ class VectorStore:
             "section": point.payload.get("section", ""),
             "page": point.payload.get("page", 0),
             "score": point.score,
+            # `id` só existe para dar ordem total ao desempate de
+            # `ordenar_deterministico` — não é usado como dado de negócio.
+            "id": str(point.id),
         }
 
     def assert_model_matches(self, embedding_model: str) -> None:
