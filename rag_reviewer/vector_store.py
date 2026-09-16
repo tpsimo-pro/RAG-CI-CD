@@ -221,6 +221,103 @@ class VectorStore:
 
         return [self._to_dict(r) for r in results]
 
+    def search_batch(
+        self,
+        query_vectors: list[list],
+        top_k: int = 5,
+        score_threshold: float = 0.55,
+    ) -> list[list[dict]]:
+        """
+        Versão em lote de `search`: uma única ida ao Qdrant para N consultas.
+
+        Args:
+            query_vectors: Vetores de consulta densos, um por linha.
+            top_k: Número máximo de resultados por consulta.
+            score_threshold: Score mínimo de similaridade cosine (0–1).
+
+        Returns:
+            Uma lista de resultados por consulta, NA ORDEM de `query_vectors`.
+        """
+        if not query_vectors:
+            return []
+
+        from qdrant_client import models  # type: ignore
+
+        client = self._get_client()
+        respostas = client.query_batch_points(
+            collection_name=self._collection,
+            requests=[
+                models.QueryRequest(
+                    query=v,
+                    using="dense",
+                    limit=top_k,
+                    score_threshold=score_threshold,
+                    with_payload=True,
+                )
+                for v in query_vectors
+            ],
+        )
+
+        return [[self._to_dict(p) for p in r.points] for r in respostas]
+
+    def search_hybrid_batch(
+        self,
+        dense: list[list],
+        sparse: list[tuple[list[int], list[float]]],
+        top_k: int = 5,
+        prefetch_limit: int = 20,
+    ) -> list[list[dict]]:
+        """
+        Versão em lote de `search_hybrid`: uma única ida ao Qdrant para N
+        consultas, cada uma com sua própria fusão RRF.
+
+        Consultar linha a linha custava uma requisição de rede por linha
+        adicionada do PR. O lote não muda o resultado de nenhuma consulta —
+        a fusão continua por consulta, não entre elas.
+
+        Args:
+            dense: Vetores densos, um por linha.
+            sparse: (índices, valores) esparsos, um por linha, na mesma ordem.
+            top_k: Número de resultados por consulta, após a fusão.
+            prefetch_limit: Candidatos que cada modalidade contribui antes
+                da fusão.
+
+        Returns:
+            Uma lista de resultados por consulta, NA ORDEM de `dense`.
+        """
+        if len(dense) != len(sparse):
+            raise ValueError(
+                f"dense e sparse precisam ter o mesmo tamanho: "
+                f"{len(dense)} != {len(sparse)}"
+            )
+        if not dense:
+            return []
+
+        from qdrant_client import models  # type: ignore
+
+        client = self._get_client()
+        respostas = client.query_batch_points(
+            collection_name=self._collection,
+            requests=[
+                models.QueryRequest(
+                    prefetch=[
+                        models.Prefetch(query=d, using="dense", limit=prefetch_limit),
+                        models.Prefetch(
+                            query=models.SparseVector(indices=idx, values=vals),
+                            using="bm25",
+                            limit=prefetch_limit,
+                        ),
+                    ],
+                    query=models.FusionQuery(fusion=models.Fusion.RRF),
+                    limit=top_k,
+                    with_payload=True,
+                )
+                for d, (idx, vals) in zip(dense, sparse)
+            ],
+        )
+
+        return [[self._to_dict(p) for p in r.points] for r in respostas]
+
     @staticmethod
     def _to_dict(point) -> dict:
         return {
