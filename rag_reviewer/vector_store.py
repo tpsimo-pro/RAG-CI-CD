@@ -113,7 +113,6 @@ class VectorStore:
                 "text": chunk.text,
                 "source": chunk.source,
                 "section": chunk.section,
-                "page": chunk.page,
                 "chunk_index": chunk.chunk_index,
                 "char_count": len(chunk.text),
                 "indexed_at": chunk.indexed_at,
@@ -324,7 +323,6 @@ class VectorStore:
             "text": point.payload["text"],
             "source": point.payload["source"],
             "section": point.payload.get("section", ""),
-            "page": point.payload.get("page", 0),
             "score": point.score,
         }
 

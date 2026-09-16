@@ -31,7 +31,6 @@ class Settings(BaseSettings):
     repo_full_name: str = Field(default="", alias="REPO_FULL_NAME")
     pr_number: int = Field(default=0, alias="PR_NUMBER")
     pr_head_sha: str = Field(default="", alias="PR_HEAD_SHA")
-    pr_base_sha: str = Field(default="", alias="PR_BASE_SHA")
 
     # ── LLM ─────────────────────────────────────────────────────────────────
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
@@ -56,7 +55,6 @@ class Settings(BaseSettings):
     # ── Retrieval ────────────────────────────────────────────────────────────
     top_k_chunks: int = Field(default=5, alias="TOP_K_CHUNKS")
     score_threshold: float = Field(default=0.55, alias="SCORE_THRESHOLD")
-    max_diff_tokens: int = Field(default=3000, alias="MAX_DIFF_TOKENS")
 
     # ── Comportamento ────────────────────────────────────────────────────────
     block_on_critical: bool = Field(default=True, alias="BLOCK_ON_CRITICAL")

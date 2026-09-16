@@ -59,14 +59,12 @@ def tmp_txt(tmp_path: Path) -> Path:
 class TestDocument:
     def test_defaults(self):
         doc = Document(text="hello", source="file.md")
-        assert doc.page == 0
         assert doc.section == ""
 
     def test_full_construction(self):
-        doc = Document(text="content", source="guide.md", page=3, section="2.1 Naming")
+        doc = Document(text="content", source="guide.md", section="2.1 Naming")
         assert doc.text == "content"
         assert doc.source == "guide.md"
-        assert doc.page == 3
         assert doc.section == "2.1 Naming"
 
 

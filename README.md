@@ -148,7 +148,7 @@ RAG-CI-CD/
 │       └── review_template.txt
 │
 ├── indexer/                  # Pipeline offline de indexação
-│   ├── document_loader.py    # Leitura de PDF, Markdown, DOCX
+│   ├── document_loader.py    # Leitura de Markdown e texto plano
 │   ├── chunker.py            # Divisão em chunks com sobreposição
 │   └── index_pipeline.py     # Orquestrador: load → chunk → embed → upsert
 │

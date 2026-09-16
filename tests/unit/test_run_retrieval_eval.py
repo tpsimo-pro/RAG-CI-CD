@@ -52,7 +52,6 @@ class _VectorStoreFalso:
                 "text": "chunk-fake",
                 "source": "s",
                 "section": "5",
-                "page": 1,
                 "score": 0.9,
             }
         ]
@@ -99,7 +98,7 @@ def test_retrieve_for_file_devolve_os_chunks_do_store():
     )
 
     assert resultado == [
-        {"text": "chunk-fake", "source": "s", "section": "5", "page": 1, "score": 0.9}
+        {"text": "chunk-fake", "source": "s", "section": "5", "score": 0.9}
     ]
 
 

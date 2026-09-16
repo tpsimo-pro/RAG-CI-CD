@@ -56,7 +56,6 @@ class RetrievedContext:
       - text    : texto do trecho normativo
       - source  : arquivo de origem do guia de estilo
       - section : seção/título dentro do documento
-      - page    : número da página (para PDFs)
       - score   : score de similaridade cosine (0–1)
     """
 

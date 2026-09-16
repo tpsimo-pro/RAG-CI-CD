@@ -55,7 +55,6 @@ def make_chunk(
         "text": text,
         "source": source,
         "section": section,
-        "page": 0,
         "score": score,
     }
 
