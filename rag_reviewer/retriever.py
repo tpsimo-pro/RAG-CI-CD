@@ -111,8 +111,8 @@ class Retriever:
                 Contexto excedente comprovadamente induz alucinação. Default 8.
             sparse_encoder: Instância do SparseEncoder. Usa default se None.
             hybrid: Se True (default), cada busca por linha usa
-                `store.search_hybrid` (denso + esparso BM25 com fusão RRF,
-                L4). Se False, usa `store.search` (só denso, L0–L3).
+                `store.search_hybrid_batch` (denso + esparso BM25 com fusão RRF,
+                L4). Se False, usa `store.search_batch` (só denso, L0–L3).
         """
         settings = get_settings()
         self._embedder = embedder if embedder is not None else Embedder()
@@ -243,29 +243,33 @@ class Retriever:
             f"[bold]{file_diff.filename}[/bold] ({len(linhas)} linha(s))..."
         )
 
+        # Uma passada de inferência e uma ida ao Qdrant para o arquivo inteiro.
+        # Embedar linha a linha desperdiçava o `batch_size` do Embedder (lote de
+        # tamanho 1 por linha) e gastava uma requisição de rede por linha. A
+        # unidade de CONSULTA continua sendo a linha (D-001): o lote não mistura
+        # as linhas, só as envia juntas.
+        vetores_densos = [v.tolist() for v in self._embedder.embed(linhas)]
+
+        if self._hybrid:
+            # Denso + esparso BM25 com fusão RRF (L4): o esparso cobre o
+            # casamento lexical (`== True`, `!= None`) que o denso sozinho
+            # erra por ser um problema de string, não de significado.
+            resultados_por_linha = self._store.search_hybrid_batch(
+                dense=vetores_densos,
+                sparse=self._sparse_encoder.encode_batch(linhas),
+                top_k=self._top_k,
+            )
+        else:
+            resultados_por_linha = self._store.search_batch(
+                query_vectors=vetores_densos,
+                top_k=self._top_k,
+                score_threshold=self._score_threshold,
+            )
+
         vistos: set[tuple[str, str]] = set()
         unidos: list[dict] = []
 
-        for linha in linhas:
-            embedding_matrix = self._embedder.embed([linha])
-            query_vector: list = embedding_matrix[0].tolist()
-
-            if self._hybrid:
-                # Denso + esparso BM25 com fusão RRF (L4): o esparso cobre o
-                # casamento lexical (`== True`, `!= None`) que o denso sozinho
-                # erra por ser um problema de string, não de significado.
-                resultados = self._store.search_hybrid(
-                    dense=query_vector,
-                    sparse=self._sparse_encoder.encode(linha),
-                    top_k=self._top_k,
-                )
-            else:
-                resultados = self._store.search(
-                    query_vector=query_vector,
-                    top_k=self._top_k,
-                    score_threshold=self._score_threshold,
-                )
-
+        for resultados in resultados_por_linha:
             for chunk in resultados:
                 chave = (chunk["source"], chunk["section"])
                 if chave in vistos:
