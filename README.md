@@ -163,10 +163,10 @@ Cada execução grava `evaluation/retrieval/results_<label>.json`. Use um rótul
 
 ```bash
 make evaluate
-python -m evaluation.run_evaluation --repeticoes 1 --output evaluation/results_dev.json
+python -m evaluation.run_evaluation --output evaluation/results_dev.json
 ```
 
-O padrão é 3 repetições e grava `evaluation/results.json`, o resultado oficial, que é sobrescrito a cada execução. Use `--output` para não perdê-lo. Se o limite diário da Groq interromper a execução, o progresso fica em `evaluation/.eval_checkpoint.json` e a execução seguinte retoma dele.
+O padrão é 1 repetição, inclusive na execução oficial (D-005): com temperatura 0.0 as 3 repetições anteriores deram desvio-padrão 0. Ele grava `evaluation/results.json`, sobrescrito a cada execução; use `--output` para não perdê-lo. `--repeticoes 3` reproduz a execução com média e desvio-padrão. Se o limite diário da Groq interromper a execução, o progresso fica em `evaluation/.eval_checkpoint.json` e a execução seguinte retoma dele.
 
 ### 6. Testes e qualidade
 

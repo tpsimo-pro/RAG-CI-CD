@@ -263,8 +263,10 @@ um TCC: rodar de novo produz outro número e o resultado não é reprodutível.
 | Parâmetro | Valor |
 |---|---|
 | **Temperatura** | `0.0` |
-| **Repetições por PR** | **3** na execução oficial; **1** durante o desenvolvimento, via flag `--repeticoes`, para poupar cota da API |
-| **Reporte** | **média ± desvio-padrão** de Precisão, Recall e F1 nas 3 execuções. A matriz de confusão publicada é a da execução de **F1 mediano** |
+| **Repetições por PR** | **1**, inclusive na execução oficial (padrão de `--repeticoes`). `--repeticoes 3` continua disponível |
+| **Reporte** | Precisão, Recall e F1 da execução, com a matriz de confusão dela. Com mais de uma repetição, **média ± desvio-padrão** e a matriz da execução de **F1 mediano** |
+
+**Revisão (2026-09-18).** O padrão original era 3 repetições na execução oficial. As 3 repetições já feitas (`evaluation/results.json`) deram desvio-padrão 0 em Precisão, Recall e F1, então repetir com temperatura 0.0 triplicava o gasto de cota sem informação nova, e o padrão passou a 1. Os resultados oficiais citados no README e nos relatórios vêm dessas 3 repetições.
 
 ### Nota metodológica
 

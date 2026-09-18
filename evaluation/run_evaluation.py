@@ -67,7 +67,7 @@ console = Console(highlight=False)
 
 _DEFAULT_DATASET = _PROJECT_ROOT / "evaluation" / "dataset" / "pilot_secao5.json"
 _DEFAULT_OUTPUT = _PROJECT_ROOT / "evaluation" / "results.json"
-_DEFAULT_REPETICOES = 3
+_DEFAULT_REPETICOES = 1
 
 
 # ── Carregamento e validação do dataset ─────────────────────────────────────
@@ -551,8 +551,8 @@ def _parse_args() -> argparse.Namespace:
         default=_DEFAULT_REPETICOES,
         help=(
             "Número de execuções completas e independentes do dataset (D-005). "
-            f"Padrão: {_DEFAULT_REPETICOES} (execução oficial). Use 1 em "
-            "desenvolvimento para poupar cota da API Groq."
+            f"Padrão: {_DEFAULT_REPETICOES} (D-005). Use 3 para obter média e "
+            "desvio-padrão, ao custo de 3x a cota da API Groq."
         ),
     )
     return parser.parse_args()
