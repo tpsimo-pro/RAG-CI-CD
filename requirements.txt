@@ -14,7 +14,6 @@ fastembed>=0.4.0
 groq==0.13.1
 
 # GitHub API
-requests==2.32.3
 
 # Utilitários
 python-dotenv==1.0.1

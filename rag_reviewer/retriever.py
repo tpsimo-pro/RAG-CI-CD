@@ -2,7 +2,7 @@
 retriever.py — Módulo RAG: Recuperação Semântica (Componente 3, Fase 2).
 
 Responsabilidades:
-  1. Receber um PullRequestDiff (saída do diff_parser).
+  1. Receber o FileDiff de um arquivo.
   2. Para cada arquivo relevante, consultar o Qdrant UMA VEZ POR LINHA
      adicionada (a unidade de recuperação é a linha, igual à unidade de
      avaliação de D-001 — consultar por arquivo inteiro produz uma média
@@ -13,8 +13,8 @@ Responsabilidades:
 
 Uso típico:
     retriever = Retriever(embedder=Embedder(), store=VectorStore())
-    contexts  = retriever.retrieve_for_diff(pr_diff)
-    for ctx in contexts:
+    ctx = retriever.retrieve_for_file(file_diff)
+    if ctx:
         # ctx.file_diff   → arquivo analisado
         # ctx.chunks      → normas recuperadas do Qdrant
         # ctx.query_text  → texto que gerou os embeddings
@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from rich.console import Console
 
 from rag_reviewer.config import get_settings
-from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
+from rag_reviewer.diff_parser import FileDiff
 from rag_reviewer.embedder import Embedder
 from rag_reviewer.sparse_encoder import SparseEncoder
 from rag_reviewer.vector_store import VectorStore
@@ -70,7 +70,7 @@ class Retriever:
     """
     Orquestra a recuperação de contexto normativo para cada arquivo do diff.
 
-    Para cada arquivo do PullRequestDiff que contém linhas adicionadas:
+    Para cada arquivo (FileDiff) com linhas adicionadas:
       1. Para cada linha, gera o embedding via Embedder e consulta o
          VectorStore pelos top-K chunks daquela linha.
       2. Une os chunks de todas as linhas, deduplicados por (source, section)
@@ -143,40 +143,6 @@ class Retriever:
 
     # ── Interface pública ─────────────────────────────────────────────────
 
-    def retrieve_for_diff(self, pr_diff: PullRequestDiff) -> list[RetrievedContext]:
-        """
-        Recupera contexto normativo para cada arquivo relevante do PR.
-
-        Um arquivo é considerado **irrelevante** (e ignorado) quando:
-          - Não possui linhas adicionadas (ex.: só remoções ou renomeação sem conteúdo).
-          - Nenhum chunk do Qdrant atinge o score_threshold (sem contexto aplicável).
-
-        Args:
-            pr_diff: Diff completo do PR, gerado pelo DiffCollector.
-
-        Returns:
-            Lista de RetrievedContext, um por arquivo com contexto relevante.
-            Pode ser vazia se o PR não alterar código revisável.
-        """
-        candidates = self._filter_candidates(pr_diff.files)
-
-        console.log(
-            f"[cyan]Retriever:[/cyan] {len(candidates)}/{len(pr_diff.files)} "
-            f"arquivo(s) com linhas adicionadas para revisar."
-        )
-
-        contexts: list[RetrievedContext] = []
-        for file_diff in candidates:
-            ctx = self._retrieve_for_file(file_diff)
-            if ctx is not None:
-                contexts.append(ctx)
-
-        console.log(
-            f"[green]✅ Retriever:[/green] contexto recuperado para "
-            f"{len(contexts)} arquivo(s)."
-        )
-        return contexts
-
     def retrieve_for_file(self, file_diff: FileDiff) -> RetrievedContext | None:
         """
         Recupera contexto normativo para um único FileDiff.
@@ -207,16 +173,6 @@ class Retriever:
             return
         self._store.assert_model_matches(self._embedder.model_name)
         self._guarda_verificada = True
-
-    def _filter_candidates(self, files: list[FileDiff]) -> list[FileDiff]:
-        """
-        Filtra apenas arquivos com linhas adicionadas que merecem revisão.
-
-        Arquivos com status 'deleted' já foram filtrados pelo DiffCollector.
-        Aqui filtramos os que não têm nenhuma linha adicionada (ex.: só
-        remoções de código).
-        """
-        return [f for f in files if f.added_lines]
 
     def _retrieve_for_file(self, file_diff: FileDiff) -> RetrievedContext | None:
         """

@@ -58,9 +58,6 @@ test:
 test-unit:
 	$(PYTHON) -m pytest tests/unit/ -v
 
-test-integration:
-	$(PYTHON) -m pytest tests/integration/ -v
-
 test-cov:
 	$(PYTHON) -m pytest tests/ --cov=rag_reviewer --cov=indexer --cov-report=term-missing --cov-report=html -v
 
