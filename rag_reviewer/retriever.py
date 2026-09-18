@@ -30,7 +30,7 @@ from rag_reviewer.config import get_settings
 from rag_reviewer.diff_parser import FileDiff
 from rag_reviewer.embedder import Embedder
 from rag_reviewer.sparse_encoder import SparseEncoder
-from rag_reviewer.vector_store import VectorStore
+from rag_reviewer.vector_store import VectorStore, ordenar_deterministico
 
 console = Console()
 
@@ -241,9 +241,9 @@ class Retriever:
             return None
 
         # Maior score primeiro, depois corta em max_chunks (o N da spec §4.3):
-        # contexto excedente comprovadamente induz alucinação.
-        unidos.sort(key=lambda c: c["score"], reverse=True)
-        unidos = unidos[: self._max_chunks]
+        # contexto excedente comprovadamente induz alucinação. O desempate é
+        # explícito para que a união entregue ao LLM não mude entre execuções.
+        unidos = ordenar_deterministico(unidos, self._max_chunks)
 
         console.log(
             f"[dim]Retriever:[/dim] {len(unidos)} chunk(s) para "
