@@ -11,7 +11,7 @@ from indexer.document_loader import Document
 
 
 def make_doc(text: str, source: str = "test.md", section: str = "Teste") -> Document:
-    return Document(text=text, source=source, section=section, page=0)
+    return Document(text=text, source=source, section=section)
 
 
 @pytest.fixture
@@ -32,7 +32,6 @@ class TestChunk:
     def test_defaults(self):
         chunk = Chunk(text="hello", source="file.md")
         assert chunk.section == ""
-        assert chunk.page == 0
         assert chunk.chunk_index == 0
         assert chunk.indexed_at != ""
 
@@ -143,11 +142,6 @@ class TestSplitMetadata:
         doc = make_doc("Conteúdo.", section="3.2 Nomenclatura")
         chunks = chunker.split([doc])
         assert all(c.section == "3.2 Nomenclatura" for c in chunks)
-
-    def test_page_preserved_in_chunks(self, chunker: RecursiveChunker):
-        doc = Document(text="Conteúdo da página 5.", source="doc.pdf", page=5)
-        chunks = chunker.split([doc])
-        assert all(c.page == 5 for c in chunks)
 
     def test_indexed_at_is_set(self, chunker: RecursiveChunker):
         doc = make_doc("Conteúdo.")

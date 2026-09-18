@@ -27,7 +27,6 @@ class Chunk:
         text:        Conteúdo do chunk.
         source:      Caminho do arquivo de origem.
         section:     Seção do documento de origem.
-        page:        Número de página (para PDFs).
         chunk_index: Índice sequencial do chunk dentro do documento.
         indexed_at:  Timestamp ISO 8601 do momento de indexação.
     """
@@ -35,7 +34,6 @@ class Chunk:
     text: str
     source: str
     section: str = ""
-    page: int = 0
     chunk_index: int = 0
     indexed_at: str = field(
         default_factory=lambda: datetime.now(UTC).isoformat()
@@ -109,7 +107,6 @@ class RecursiveChunker:
                         text=chunk_text,
                         source=doc.source,
                         section=doc.section,
-                        page=doc.page,
                         chunk_index=idx,
                     )
                 )

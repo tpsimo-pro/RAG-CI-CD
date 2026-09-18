@@ -1,10 +1,9 @@
 """
 document_loader.py — Carregamento de documentos normativos.
 
-Suporta os formatos:
-  - PDF (.pdf) via pypdf
-  - Markdown (.md) e texto plano (.txt) via markdown + BeautifulSoup
-  - DOCX (.docx) via python-docx
+Suporta Markdown (.md) e texto plano (.txt), com os cabeçalhos servindo de
+separador de seção. O corpus normativo é integralmente Markdown (D-007), por
+isso não há carregador de PDF nem de DOCX.
 
 Retorna uma lista de objetos Document com texto e metadados preservados.
 """
@@ -28,13 +27,11 @@ class Document:
     Atributos:
         text:    Conteúdo textual do documento/seção.
         source:  Caminho do arquivo de origem (relativo ao projeto).
-        page:    Número da página (relevante para PDFs; 0 para outros formatos).
         section: Título da seção (relevante para Markdown/DOCX).
     """
 
     text: str
     source: str
-    page: int = 0
     section: str = ""
 
 
@@ -84,7 +81,7 @@ class DocumentLoader:
         docs = loader.load("docs/style_guides/coding_standards.md")
     """
 
-    SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx"}
+    SUPPORTED_EXTENSIONS = {".md", ".txt"}
 
     def load(self, path: str | Path) -> list[Document]:
         """
@@ -117,14 +114,7 @@ class DocumentLoader:
             f"[cyan]DocumentLoader:[/cyan] carregando [bold]{path.name}[/bold] ({suffix})"
         )
 
-        if suffix == ".pdf":
-            docs = self._load_pdf(path)
-        elif suffix in (".md", ".txt"):
-            docs = self._load_markdown(path)
-        elif suffix == ".docx":
-            docs = self._load_docx(path)
-        else:
-            docs = []
+        docs = self._load_markdown(path)
 
         console.log(
             f"[green]  ✅ {len(docs)} seção(ões) carregada(s) de '{path.name}'[/green]"
@@ -156,37 +146,6 @@ class DocumentLoader:
         return all_docs
 
     # ── Implementações por formato ────────────────────────────────────────
-
-    def _load_pdf(self, path: Path) -> list[Document]:
-        """Extrai texto página a página usando pypdf."""
-        try:
-            from pypdf import PdfReader  # type: ignore
-        except ImportError as exc:
-            raise ImportError(
-                "pypdf não está instalado. Execute: pip install pypdf"
-            ) from exc
-
-        reader = PdfReader(str(path))
-        docs = []
-
-        for page_num, page in enumerate(reader.pages, start=1):
-            text = page.extract_text() or ""
-            text = self._clean_text(text)
-
-            if len(text.strip()) < 20:
-                # Página sem conteúdo relevante (ex: páginas em branco, cabeçalhos)
-                continue
-
-            docs.append(
-                Document(
-                    text=text,
-                    source=str(path),
-                    page=page_num,
-                    section=f"Página {page_num}",
-                )
-            )
-
-        return docs
 
     def _load_markdown(self, path: Path) -> list[Document]:
         """
@@ -253,76 +212,9 @@ class DocumentLoader:
 
         return docs
 
-    def _load_docx(self, path: Path) -> list[Document]:
-        """
-        Extrai parágrafos de um arquivo DOCX, agrupando por estilos de cabeçalho.
-
-        Parágrafos com estilo 'Heading X' delimitam novas seções.
-        """
-        try:
-            import docx  # type: ignore
-        except ImportError as exc:
-            raise ImportError(
-                "python-docx não está instalado. Execute: pip install python-docx"
-            ) from exc
-
-        doc = docx.Document(str(path))
-        docs = []
-        source = str(path)
-
-        current_section = "Introdução"
-        current_paragraphs: list[str] = []
-
-        for para in doc.paragraphs:
-            style_name = para.style.name if para.style else ""
-            text = para.text.strip()
-
-            if not text:
-                continue
-
-            is_heading = style_name.startswith("Heading") or style_name.startswith(
-                "Título"
-            )
-
-            if is_heading:
-                # Salva a seção anterior
-                if current_paragraphs:
-                    body = "\n\n".join(current_paragraphs)
-                    full_text = f"{current_section}\n\n{body}"
-                    docs.append(
-                        Document(
-                            text=self._clean_text(full_text),
-                            source=source,
-                            section=current_section,
-                        )
-                    )
-                # Inicia nova seção
-                current_section = text
-                current_paragraphs = []
-            else:
-                current_paragraphs.append(text)
-
-        # Salva a última seção
-        if current_paragraphs:
-            body = "\n\n".join(current_paragraphs)
-            full_text = f"{current_section}\n\n{body}"
-            docs.append(
-                Document(
-                    text=self._clean_text(full_text),
-                    source=source,
-                    section=current_section,
-                )
-            )
-
-        return docs
-
-    # ── Utilitários ───────────────────────────────────────────────────────
-
     @staticmethod
     def _clean_text(text: str) -> str:
-        """
-        Normaliza espaços e remove artefatos comuns de extração de PDF/DOCX.
-        """
+        """Normaliza espaços e remove separadores visuais do texto carregado."""
         # Remove quebras de linha excessivas
         text = re.sub(r"\n{3,}", "\n\n", text)
         # Remove espaços extras

@@ -93,18 +93,14 @@ class VectorStore:
         existing = [c.name for c in client.get_collections().collections]
         if self._collection in existing:
             client.delete_collection(self._collection)
-            console.log(
-                f"[yellow]VectorStore:[/yellow] coleção '{self._collection}' removida."
-            )
+            console.log(f"[yellow]VectorStore:[/yellow] coleção '{self._collection}' removida.")
 
         # O vetor denso passa a ser NOMEADO ("dense"): a Query API precisa
         # endereçar as duas modalidades (densa e esparsa "bm25") por nome
         # em `search_hybrid` (spec — busca híbrida, L4).
         client.create_collection(
             collection_name=self._collection,
-            vectors_config={
-                "dense": VectorParams(size=vector_size, distance=Distance.COSINE)
-            },
+            vectors_config={"dense": VectorParams(size=vector_size, distance=Distance.COSINE)},
             sparse_vectors_config={"bm25": SparseVectorParams()},
             hnsw_config=HnswConfigDiff(
                 m=16,
@@ -145,7 +141,6 @@ class VectorStore:
                 "text": chunk.text,
                 "source": chunk.source,
                 "section": chunk.section,
-                "page": chunk.page,
                 "chunk_index": chunk.chunk_index,
                 "char_count": len(chunk.text),
                 "indexed_at": chunk.indexed_at,
@@ -325,8 +320,7 @@ class VectorStore:
         """
         if len(dense) != len(sparse):
             raise ValueError(
-                f"dense e sparse precisam ter o mesmo tamanho: "
-                f"{len(dense)} != {len(sparse)}"
+                f"dense e sparse precisam ter o mesmo tamanho: " f"{len(dense)} != {len(sparse)}"
             )
         if not dense:
             return []
@@ -366,7 +360,6 @@ class VectorStore:
             "text": point.payload["text"],
             "source": point.payload["source"],
             "section": point.payload.get("section", ""),
-            "page": point.payload.get("page", 0),
             "score": point.score,
             # `id` só existe para dar ordem total ao desempate de
             # `ordenar_deterministico` — não é usado como dado de negócio.
@@ -391,14 +384,11 @@ class VectorStore:
                 modelo diferente de `embedding_model`.
         """
         client = self._get_client()
-        pontos, _ = client.scroll(
-            collection_name=self._collection, limit=1, with_payload=True
-        )
+        pontos, _ = client.scroll(collection_name=self._collection, limit=1, with_payload=True)
 
         if not pontos:
             raise RuntimeError(
-                f"Coleção '{self._collection}' está vazia. "
-                f"Execute: make index-recreate"
+                f"Coleção '{self._collection}' está vazia. " f"Execute: make index-recreate"
             )
 
         indexado = (pontos[0].payload or {}).get("embedding_model")
@@ -434,7 +424,7 @@ class VectorStore:
                 self._client = QdrantClient(
                     url=settings.qdrant_url,
                     api_key=settings.qdrant_api_key or None,
-                    timeout=30,
+                    timeout=120,
                 )
                 console.log(
                     f"[cyan]VectorStore:[/cyan] conectado ao Qdrant em [bold]{settings.qdrant_url}[/bold]"

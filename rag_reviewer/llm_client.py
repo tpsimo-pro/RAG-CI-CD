@@ -74,7 +74,7 @@ class LLMClient:
     def __init__(
         self,
         model: str | None = None,
-        max_tokens: int = 2048,
+        max_tokens: int = 900,
         temperature: float | None = None,
     ) -> None:
         """
