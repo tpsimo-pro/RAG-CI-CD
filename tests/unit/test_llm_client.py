@@ -231,6 +231,20 @@ class TestBuildUserMessage:
 
 
 class TestExtractJson:
+    def test_recupera_violacoes_completas_de_resposta_truncada(self):
+        client = make_llm_client()
+        raw = (
+            '{"violations": [{"line_content": "a", "severity": "LOW"}, '
+            '{"line_content": "b", "severity": "LOW"}, {"line_content": "c'
+        )
+        result = client._extract_json(raw)
+        assert [v["line_content"] for v in result["violations"]] == ["a", "b"]
+
+    def test_truncada_sem_nenhuma_violacao_completa_levanta(self):
+        client = make_llm_client()
+        with pytest.raises(json.JSONDecodeError):
+            client._extract_json('{"violations": [{"line_content": "a')
+
     def test_direct_json_parsing(self):
         client = make_llm_client()
         raw = '{"violations": []}'

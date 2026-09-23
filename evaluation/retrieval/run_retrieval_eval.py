@@ -35,7 +35,7 @@ from rag_reviewer.vector_store import VectorStore
 console = Console(highlight=False)
 
 _ROOT = Path(__file__).parent.parent.parent
-_DATASET = _ROOT / "evaluation" / "dataset" / "pilot_secao5.json"
+_DATASET = _ROOT / "evaluation" / "dataset" / "pilot_dataset.json"
 
 
 def _retrieve_for_line(

@@ -2,10 +2,11 @@
 run_evaluation.py — Script principal de avaliação do RAG-Reviewer.
 
 Executa o sistema **real** (retrieval no Qdrant + geração no Groq, via os
-módulos de `rag_reviewer/`) contra o dataset do piloto — Seção 5 do guia de
-estilo Python (Comparações booleanas e com `None`, D-002) — e produz a
-matriz de confusão completa (TP/FP/FN/TN) e as métricas derivadas definidas
-em `docs/DECISIONS.md` (D-001, D-003, D-005).
+módulos de `rag_reviewer/`) contra o dataset do piloto — Seção 5 (comparações
+booleanas e com `None`) e o recorte da Seção 2 (nomenclatura) do guia de
+estilo Python, D-002 e sua emenda — e produz a matriz de confusão completa
+(TP/FP/FN/TN), as métricas derivadas definidas em `docs/DECISIONS.md`
+(D-001, D-003, D-005) e o mesmo conjunto recortado por regra.
 
 Este script **não usa mocks**. Se `GROQ_API_KEY` não estiver configurada ou
 o Qdrant estiver inacessível, a execução falha com uma mensagem de erro
@@ -13,7 +14,7 @@ clara — nunca cai silenciosamente em dados simulados.
 
 Uso:
     python -m evaluation.run_evaluation
-    python -m evaluation.run_evaluation --dataset evaluation/dataset/pilot_secao5.json
+    python -m evaluation.run_evaluation --dataset evaluation/dataset/pilot_dataset.json
     python -m evaluation.run_evaluation --repeticoes 1   # desenvolvimento — poupa cota da API
     python -m evaluation.run_evaluation --output evaluation/results.json
 """
@@ -65,7 +66,7 @@ from rag_reviewer.vector_store import VectorStore  # noqa: E402
 
 console = Console(highlight=False)
 
-_DEFAULT_DATASET = _PROJECT_ROOT / "evaluation" / "dataset" / "pilot_secao5.json"
+_DEFAULT_DATASET = _PROJECT_ROOT / "evaluation" / "dataset" / "pilot_dataset.json"
 _DEFAULT_OUTPUT = _PROJECT_ROOT / "evaluation" / "results.json"
 _DEFAULT_REPETICOES = 1
 
@@ -108,6 +109,7 @@ def _build_gold_lines(pr_data: dict) -> list[GoldLine]:
             pr_id=pr_data["pr_id"],
             line=al["line"],
             viola=bool(al["viola"]),
+            regra=al.get("regra"),
             sub_regra=al.get("sub_regra"),
             hard_negative=bool(al.get("hard_negative", False)),
         )
@@ -231,6 +233,12 @@ def _retrieve_context(retriever: Retriever, file_diff: FileDiff) -> RetrievedCon
 
 _CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
 
+# Versão do formato de `line_results` no checkpoint. Subiu para 2 quando
+# `LineResult` ganhou `regra` e trocou `cites_section_5` por
+# `cites_correct_norm` (emenda de D-002): um checkpoint da versão 1 não
+# reconstrói um `LineResult` atual e é descartado em vez de quebrar a execução.
+_CHECKPOINT_SCHEMA = 2
+
 
 def _line_result_to_dict(r: LineResult) -> dict:
     return dataclasses.asdict(r)
@@ -252,7 +260,11 @@ def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
         data = json.loads(_CHECKPOINT_PATH.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return {}  # checkpoint corrompido (ex.: kill a meio da escrita) — ignora
-    if data.get("dataset_path") != str(dataset_path) or data.get("repeticoes") != repeticoes:
+    if (
+        data.get("dataset_path") != str(dataset_path)
+        or data.get("repeticoes") != repeticoes
+        or data.get("schema") != _CHECKPOINT_SCHEMA
+    ):
         return {}
     return data.get("completed_prs", {})
 
@@ -260,6 +272,7 @@ def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
 def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -> None:
     """Escrita atômica (arquivo temporário + rename) — nunca deixa o checkpoint pela metade."""
     payload = {
+        "schema": _CHECKPOINT_SCHEMA,
         "dataset_path": str(dataset_path),
         "repeticoes": repeticoes,
         "completed_prs": completed_prs,
@@ -412,6 +425,8 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
     norm_prec_str = f"{norm_prec:.4f}" if norm_prec is not None else "N/A (nenhum TP nesta execução)"
     console.print(f"  Precisão de referência normativa (entre os TPs): {norm_prec_str}\n")
 
+    _print_per_rule(agg, published)
+
     gate_cm = published.pr_gate_confusion_matrix()
     console.rule("[bold green]Matriz de confusão — nível de PR (gate de CI/CD)[/bold green]")
     gate_table = Table(show_header=True, header_style="bold cyan")
@@ -424,6 +439,56 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
     console.print(f"\n  N = {gate_cm['n']} PR(s) avaliado(s)\n")
 
     _print_targets(agg)
+
+
+_ROTULO_REGRA = {
+    "secao-5": "Seção 5 — comparações",
+    "secao-2": "Seção 2 — nomenclatura",
+}
+
+
+def _print_per_rule(agg: AggregatedEvaluation, published: RepetitionResult) -> None:
+    """Imprime o recorte por regra e por sub-regra (emenda de D-002)."""
+    console.rule("[bold green]Métricas por regra[/bold green]")
+    console.print(
+        "\n  [dim]Recorte: as linhas de cada regra (positivas + negativos difíceis\n"
+        "  escritos contra ela). Negativos comuns não pertencem a regra alguma e\n"
+        "  só entram na matriz global — a precisão por regra não é comparável à\n"
+        "  global.[/dim]\n"
+    )
+
+    resumo = agg.per_rule_summary()
+    rule_table = Table(show_header=True, header_style="bold cyan")
+    rule_table.add_column("Regra")
+    rule_table.add_column("TP/FP/FN/TN", justify="right")
+    rule_table.add_column("Precisão", justify="right")
+    rule_table.add_column("Recall", justify="right")
+    rule_table.add_column("F1", justify="right")
+    rule_table.add_column("Ref. normativa", justify="right")
+    for regra, rm in published.per_rule().items():
+        cm = rm.confusion_matrix
+        s = resumo[regra]
+        norm_prec = rm.norm_reference_precision
+        rule_table.add_row(
+            _ROTULO_REGRA.get(regra, regra),
+            f"{cm['tp']}/{cm['fp']}/{cm['fn']}/{cm['tn']}",
+            f"{s['precision_mean']:.4f} ± {s['precision_stdev']:.4f}",
+            f"{s['recall_mean']:.4f} ± {s['recall_stdev']:.4f}",
+            f"{s['f1_mean']:.4f} ± {s['f1_stdev']:.4f}",
+            f"{norm_prec:.4f}" if norm_prec is not None else "N/A",
+        )
+    console.print(rule_table)
+
+    sub_table = Table(show_header=True, header_style="bold cyan")
+    sub_table.add_column("Sub-regra")
+    sub_table.add_column("Positivas", justify="right")
+    sub_table.add_column("TP", justify="right")
+    sub_table.add_column("FN", justify="right")
+    sub_table.add_column("Recall", justify="right")
+    for sub, d in published.per_sub_rule_recall().items():
+        sub_table.add_row(sub, str(d["positivas"]), str(d["tp"]), str(d["fn"]), f"{d['recall']:.4f}")
+    console.print(sub_table)
+    console.print()
 
 
 def _print_targets(agg: AggregatedEvaluation) -> None:
@@ -478,6 +543,8 @@ def _save_results(
                 ),
                 "total_detections": r.total_detections,
                 "hallucinated_detections": r.hallucinated_detections,
+                "per_rule": {regra: rm.as_dict() for regra, rm in r.per_rule().items()},
+                "per_sub_rule_recall": r.per_sub_rule_recall(),
             }
             for r in agg.repetitions
         ],
@@ -489,9 +556,19 @@ def _save_results(
             "f1_mean": round(agg.f1_mean, 4),
             "f1_stdev": round(agg.f1_stdev, 4),
             "median_f1_repetition_index": published.repetition_index,
+            "per_rule": agg.per_rule_summary(),
         },
         "published": {
             "line_confusion_matrix": published.confusion_matrix,
+            "per_rule": {regra: rm.as_dict() for regra, rm in published.per_rule().items()},
+            "per_rule_note": (
+                "Recorte por regra (emenda de D-002): só as linhas cujo campo "
+                "'regra' é a regra em questão (positivas + negativos difíceis "
+                "escritos contra ela). Negativos comuns (regra=null) entram "
+                "apenas na matriz global; a precisão por regra não é "
+                "comparável à global."
+            ),
+            "per_sub_rule_recall": published.per_sub_rule_recall(),
             "pr_gate_confusion_matrix": published.pr_gate_confusion_matrix(),
             "accuracy": {
                 "value": round(published.accuracy, 4),
@@ -529,8 +606,9 @@ def _save_results(
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Avalia o RAG-Reviewer contra o dataset do piloto (Seção 5 do guia "
-            "Python — Comparações), usando Qdrant e Groq reais."
+            "Avalia o RAG-Reviewer contra o dataset do piloto (Seção 5 — "
+            "comparações — e Seção 2 restrita — nomenclatura), usando Qdrant "
+            "e Groq reais."
         )
     )
     parser.add_argument(

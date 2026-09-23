@@ -17,10 +17,10 @@ Responda em JSON com o seguinte schema:
   "violations": [
     {{
       "line_content": "trecho exato da linha violada",
-      "violation_description": "descrição clara e objetiva da violação",
+      "violation_description": "descrição objetiva da violação, no máximo 15 palavras",
       "norm_reference": "nome do documento + seção/página",
       "severity": "CRITICAL | HIGH | MEDIUM | LOW",
-      "suggestion": "como corrigir a violação"
+      "suggestion": "como corrigir, no máximo 15 palavras"
     }}
   ]
 }}

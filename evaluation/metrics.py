@@ -2,8 +2,8 @@
 metrics.py — Matriz de confusão e métricas de classificação do RAG-Reviewer.
 
 Unidade de avaliação (D-001, `docs/DECISIONS.md`): cada **linha adicionada**
-de um PR do dataset é uma instância binária — "viola a regra do piloto" ou
-"não viola". O sistema é avaliado como um classificador dessas linhas:
+de um PR do dataset é uma instância binária — "viola alguma regra do piloto"
+ou "não viola". O sistema é avaliado como um classificador dessas linhas:
 
     | | Sistema sinalizou | Sistema não sinalizou |
     |---|---|---|
@@ -46,6 +46,36 @@ _SECTION_5_PATTERN = re.compile(
     r"se[cç][aã]o[:\s]*5(?!\.\d)\b|section[:\s]*5(?!\.\d)\b", re.IGNORECASE
 )
 
+# Nomenclatura (emenda de D-002). A norma está na Seção 2 do
+# `guia_python_pep8.md` (2 e 2.1) e na Seção 2 do `coding_standards.md`
+# (2.1 e 2.2) — citar qualquer uma das duas é correto, subseção inclusive,
+# ao contrário da Seção 5, onde "5.1 Docstrings" é outro assunto.
+_SECTION_2_PATTERN = re.compile(
+    r"se[cç][aã]o[:\s]*2(?:\.\d)?\b|section[:\s]*2(?:\.\d)?\b|nomenclatura|naming",
+    re.IGNORECASE,
+)
+
+REGRA_SECAO_5 = "secao-5"
+REGRA_SECAO_2 = "secao-2"
+
+_NORM_PATTERN_POR_REGRA = {
+    REGRA_SECAO_5: _SECTION_5_PATTERN,
+    REGRA_SECAO_2: _SECTION_2_PATTERN,
+}
+
+
+def cites_norm_of(regra: str | None, norm_reference: str | None) -> bool:
+    """
+    Se a `norm_reference` de uma detecção aponta a norma da regra violada.
+
+    Regra ausente ou desconhecida nunca conta como citação correta: não há
+    norma definida contra a qual comparar.
+    """
+    pattern = _NORM_PATTERN_POR_REGRA.get(regra or "")
+    if pattern is None:
+        return False
+    return bool(pattern.search(norm_reference or ""))
+
 
 # ── Normalização (D-003) ────────────────────────────────────────────────────
 
@@ -73,6 +103,7 @@ class GoldLine:
     pr_id: str
     line: str
     viola: bool
+    regra: str | None = None
     sub_regra: str | None = None
     hard_negative: bool = False
 
@@ -104,17 +135,27 @@ class LineResult:
     pr_id: str
     line: str
     expected_viola: bool
+    regra: str | None
+    """
+    Regra do piloto à qual a linha pertence: "secao-5", "secao-2" ou `None`.
+
+    Positivas trazem a regra violada; negativos difíceis trazem a regra que
+    quase violam; negativos comuns são `None` e não pertencem a regra alguma
+    (emenda de D-002).
+    """
+
     sub_regra: str | None
     hard_negative: bool
     signaled: bool
     cell: str
     """Uma de: "TP" | "FP" | "FN" | "TN"."""
 
-    cites_section_5: bool | None
+    cites_correct_norm: bool | None
     """
-    Só definido para TPs: se a detecção atribuída a esta linha citou a
-    Seção 5 na `norm_reference`. `None` para FP/FN/TN, onde a pergunta não
-    se aplica (D-003: citação da norma não condiciona o TP).
+    Só definido para TPs: se a detecção atribuída a esta linha citou, na
+    `norm_reference`, a norma da regra violada (Seção 5 ou Seção 2). `None`
+    para FP/FN/TN, onde a pergunta não se aplica (D-003: citação da norma
+    não condiciona o TP).
     """
 
 
@@ -142,7 +183,7 @@ def classify_lines(
         gold_by_norm[gl.normalized].append(i)
 
     signaled_norms: set[str] = set()
-    cites_section_5_by_norm: dict[str, bool] = defaultdict(bool)
+    references_by_norm: dict[str, list[str]] = defaultdict(list)
     hallucinated = 0
     total = 0
 
@@ -155,8 +196,7 @@ def classify_lines(
             hallucinated += 1
             continue
         signaled_norms.add(norm)
-        if _SECTION_5_PATTERN.search(det.norm_reference or ""):
-            cites_section_5_by_norm[norm] = True
+        references_by_norm[norm].append(det.norm_reference or "")
 
     results: list[LineResult] = []
     for gl in gold_lines:
@@ -170,18 +210,26 @@ def classify_lines(
         else:
             cell = "TN"
 
-        cites_section_5 = cites_section_5_by_norm.get(gl.normalized, False) if cell == "TP" else None
+        cites = (
+            any(
+                cites_norm_of(gl.regra, ref)
+                for ref in references_by_norm.get(gl.normalized, [])
+            )
+            if cell == "TP"
+            else None
+        )
 
         results.append(
             LineResult(
                 pr_id=gl.pr_id,
                 line=gl.line,
                 expected_viola=gl.viola,
+                regra=gl.regra,
                 sub_regra=gl.sub_regra,
                 hard_negative=gl.hard_negative,
                 signaled=signaled,
                 cell=cell,
-                cites_section_5=cites_section_5,
+                cites_correct_norm=cites,
             )
         )
 
@@ -214,6 +262,59 @@ class PRGateResult:
         if not self.expected_positive and self.predicted_positive:
             return "FP"
         return "TN"
+
+
+@dataclass(frozen=True)
+class RuleMetrics:
+    """Matriz e métricas de uma única regra do piloto (ver `RepetitionResult.per_rule`)."""
+
+    regra: str
+    line_results: list[LineResult]
+
+    @property
+    def confusion_matrix(self) -> dict[str, int]:
+        counts = confusion_counts([r.cell for r in self.line_results])
+        counts["n"] = len(self.line_results)
+        return counts
+
+    @property
+    def precision(self) -> float:
+        cm = self.confusion_matrix
+        denom = cm["tp"] + cm["fp"]
+        return cm["tp"] / denom if denom else 0.0
+
+    @property
+    def recall(self) -> float:
+        cm = self.confusion_matrix
+        denom = cm["tp"] + cm["fn"]
+        return cm["tp"] / denom if denom else 0.0
+
+    @property
+    def f1(self) -> float:
+        p, r = self.precision, self.recall
+        return 2 * p * r / (p + r) if (p + r) else 0.0
+
+    @property
+    def norm_reference_precision(self) -> float | None:
+        """Fração dos TPs desta regra que citaram a norma dela. `None` sem TPs."""
+        tps = [r for r in self.line_results if r.cell == "TP"]
+        if not tps:
+            return None
+        return sum(1 for r in tps if r.cites_correct_norm) / len(tps)
+
+    def as_dict(self) -> dict:
+        return {
+            "regra": self.regra,
+            "confusion_matrix": self.confusion_matrix,
+            "precision": round(self.precision, 4),
+            "recall": round(self.recall, 4),
+            "f1": round(self.f1, 4),
+            "norm_reference_precision": (
+                round(self.norm_reference_precision, 4)
+                if self.norm_reference_precision is not None
+                else None
+            ),
+        }
 
 
 def confusion_counts(cells: Sequence[str]) -> dict[str, int]:
@@ -336,8 +437,52 @@ class RepetitionResult:
         tps = [r for r in self.line_results if r.cell == "TP"]
         if not tps:
             return None
-        correct = sum(1 for r in tps if r.cites_section_5)
+        correct = sum(1 for r in tps if r.cites_correct_norm)
         return correct / len(tps)
+
+    # ── Recorte por regra (emenda de D-002) ─────────────────────────────
+
+    def per_rule(self) -> dict[str, RuleMetrics]:
+        """
+        Métricas restritas às linhas de cada regra do piloto.
+
+        O recorte de uma regra são as linhas cujo campo `regra` é ela: as
+        positivas dessa regra e os negativos difíceis escritos contra ela.
+        Negativos comuns (`regra=None`) não pertencem a regra alguma e só
+        aparecem na matriz global — por isso a soma das matrizes por regra é
+        menor que N, e a precisão por regra não é comparável à global (seu
+        denominador exclui os FPs em linha sem regra).
+        """
+        by_rule: dict[str, list[LineResult]] = defaultdict(list)
+        for r in self.line_results:
+            if r.regra is not None:
+                by_rule[r.regra].append(r)
+        return {
+            regra: RuleMetrics(regra=regra, line_results=lines)
+            for regra, lines in sorted(by_rule.items())
+        }
+
+    def per_sub_rule_recall(self) -> dict[str, dict[str, int | float]]:
+        """
+        Recall por sub-regra (`booleano`, `nulo`, `nome_funcao`, ...).
+
+        Só as positivas entram: uma sub-regra não tem negativos próprios
+        (o rótulo `sub_regra` é nulo em toda linha que não viola), então
+        precisão e F1 não são definíveis neste recorte.
+        """
+        by_sub: dict[str, list[LineResult]] = defaultdict(list)
+        for r in self.line_results:
+            if r.expected_viola and r.sub_regra is not None:
+                by_sub[r.sub_regra].append(r)
+        return {
+            sub: {
+                "positivas": len(lines),
+                "tp": sum(1 for r in lines if r.cell == "TP"),
+                "fn": sum(1 for r in lines if r.cell == "FN"),
+                "recall": round(sum(1 for r in lines if r.cell == "TP") / len(lines), 4),
+            }
+            for sub, lines in sorted(by_sub.items())
+        }
 
     # ── Agregação a nível de PR (gate de CI/CD) ─────────────────────────
 
@@ -414,6 +559,25 @@ class AggregatedEvaluation:
     @property
     def f1_stdev(self) -> float:
         return self._stdev(r.f1 for r in self.repetitions)
+
+    def per_rule_summary(self) -> dict[str, dict[str, float]]:
+        """Média ± desvio de Precisão/Recall/F1 de cada regra entre as repetições."""
+        por_regra: dict[str, list[RuleMetrics]] = defaultdict(list)
+        for rep in self.repetitions:
+            for regra, rm in rep.per_rule().items():
+                por_regra[regra].append(rm)
+
+        return {
+            regra: {
+                "precision_mean": round(statistics.mean(m.precision for m in ms), 4),
+                "precision_stdev": round(self._stdev(m.precision for m in ms), 4),
+                "recall_mean": round(statistics.mean(m.recall for m in ms), 4),
+                "recall_stdev": round(self._stdev(m.recall for m in ms), 4),
+                "f1_mean": round(statistics.mean(m.f1 for m in ms), 4),
+                "f1_stdev": round(self._stdev(m.f1 for m in ms), 4),
+            }
+            for regra, ms in sorted(por_regra.items())
+        }
 
     @property
     def median_f1_repetition(self) -> RepetitionResult:
