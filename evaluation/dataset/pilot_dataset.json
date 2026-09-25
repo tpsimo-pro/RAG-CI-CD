@@ -3827,7 +3827,7 @@
     "pr_id": "PR-057",
     "description": "Sincronizacao de faturas",
     "filename": "billing/invoice_sync.py",
-    "patch": "@@ -0,0 +1,14 @@\n+def sync_invoices(client, invoices):\n+    for invoice in invoices:\n+        try:\n+            client.push(invoice)\n+        except TimeoutError:\n+            continue\n+    try:\n+        client.commit()\n+    except Exception as exc:\n+        raise\n+    try:\n+        client.close()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,14 @@\n+def sync_invoices(client, invoices):\n+    for invoice in invoices:\n+        try:\n+            client.push(invoice)\n+        except TimeoutError:\n+            continue\n+    try:\n+        client.commit()\n+    except Exception as exc:\n+        raise SyncError(\"Commit falhou\") from exc\n+    try:\n+        client.close()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "def sync_invoices(client, invoices):",
@@ -3893,7 +3893,7 @@
         "hard_negative": true
       },
       {
-        "line": "        raise",
+        "line": "        raise SyncError(\"Commit falhou\") from exc",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -4527,7 +4527,7 @@
     "pr_id": "PR-064",
     "description": "Armazenamento de sessoes",
     "filename": "auth/session_store.py",
-    "patch": "@@ -0,0 +1,14 @@\n+def purge_sessions(store, session_ids):\n+    for session_id in session_ids:\n+        try:\n+            store.delete(session_id)\n+        except KeyError:\n+            continue\n+    try:\n+        store.compact()\n+    except Exception:\n+        raise\n+    try:\n+        store.close()\n+    except Exception as exc:\n+        pass",
+    "patch": "@@ -0,0 +1,14 @@\n+def purge_sessions(store, session_ids):\n+    for session_id in session_ids:\n+        try:\n+            store.delete(session_id)\n+        except KeyError:\n+            continue\n+    try:\n+        store.compact()\n+    except Exception as exc:\n+        raise SessionStoreError(\"Compactacao falhou\") from exc\n+    try:\n+        store.close()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "def purge_sessions(store, session_ids):",
@@ -4586,14 +4586,14 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except Exception as exc:",
         "viola": false,
         "regra": "coding-4.1",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        raise",
+        "line": "        raise SessionStoreError(\"Compactacao falhou\") from exc",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -4614,7 +4614,7 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception as exc:",
+        "line": "    except Exception:",
         "viola": true,
         "regra": "coding-4.1",
         "sub_regra": "captura_generica",
@@ -4923,7 +4923,7 @@
     "pr_id": "PR-068",
     "description": "Carga de configuracao",
     "filename": "config/loader.py",
-    "patch": "@@ -0,0 +1,14 @@\n+def load_config(paths):\n+    settings = {}\n+    for path in paths:\n+        try:\n+            settings.update(parse_file(path))\n+        except FileNotFoundError:\n+            continue\n+        except Exception:\n+            raise\n+    try:\n+        validate_settings(settings)\n+    except Exception as err:\n+        pass\n+    return settings",
+    "patch": "@@ -0,0 +1,14 @@\n+def load_config(paths):\n+    settings = {}\n+    for path in paths:\n+        try:\n+            settings.update(parse_file(path))\n+        except FileNotFoundError:\n+            continue\n+        except Exception as exc:\n+            raise ConfigError(\"Arquivo invalido\") from exc\n+    try:\n+        validate_settings(settings)\n+    except Exception:\n+        pass\n+    return settings",
     "added_lines": [
       {
         "line": "def load_config(paths):",
@@ -4975,14 +4975,14 @@
         "hard_negative": false
       },
       {
-        "line": "        except Exception:",
+        "line": "        except Exception as exc:",
         "viola": false,
         "regra": "coding-4.1",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "            raise",
+        "line": "            raise ConfigError(\"Arquivo invalido\") from exc",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5003,7 +5003,7 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception as err:",
+        "line": "    except Exception:",
         "viola": true,
         "regra": "coding-4.1",
         "sub_regra": "captura_generica",
@@ -5497,7 +5497,7 @@
     "pr_id": "PR-075",
     "description": "Fechamento de pedido (controle)",
     "filename": "orders/checkout.py",
-    "patch": "@@ -0,0 +1,10 @@\n+def checkout(cart, payment_service):\n+    try:\n+        receipt = payment_service.charge(cart.total)\n+    except Exception:\n+        raise\n+    try:\n+        cart.clear()\n+    except PermissionError as exc:\n+        logger.exception(\"Carrinho bloqueado: %s\", exc)\n+    return receipt",
+    "patch": "@@ -0,0 +1,10 @@\n+def checkout(cart, payment_service):\n+    try:\n+        receipt = payment_service.charge(cart.total)\n+    except Exception as exc:\n+        raise CheckoutError(\"Cobranca falhou\") from exc\n+    try:\n+        cart.clear()\n+    except PermissionError as exc:\n+        logger.exception(\"Carrinho bloqueado: %s\", exc)\n+    return receipt",
     "added_lines": [
       {
         "line": "def checkout(cart, payment_service):",
@@ -5521,14 +5521,14 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except Exception as exc:",
         "viola": false,
         "regra": "coding-4.1",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        raise",
+        "line": "        raise CheckoutError(\"Cobranca falhou\") from exc",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5710,7 +5710,7 @@
     "pr_id": "PR-078",
     "description": "Cliente de impostos (controle)",
     "filename": "billing/tax_client.py",
-    "patch": "@@ -0,0 +1,9 @@\n+def fetch_tax_rate(client, region):\n+    try:\n+        return client.rate(region)\n+    except ConnectionError as exc:\n+        logger.exception(\"Sem taxa para %s: %s\", region, exc)\n+    try:\n+        return client.cached_rate(region)\n+    except Exception:\n+        raise",
+    "patch": "@@ -0,0 +1,9 @@\n+def fetch_tax_rate(client, region):\n+    try:\n+        return client.rate(region)\n+    except ConnectionError as exc:\n+        logger.exception(\"Sem taxa para %s: %s\", region, exc)\n+    try:\n+        return client.cached_rate(region)\n+    except Exception as exc:\n+        raise TaxRateError(\"Taxa indisponivel\") from exc",
     "added_lines": [
       {
         "line": "def fetch_tax_rate(client, region):",
@@ -5762,14 +5762,14 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except Exception as exc:",
         "viola": false,
         "regra": "coding-4.1",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        raise",
+        "line": "        raise TaxRateError(\"Taxa indisponivel\") from exc",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5852,7 +5852,7 @@
     "pr_id": "PR-080",
     "description": "Sincronizacao com CRM (controle)",
     "filename": "integrations/crm_sync.py",
-    "patch": "@@ -0,0 +1,10 @@\n+def sync_contacts(crm, contacts):\n+    for contact in contacts:\n+        try:\n+            crm.upsert(contact)\n+        except ValueError as exc:\n+            logger.exception(\"Contato invalido: %s\", exc)\n+    try:\n+        crm.commit()\n+    except Exception:\n+        raise",
+    "patch": "@@ -0,0 +1,10 @@\n+def sync_contacts(crm, contacts):\n+    for contact in contacts:\n+        try:\n+            crm.upsert(contact)\n+        except ValueError as exc:\n+            logger.exception(\"Contato invalido: %s\", exc)\n+    try:\n+        crm.commit()\n+    except Exception as exc:\n+        raise CrmSyncError(\"Commit no CRM falhou\") from exc",
     "added_lines": [
       {
         "line": "def sync_contacts(crm, contacts):",
@@ -5911,14 +5911,14 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except Exception as exc:",
         "viola": false,
         "regra": "coding-4.1",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        raise",
+        "line": "        raise CrmSyncError(\"Commit no CRM falhou\") from exc",
         "viola": false,
         "regra": null,
         "sub_regra": null,

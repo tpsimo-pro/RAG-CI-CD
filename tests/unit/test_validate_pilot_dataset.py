@@ -60,12 +60,23 @@ class TestExceptLabels:
         assert labels == {2: None}
         assert errors == []
 
-    def test_exception_com_raise_puro_nao_viola(self):
+    def test_exception_com_raise_puro_fica_fora_do_escopo(self):
+        # O guia pede re-raise "com contexto adicional"; raise puro nao traz.
         labels, errors = _labels("""
             try:
                 run()
             except Exception:
                 raise
+        """)
+        assert labels == {}
+        assert len(errors) == 1
+
+    def test_exception_com_raise_from_nao_viola(self):
+        labels, errors = _labels("""
+            try:
+                run()
+            except Exception as exc:
+                raise AppError("falha") from exc
         """)
         assert labels == {2: None}
         assert errors == []
@@ -193,7 +204,8 @@ class TestCatalogoExcecao:
         [
             ("except Exception + logger.exception",
              "    except Exception as exc:", '        logger.exception("x %s", exc)'),
-            ("except Exception + raise", "    except Exception:", "        raise"),
+            ("except Exception + raise ... from",
+             "    except Exception as exc:", '        raise AppError("x") from exc'),
             ("except especifica + raise ... from",
              "    except KeyError as exc:", '        raise AppError("x") from exc'),
             ("except especifica + logger.exception",

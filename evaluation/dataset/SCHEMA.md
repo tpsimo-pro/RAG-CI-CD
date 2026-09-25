@@ -50,9 +50,8 @@ nenhuma passa de 79 caracteres.
 5. Catálogo mínimo de negativos difíceis coberto (Seção 5 de D-004 e Seção 2
    abaixo).
 6. Todo `except` está no escopo da emenda 2 (tipo `Exception` ou
-   específico; corpo com `raise`/`logger.exception` no primeiro nível, ou
-   só `pass`/`continue` na linha seguinte; `raise` em `except` específico
-   tem `from`). Nenhum `except` nem corpo de bloco violador repete texto
+   específico; corpo com `raise ... from` ou `logger.exception` no primeiro
+   nível, ou só `pass`/`continue` na linha seguinte). Nenhum `except` nem corpo de bloco violador repete texto
    no PR.
 
 ## Composição atual
@@ -72,7 +71,7 @@ atributo `.l` · comentário com `l = 1` · string com `l = 1`.
 
 Catálogo de negativos difíceis da coding 4.1. Os padrões de bloco casam a
 linha `except` (a marcada `hard_negative`) e a linha logo abaixo dela:
-`except Exception` + `logger.exception(...)` · `except Exception` + `raise` ·
+`except Exception` + `logger.exception(...)` · `except Exception` + `raise ... from` ·
 `except` específico + `raise ... from` · `except` específico +
 `logger.exception(...)` · comentário com `except Exception: pass` · string
 com `except Exception: pass`.

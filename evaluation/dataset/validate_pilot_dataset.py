@@ -133,13 +133,10 @@ def except_labels(code: str) -> tuple[dict[int, str | None], list[str]]:
             continue
         logs = any(_is_logger_exception(stmt) for stmt in body)
         raises = [stmt for stmt in body if isinstance(stmt, ast.Raise)]
-        if (
-            sub == "captura_silenciosa"
-            and raises
-            and not logs
-            and all(r.cause is None for r in raises)
-        ):
-            errors.append(f"linha {idx}: raise sem from em except especifico")
+        # O guia pede re-raise "com contexto adicional": raise sem `from`
+        # deixa o rotulo discutivel, em qualquer tipo de except.
+        if raises and not logs and all(r.cause is None for r in raises):
+            errors.append(f"linha {idx}: raise sem from")
             continue
         if logs or raises:
             labels[idx] = None
@@ -182,13 +179,12 @@ def block_duplicates(
 _EXC_GENERICA = re.compile(r"^\s*except Exception\b")
 _EXC_ESPECIFICA = re.compile(r"^\s*except (?!Exception\b|BaseException\b)[\w.]+")
 _LOG_EXC = re.compile(r"^\s*logger\.exception\(")
-_RAISE_PURO = re.compile(r"^\s*raise\s*$")
 _RAISE_FROM = re.compile(r"^\s*raise\s+\S.*\sfrom\s+\w+\s*$")
 _PASS_TEXTO = r"except Exception:\s*pass"
 
 HARD_NEGATIVE_CATALOG_EXCECAO = {
     "except Exception + logger.exception": (_EXC_GENERICA, _LOG_EXC),
-    "except Exception + raise": (_EXC_GENERICA, _RAISE_PURO),
+    "except Exception + raise ... from": (_EXC_GENERICA, _RAISE_FROM),
     "except especifica + raise ... from": (_EXC_ESPECIFICA, _RAISE_FROM),
     "except especifica + logger.exception": (_EXC_ESPECIFICA, _LOG_EXC),
     "comentario com except Exception: pass": (

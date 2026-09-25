@@ -271,11 +271,11 @@ A linha rotulada é sempre a do `except`. O corpo do bloco decide o rótulo.
 
 | `sub_regra` | Norma | Viola | Não viola |
 |---|---|---|---|
-| `captura_generica` | 4.1 - `Exception` genérica sem re-raise ou log | `except Exception:` / `except Exception as exc:` com corpo só `pass` ou `continue` | mesmo `except` com `logger.exception(...)` ou `raise` no corpo |
+| `captura_generica` | 4.1 - `Exception` genérica sem re-raise ou log | `except Exception:` / `except Exception as exc:` com corpo só `pass` ou `continue` | `except Exception as exc:` com `logger.exception(...)` ou `raise AppError(...) from exc` |
 | `captura_silenciosa` | 4.1 - toda exceção capturada é logada ou re-lançada | `except ValueError:` (ou outra exceção específica) com corpo só `pass` ou `continue` | `except ValueError as exc:` com `raise AppError(...) from exc` ou `logger.exception(...)` |
 
 Critério do gabarito: o bloco **não viola** se contém, no primeiro nível de
-indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
+indentação do corpo, um `raise ... from` ou uma chamada
 `logger.exception(...)`. Caso contrário, viola.
 
 #### Fora do escopo, de propósito
@@ -293,10 +293,15 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
 - **Tupla de exceções** (`except (ValueError, Exception):`).
 - **§4.2 (hierarquia de exceções)** e **§4.1, terceiro item** (exceções
   customizadas para erro de negócio): exigem contexto de projeto.
-- **`except` específico re-lançado sem `from`** (`except ValueError: raise`
-  ou `raise AppError(...)` sem `from`). O guia pede "re-lançada com contexto
-  adicional"; sem `from` o contexto é discutível. No `except Exception`, o
-  primeiro item do guia só exige re-raise, então `raise` puro é aceito.
+- **Re-raise sem `from`**, em qualquer `except` (`except Exception: raise`,
+  `except ValueError: raise` ou `raise AppError(...)` sem `from`). O segundo
+  item do guia vale para toda exceção capturada e pede "re-lançada com
+  contexto adicional"; `raise` puro não acrescenta contexto, e o rótulo
+  "não viola" seria discutível. Um linter também acusa o `raise` puro logo
+  após a captura (pylint W0706), o que tornaria o FP defensável.
+  (Revisão da branch, 2026-09-25: a primeira versão aceitava `raise` puro em
+  `except Exception`; seis negativos difíceis foram reescritos com
+  `raise ... from exc`.)
 
 #### Consequências para a unidade de avaliação
 
@@ -337,7 +342,7 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
 - **Negativos difíceis:** 32, tantos quanto as positivas. Catálogo
   mínimo, cada padrão em ao menos uma linha:
   `except Exception as exc:` + `logger.exception(...)` ·
-  `except Exception:` + `raise` ·
+  `except Exception as exc:` + `raise AppError(...) from exc` ·
   `except ValueError as exc:` + `raise AppError(...) from exc` ·
   `except KeyError:` + `logger.exception(...)` ·
   comentário com `except Exception: pass` ·
