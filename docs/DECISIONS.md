@@ -226,6 +226,126 @@ esse motivo.
   sub-regras novas.
 - O corpus indexado não muda (D-007): a Seção 2 já está entre os 52 chunks.
 
+### Emenda 2 (2026-09-25): terceira regra, `coding_standards.md` §4.1
+
+> **Nova parte do estudo.** Esta emenda não amplia as regras anteriores:
+> abre uma etapa nova do piloto, a primeira regra que **não se decide
+> olhando uma linha isolada**. As Seções 5 e 2 continuam valendo como estão,
+> e seus resultados devem ser medidos e reportados antes desta parte ser
+> implementada, para que a regra nova não contamine a linha de base.
+
+**Status da emenda:** Proposta. Nada implementado em dataset, validador,
+`norm_map.py`, `gold.py` ou `metrics.py`.
+
+O piloto passa de duas para **três regras**, somando um recorte objetivo do
+**`coding_standards.md` §4.1 - Tratamento de Exceções**:
+
+> Proibido capturar `Exception` genérica sem re-raise ou logging. Toda
+> exceção capturada deve ser logada com `logger.exception()` ou re-lançada
+> com contexto adicional.
+
+#### Motivação
+
+As Seções 5 e 2 se decidem pela linha, e um linter também as detecta
+(pycodestyle E711/E712/E741, pep8-naming N801/N802). Isso deixa em aberto a
+pergunta "o que o RAG com LLM faz que o `ruff` não faz?". A §4.1 responde a
+essa pergunta sem abrir mão da rotulação objetiva:
+
+1. **Exige contexto de várias linhas.** A linha `except Exception:` viola ou
+   não conforme o corpo do bloco. O modelo precisa ler o bloco, não só
+   reconhecer um padrão.
+2. **Negativos difíceis naturais.** A linha `except` é idêntica nos casos
+   correto e incorreto; só o corpo muda. A matriz não fica degenerada (a
+   objeção que derrubou a Seção 3.2).
+3. **Testa o retrieval entre guias.** A norma existe só no
+   `coding_standards.md`, enquanto a Seção 5 existe só no
+   `guia_python_pep8.md`. É o primeiro caso em que citar o guia errado é
+   necessariamente erro, o que dá peso à precisão de referência normativa e
+   ao palheiro de D-007.
+4. **Relevância prática.** Engolir exceção em silêncio é defeito de
+   manutenção, não só de estilo.
+
+#### Sub-regras no escopo
+
+A linha rotulada é sempre a do `except`. O corpo do bloco decide o rótulo.
+
+| `sub_regra` | Norma | Viola | Não viola |
+|---|---|---|---|
+| `captura_generica` | 4.1 - `Exception` genérica sem re-raise ou log | `except Exception:` / `except Exception as exc:` com corpo só `pass` ou `continue` | mesmo `except` com `logger.exception(...)` ou `raise` no corpo |
+| `captura_silenciosa` | 4.1 - toda exceção capturada é logada ou re-lançada | `except ValueError:` (ou outra exceção específica) com corpo só `pass` ou `continue` | `except ValueError as exc:` com `raise AppError(...) from exc` ou `logger.exception(...)` |
+
+Critério do gabarito: o bloco **não viola** se contém, no primeiro nível de
+indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
+`logger.exception(...)`. Caso contrário, viola.
+
+#### Fora do escopo, de propósito
+
+- **`logger.error`, `logger.warning`, `print`.** O guia exige
+  `logger.exception`, mas acusar `logger.error` é rótulo discutível.
+  Nenhuma linha do dataset usa esses chamados dentro de um `except`.
+- **Corpo com valor de fallback** (`return None`, `x = default`). Viola a
+  letra do guia, mas é idioma Python comum; o rótulo seria contestável.
+  Os corpos violadores do dataset são apenas `pass` ou `continue`.
+- **`raise` ou log condicional** (`if ...: raise`) e `try` aninhado dentro do
+  `except`: a decisão deixa de ser local ao bloco.
+- **`except:` sem tipo e `except BaseException`**: o guia fala em
+  `Exception`; a extensão para captura sem tipo não está escrita.
+- **Tupla de exceções** (`except (ValueError, Exception):`).
+- **§4.2 (hierarquia de exceções)** e **§4.1, terceiro item** (exceções
+  customizadas para erro de negócio): exigem contexto de projeto.
+
+#### Consequências para a unidade de avaliação
+
+- **D-001 se mantém.** A violação é de bloco, mas o rótulo fica numa linha
+  só, a do `except`. As linhas do corpo (`pass`, `continue`, `raise`,
+  `logger.exception(...)`) são negativas.
+- **Risco de localização.** O LLM pode apontar a linha `pass` em vez da linha
+  `except`. Por D-003 isso conta como FP na linha `pass` e FN na linha
+  `except`. A regra de atribuição **não** é afrouxada para esta regra; em vez
+  disso, o prompt passa a pedir explicitamente a linha do `except`, e o
+  diagnóstico de FP separa os que caíram no corpo de um bloco violador
+  ("viu, mas localizou errado") dos demais.
+- **Linhas repetidas no mesmo PR.** `classify_lines` agrupa linhas de texto
+  idêntico, então sinalizar uma sinaliza todas. Dentro de um PR, cada linha
+  `except` precisa ter texto único (variar a exceção ou o nome após `as`),
+  e nenhum PR pode ter uma linha `except` violadora textualmente igual a uma
+  correta.
+
+#### Composição proposta (a confirmar na construção)
+
+- **25 PRs novos** (PR-056 a PR-080), dos quais **7 de controle**, espelhando
+  a Seção 2.
+- **Positivas:** 16 por sub-regra, 32 no total. Menos que as 48 da Seção 2
+  porque cada bloco ocupa ao menos 4 linhas e o limite de 15 linhas por PR
+  (D-004) precisa ser mantido. Vários `except` sob o mesmo `try` ajudam a
+  caber.
+- **Negativos difíceis:** ao menos tantos quanto as positivas. Catálogo
+  mínimo, cada padrão em ao menos uma linha:
+  `except Exception as exc:` + `logger.exception(...)` ·
+  `except Exception:` + `raise` ·
+  `except ValueError as exc:` + `raise AppError(...) from exc` ·
+  `except KeyError:` + `logger.exception(...)` ·
+  comentário com `except Exception: pass` ·
+  string com `except Exception: pass`.
+- Os números finais vão para `SCHEMA.md` quando o dataset for construído.
+
+#### Pendências de implementação
+
+- Dataset: `regra: "coding-4.1"`, sub-regras acima. As linhas de todas as
+  regras continuam sem construção proibida das outras duas.
+- `validate_pilot_dataset.py`: verificar o rótulo de cada `except` pelo
+  critério do gabarito (via `ast`, não regex, já que depende do corpo) e as
+  restrições de escopo e de texto único por PR.
+- `norm_map.py` e `gold.py`: chave nova apontando só para chunks do
+  `coding_standards.md` §4.1.
+- `metrics.py`: `cites_norm_of` passa a reconhecer a §4.1 do
+  `coding_standards.md`; diagnóstico de FP no corpo de bloco violador.
+- Prompt do LLM: instrução para reportar a linha do `except`.
+- O dataset atual não precisa de reclassificação: nenhuma das 474 linhas
+  contém `except` (verificado em 2026-09-25).
+- O corpus indexado não muda (D-007): o `coding_standards.md` já está
+  indexado.
+
 ---
 
 ## D-003 — Atribuição detecção→linha: coincidência exata após normalização
