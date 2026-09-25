@@ -293,6 +293,10 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
 - **Tupla de exceções** (`except (ValueError, Exception):`).
 - **§4.2 (hierarquia de exceções)** e **§4.1, terceiro item** (exceções
   customizadas para erro de negócio): exigem contexto de projeto.
+- **`except` específico re-lançado sem `from`** (`except ValueError: raise`
+  ou `raise AppError(...)` sem `from`). O guia pede "re-lançada com contexto
+  adicional"; sem `from` o contexto é discutível. No `except Exception`, o
+  primeiro item do guia só exige re-raise, então `raise` puro é aceito.
 
 #### Consequências para a unidade de avaliação
 
@@ -310,6 +314,14 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
   `except` precisa ter texto único (variar a exceção ou o nome após `as`),
   e nenhum PR pode ter uma linha `except` violadora textualmente igual a uma
   correta.
+- **Forma do corpo violador.** O corpo de um bloco violador é um único
+  `pass` ou `continue`, na linha logo abaixo do `except`, e seu texto não se
+  repete em outra linha do PR. É isso que permite ao diagnóstico de
+  localização achar a linha do corpo pela posição.
+- **Nomes dos PRs novos** evitam as regras vizinhas do `coding_standards.md`:
+  2.2 (nomes genéricos como `data`, `info`, `result`, `obj`, `temp` e
+  abreviações como `cnt`) e 2.3 (função que retorna booleano sem `is_`,
+  `has_`, `can_`, `should_`).
 
 #### Composição proposta (a confirmar na construção)
 
