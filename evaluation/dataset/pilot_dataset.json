@@ -3716,5 +3716,2214 @@
         "hard_negative": false
       }
     ]
+  },
+  {
+    "pr_id": "PR-056",
+    "description": "Leitura de pedidos em lote",
+    "filename": "orders/reader.py",
+    "patch": "@@ -0,0 +1,14 @@\n+import logging\n+logger = logging.getLogger(__name__)\n+def read_orders(paths):\n+    orders = []\n+    for path in paths:\n+        try:\n+            orders.append(parse_order(path))\n+        except ValueError:\n+            continue\n+        except OSError as exc:\n+            logger.exception(\"Falha ao ler %s: %s\", path, exc)\n+        except Exception:\n+            pass\n+    return orders",
+    "added_lines": [
+      {
+        "line": "import logging",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "logger = logging.getLogger(__name__)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def read_orders(paths):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    orders = []",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for path in paths:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            orders.append(parse_order(path))",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except ValueError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except OSError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Falha ao ler %s: %s\", path, exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "            pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return orders",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-057",
+    "description": "Sincronizacao de faturas",
+    "filename": "billing/invoice_sync.py",
+    "patch": "@@ -0,0 +1,14 @@\n+def sync_invoices(client, invoices):\n+    for invoice in invoices:\n+        try:\n+            client.push(invoice)\n+        except TimeoutError:\n+            continue\n+    try:\n+        client.commit()\n+    except Exception as exc:\n+        raise\n+    try:\n+        client.close()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def sync_invoices(client, invoices):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for invoice in invoices:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            client.push(invoice)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except TimeoutError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        client.commit()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        client.close()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-058",
+    "description": "Importacao de usuarios por CSV",
+    "filename": "users/csv_import.py",
+    "patch": "@@ -0,0 +1,15 @@\n+import csv\n+def import_users(path, repository):\n+    with open(path, encoding=\"utf-8\") as handle:\n+        rows = list(csv.DictReader(handle))\n+    for row in rows:\n+        try:\n+            repository.add(row[\"email\"], row[\"name\"])\n+        except KeyError:\n+            continue\n+        except Exception:\n+            pass\n+    try:\n+        repository.flush()\n+    except ConnectionError as exc:\n+        raise ImportFailedError(\"Falha ao gravar\") from exc",
+    "added_lines": [
+      {
+        "line": "import csv",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def import_users(path, repository):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    with open(path, encoding=\"utf-8\") as handle:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        rows = list(csv.DictReader(handle))",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for row in rows:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            repository.add(row[\"email\"], row[\"name\"])",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except KeyError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "            pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        repository.flush()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except ConnectionError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise ImportFailedError(\"Falha ao gravar\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-059",
+    "description": "Pre-aquecimento do cache",
+    "filename": "cache/warmup.py",
+    "patch": "@@ -0,0 +1,14 @@\n+import logging\n+logger = logging.getLogger(__name__)\n+def warm_cache(cache, keys, loader):\n+    for key in keys:\n+        try:\n+            cache.set(key, loader(key))\n+        except LookupError:\n+            continue\n+        except Exception as exc:\n+            logger.exception(\"Falha no cache %s: %s\", key, exc)\n+    try:\n+        cache.persist()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "import logging",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "logger = logging.getLogger(__name__)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def warm_cache(cache, keys, loader):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for key in keys:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            cache.set(key, loader(key))",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except LookupError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Falha no cache %s: %s\", key, exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        cache.persist()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-060",
+    "description": "Exportacao de relatorios",
+    "filename": "reports/export.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def export_reports(reports, writer):\n+    # nunca usar except Exception: pass nesta camada\n+    for report in reports:\n+        try:\n+            writer.write(report.render())\n+        except UnicodeEncodeError:\n+            continue\n+    try:\n+        writer.close()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def export_reports(reports, writer):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    # nunca usar except Exception: pass nesta camada",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    for report in reports:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            writer.write(report.render())",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except UnicodeEncodeError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        writer.close()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-061",
+    "description": "Envio de e-mails",
+    "filename": "notifications/email_sender.py",
+    "patch": "@@ -0,0 +1,12 @@\n+import smtplib\n+RETRY_HINT = \"evite except Exception: pass no envio\"\n+def send_all(server, messages):\n+    for message in messages:\n+        try:\n+            server.send_message(message)\n+        except smtplib.SMTPRecipientsRefused:\n+            continue\n+    try:\n+        server.quit()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "import smtplib",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "RETRY_HINT = \"evite except Exception: pass no envio\"",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "def send_all(server, messages):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for message in messages:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            server.send_message(message)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except smtplib.SMTPRecipientsRefused:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        server.quit()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-062",
+    "description": "Estorno de pagamentos",
+    "filename": "payments/refund.py",
+    "patch": "@@ -0,0 +1,12 @@\n+def refund_payments(gateway, payments):\n+    for payment in payments:\n+        try:\n+            gateway.refund(payment.charge_id)\n+        except ValueError:\n+            continue\n+    try:\n+        gateway.settle()\n+    except ConnectionError as exc:\n+        raise RefundError(\"Liquidacao falhou\") from exc\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def refund_payments(gateway, payments):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for payment in payments:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            gateway.refund(payment.charge_id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except ValueError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        gateway.settle()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except ConnectionError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise RefundError(\"Liquidacao falhou\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-063",
+    "description": "Atualizacao de estoque",
+    "filename": "inventory/stock_update.py",
+    "patch": "@@ -0,0 +1,14 @@\n+import logging\n+logger = logging.getLogger(__name__)\n+def update_stock(store, movements):\n+    for movement in movements:\n+        try:\n+            store.apply(movement)\n+        except KeyError:\n+            continue\n+        except PermissionError as exc:\n+            logger.exception(\"Sem permissao: %s\", exc)\n+    try:\n+        store.reindex()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "import logging",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "logger = logging.getLogger(__name__)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def update_stock(store, movements):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for movement in movements:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            store.apply(movement)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except KeyError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except PermissionError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Sem permissao: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        store.reindex()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-064",
+    "description": "Armazenamento de sessoes",
+    "filename": "auth/session_store.py",
+    "patch": "@@ -0,0 +1,14 @@\n+def purge_sessions(store, session_ids):\n+    for session_id in session_ids:\n+        try:\n+            store.delete(session_id)\n+        except KeyError:\n+            continue\n+    try:\n+        store.compact()\n+    except Exception:\n+        raise\n+    try:\n+        store.close()\n+    except Exception as exc:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def purge_sessions(store, session_ids):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for session_id in session_ids:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            store.delete(session_id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except KeyError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        store.compact()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        store.close()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception as exc:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-065",
+    "description": "Job de indexacao da busca",
+    "filename": "search/index_job.py",
+    "patch": "@@ -0,0 +1,14 @@\n+def rebuild_index(index, documents):\n+    for document in documents:\n+        try:\n+            index.add(document)\n+        except ValueError:\n+            continue\n+    try:\n+        index.optimize()\n+    except Exception as exc:\n+        logger.exception(\"Falha ao otimizar: %s\", exc)\n+    try:\n+        index.release_lock()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def rebuild_index(index, documents):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for document in documents:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            index.add(document)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except ValueError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        index.optimize()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        logger.exception(\"Falha ao otimizar: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        index.release_lock()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-066",
+    "description": "Rastreio de entregas",
+    "filename": "shipping/tracking.py",
+    "patch": "@@ -0,0 +1,12 @@\n+def refresh_tracking(carrier, shipments):\n+    for shipment in shipments:\n+        try:\n+            shipment.status = carrier.status(shipment.code)\n+        except TimeoutError:\n+            continue\n+        except Exception:\n+            pass\n+    try:\n+        carrier.logout()\n+    except OSError as exc:\n+        raise TrackingError(\"Logout falhou\") from exc",
+    "added_lines": [
+      {
+        "line": "def refresh_tracking(carrier, shipments):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for shipment in shipments:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            shipment.status = carrier.status(shipment.code)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except TimeoutError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "            pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        carrier.logout()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except OSError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise TrackingError(\"Logout falhou\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-067",
+    "description": "Coleta de metricas",
+    "filename": "monitoring/collector.py",
+    "patch": "@@ -0,0 +1,12 @@\n+def collect_metrics(sources, sink):\n+    for source in sources:\n+        try:\n+            sink.push(source.read())\n+        except ConnectionResetError:\n+            continue\n+        except OSError as exc:\n+            logger.exception(\"Fonte indisponivel: %s\", exc)\n+    try:\n+        sink.flush()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def collect_metrics(sources, sink):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for source in sources:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            sink.push(source.read())",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except ConnectionResetError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except OSError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Fonte indisponivel: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        sink.flush()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-068",
+    "description": "Carga de configuracao",
+    "filename": "config/loader.py",
+    "patch": "@@ -0,0 +1,14 @@\n+def load_config(paths):\n+    settings = {}\n+    for path in paths:\n+        try:\n+            settings.update(parse_file(path))\n+        except FileNotFoundError:\n+            continue\n+        except Exception:\n+            raise\n+    try:\n+        validate_settings(settings)\n+    except Exception as err:\n+        pass\n+    return settings",
+    "added_lines": [
+      {
+        "line": "def load_config(paths):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    settings = {}",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for path in paths:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            settings.update(parse_file(path))",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except FileNotFoundError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            raise",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        validate_settings(settings)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception as err:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return settings",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-069",
+    "description": "Upload de arquivos",
+    "filename": "files/uploader.py",
+    "patch": "@@ -0,0 +1,12 @@\n+def upload_files(bucket, files):\n+    for file_path in files:\n+        try:\n+            bucket.upload(file_path)\n+        except FileNotFoundError:\n+            continue\n+        except Exception as exc:\n+            logger.exception(\"Upload falhou: %s\", exc)\n+    try:\n+        bucket.close()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def upload_files(bucket, files):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for file_path in files:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            bucket.upload(file_path)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except FileNotFoundError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Upload falhou: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        bucket.close()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-070",
+    "description": "Gravacao da trilha de auditoria",
+    "filename": "audit/trail_writer.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def write_trail(store, events):\n+    try:\n+        store.append_many(events)\n+    except PermissionError as exc:\n+        raise AuditError(\"Trilha bloqueada\") from exc\n+    try:\n+        store.rotate()\n+    except Exception:\n+        pass\n+    return len(events)",
+    "added_lines": [
+      {
+        "line": "def write_trail(store, events):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        store.append_many(events)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except PermissionError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise AuditError(\"Trilha bloqueada\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        store.rotate()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return len(events)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-071",
+    "description": "Feed de precos do catalogo",
+    "filename": "catalog/price_feed.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def refresh_prices(feed, catalog):\n+    # evitar except Exception: pass ao ler o feed\n+    prices = feed.fetch()\n+    for sku, price in prices.items():\n+        catalog.set_price(sku, price)\n+    try:\n+        feed.acknowledge()\n+    except Exception:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def refresh_prices(feed, catalog):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    # evitar except Exception: pass ao ler o feed",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    prices = feed.fetch()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for sku, price in prices.items():",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        catalog.set_price(sku, price)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        feed.acknowledge()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_generica",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-072",
+    "description": "Disparo de webhooks",
+    "filename": "webhooks/dispatcher.py",
+    "patch": "@@ -0,0 +1,8 @@\n+FAILURE_NOTE = \"nao silenciar com except Exception: pass\"\n+def dispatch_events(client, events):\n+    for event in events:\n+        try:\n+            client.post(event.url, event.payload)\n+        except TimeoutError:\n+            continue\n+    return len(events)",
+    "added_lines": [
+      {
+        "line": "FAILURE_NOTE = \"nao silenciar com except Exception: pass\"",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "def dispatch_events(client, events):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for event in events:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            client.post(event.url, event.payload)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except TimeoutError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "            continue",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return len(events)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-073",
+    "description": "Fila de novas tentativas",
+    "filename": "scheduler/retry_queue.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def drain_queue(queue, handler):\n+    while queue:\n+        job = queue.pop()\n+        try:\n+            handler(job)\n+        except RuntimeError as exc:\n+            logger.exception(\"Job falhou: %s\", exc)\n+    try:\n+        queue.close()\n+    except OSError:\n+        pass",
+    "added_lines": [
+      {
+        "line": "def drain_queue(queue, handler):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    while queue:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        job = queue.pop()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            handler(job)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except RuntimeError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Job falhou: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        queue.close()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except OSError:",
+        "viola": true,
+        "regra": "coding-4.1",
+        "sub_regra": "captura_silenciosa",
+        "hard_negative": false
+      },
+      {
+        "line": "        pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-074",
+    "description": "Servico de perfis (controle)",
+    "filename": "accounts/profile_service.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def update_profile(repository, profile):\n+    try:\n+        repository.save(profile)\n+    except Exception as exc:\n+        logger.exception(\"Perfil nao salvo: %s\", exc)\n+    try:\n+        repository.invalidate(profile.user_id)\n+    except KeyError as exc:\n+        raise ProfileError(\"Perfil ausente\") from exc\n+    return profile",
+    "added_lines": [
+      {
+        "line": "def update_profile(repository, profile):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        repository.save(profile)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        logger.exception(\"Perfil nao salvo: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        repository.invalidate(profile.user_id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except KeyError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise ProfileError(\"Perfil ausente\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return profile",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-075",
+    "description": "Fechamento de pedido (controle)",
+    "filename": "orders/checkout.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def checkout(cart, payment_service):\n+    try:\n+        receipt = payment_service.charge(cart.total)\n+    except Exception:\n+        raise\n+    try:\n+        cart.clear()\n+    except PermissionError as exc:\n+        logger.exception(\"Carrinho bloqueado: %s\", exc)\n+    return receipt",
+    "added_lines": [
+      {
+        "line": "def checkout(cart, payment_service):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        receipt = payment_service.charge(cart.total)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        cart.clear()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except PermissionError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        logger.exception(\"Carrinho bloqueado: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return receipt",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-076",
+    "description": "Cliente de armazenamento (controle)",
+    "filename": "storage/bucket_client.py",
+    "patch": "@@ -0,0 +1,9 @@\n+class BucketClient:\n+    def __init__(self, session):\n+        self.session = session\n+    def download(self, key):\n+        # jamais usar except Exception: pass em downloads\n+        try:\n+            return self.session.get(key)\n+        except KeyError as exc:\n+            raise StorageError(\"Chave ausente\") from exc",
+    "added_lines": [
+      {
+        "line": "class BucketClient:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self, session):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        self.session = session",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def download(self, key):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        # jamais usar except Exception: pass em downloads",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            return self.session.get(key)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except KeyError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            raise StorageError(\"Chave ausente\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-077",
+    "description": "Agenda de relatorios (controle)",
+    "filename": "reports/schedule.py",
+    "patch": "@@ -0,0 +1,8 @@\n+SCHEDULE_NOTE = \"falhas nunca usam except Exception: pass\"\n+def run_schedule(jobs):\n+    for job in jobs:\n+        try:\n+            job.run()\n+        except Exception as exc:\n+            logger.exception(\"Job %s falhou: %s\", job.name, exc)\n+    return len(jobs)",
+    "added_lines": [
+      {
+        "line": "SCHEDULE_NOTE = \"falhas nunca usam except Exception: pass\"",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "def run_schedule(jobs):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for job in jobs:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            job.run()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Job %s falhou: %s\", job.name, exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return len(jobs)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-078",
+    "description": "Cliente de impostos (controle)",
+    "filename": "billing/tax_client.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def fetch_tax_rate(client, region):\n+    try:\n+        return client.rate(region)\n+    except ConnectionError as exc:\n+        logger.exception(\"Sem taxa para %s: %s\", region, exc)\n+    try:\n+        return client.cached_rate(region)\n+    except Exception:\n+        raise",
+    "added_lines": [
+      {
+        "line": "def fetch_tax_rate(client, region):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return client.rate(region)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except ConnectionError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        logger.exception(\"Sem taxa para %s: %s\", region, exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return client.cached_rate(region)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-079",
+    "description": "Avatares de usuario (controle)",
+    "filename": "users/avatar.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def store_avatar(storage, user_id, image):\n+    try:\n+        storage.put(f\"avatars/{user_id}\", image)\n+    except OSError as exc:\n+        raise AvatarError(\"Falha no avatar\") from exc\n+    try:\n+        storage.purge_thumbnails(user_id)\n+    except Exception as exc:\n+        logger.exception(\"Miniaturas mantidas: %s\", exc)",
+    "added_lines": [
+      {
+        "line": "def store_avatar(storage, user_id, image):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        storage.put(f\"avatars/{user_id}\", image)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except OSError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise AvatarError(\"Falha no avatar\") from exc",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        storage.purge_thumbnails(user_id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        logger.exception(\"Miniaturas mantidas: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-080",
+    "description": "Sincronizacao com CRM (controle)",
+    "filename": "integrations/crm_sync.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def sync_contacts(crm, contacts):\n+    for contact in contacts:\n+        try:\n+            crm.upsert(contact)\n+        except ValueError as exc:\n+            logger.exception(\"Contato invalido: %s\", exc)\n+    try:\n+        crm.commit()\n+    except Exception:\n+        raise",
+    "added_lines": [
+      {
+        "line": "def sync_contacts(crm, contacts):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for contact in contacts:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            crm.upsert(contact)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        except ValueError as exc:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "            logger.exception(\"Contato invalido: %s\", exc)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    try:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        crm.commit()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    except Exception:",
+        "viola": false,
+        "regra": "coding-4.1",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        raise",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
   }
 ]

@@ -396,20 +396,28 @@ def main() -> int:
         for sub in subs
     }
 
-    check_eq(errors, "Pull Requests", n_prs, 50)
-    check_eq(errors, "PRs de controle (sem violacao)", control_prs, 14)
-    check_eq(errors, "PRs com >=1 violacao", violation_prs, 36)
-    check_range(errors, "Total de linhas adicionadas", n_lines, 460, 520)
-    check_eq(errors, "Linhas positivas (violam)", len(positives), 100)
+    check_eq(errors, "Pull Requests", n_prs, 75)
+    check_eq(errors, "PRs de controle (sem violacao)", control_prs, 21)
+    check_eq(errors, "PRs com >=1 violacao", violation_prs, 54)
+    check_range(errors, "Total de linhas adicionadas", n_lines, 700, 820)
+    check_eq(errors, "Linhas positivas (violam)", len(positives), 132)
     for sub, expected in (
         ("booleano", 26),
         ("nulo", 26),
         ("nome_funcao", 16),
         ("nome_classe", 16),
         ("nome_proibido", 16),
+        ("captura_generica", 16),
+        ("captura_silenciosa", 16),
     ):
         check_eq(errors, f"Positivas - {sub}", len(by_sub[sub]), expected)
-    check_eq(errors, "Negativos dificeis", len(hard_negatives), 100)
+    check_eq(errors, "Negativos dificeis", len(hard_negatives), 132)
+    check_eq(
+        errors,
+        "Negativos dificeis - coding-4.1",
+        sum(1 for x in hard_negatives if x["regra"] == REGRA_EXCECAO),
+        32,
+    )
 
     # --- Cobertura do catalogo minimo de negativos dificeis ---------------
     hard_texts = [l["line"] for l in hard_negatives]
