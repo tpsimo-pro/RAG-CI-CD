@@ -20,6 +20,7 @@ NORM_NULO = "pep8:secao-5:comparacao-nulo"
 NORM_NOME_FUNCAO = "nomenclatura:funcao"
 NORM_NOME_CLASSE = "nomenclatura:classe"
 NORM_NOME_PROIBIDO = "nomenclatura:nome-proibido"
+NORM_EXCECAO = "coding:secao-4.1:captura-excecao"
 
 # Um chunk carrega a chave quando contém o ENUNCIADO da norma. Casar o
 # enunciado (e não apenas o exemplo) evita que um trecho que só mencione
@@ -45,6 +46,11 @@ _PADRAO_NOME_PROIBIDO = re.compile(
     r"Nomes\s+de\s+1\s+caractere|nomes\s+de\s+uma\s+[úu]nica\s+letra",
     re.IGNORECASE,
 )
+# Emenda 2 de D-002: a norma so existe no coding_standards.md, 4.1.
+_PADRAO_EXCECAO = re.compile(
+    r"capturar\s+`?Exception`?\s+gen[ée]rica|toda\s+exce[çc][ãa]o\s+capturada",
+    re.IGNORECASE,
+)
 
 
 def norm_keys_of_chunk(text: str) -> set[str]:
@@ -68,4 +74,6 @@ def norm_keys_of_chunk(text: str) -> set[str]:
         chaves.add(NORM_NOME_CLASSE)
     if _PADRAO_NOME_PROIBIDO.search(text):
         chaves.add(NORM_NOME_PROIBIDO)
+    if _PADRAO_EXCECAO.search(text):
+        chaves.add(NORM_EXCECAO)
     return chaves

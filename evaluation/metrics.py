@@ -55,12 +55,22 @@ _SECTION_2_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# Tratamento de exceções (emenda 2 de D-002). A norma só existe no
+# `coding_standards.md` 4.1; o `guia_python_pep8.md` não tem 4.1, e a
+# Seção 4 dele (espaços em branco) não pode contar como citação correta.
+_SECTION_4_1_PATTERN = re.compile(
+    r"(?<![\d.])4\.1(?!\d)|tratamento\s+de\s+exce[çc][õo]es|exception\s+handling",
+    re.IGNORECASE,
+)
+
 REGRA_SECAO_5 = "secao-5"
 REGRA_SECAO_2 = "secao-2"
+REGRA_EXCECAO = "coding-4.1"
 
 _NORM_PATTERN_POR_REGRA = {
     REGRA_SECAO_5: _SECTION_5_PATTERN,
     REGRA_SECAO_2: _SECTION_2_PATTERN,
+    REGRA_EXCECAO: _SECTION_4_1_PATTERN,
 }
 
 
