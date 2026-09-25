@@ -234,8 +234,8 @@ esse motivo.
 > e seus resultados devem ser medidos e reportados antes desta parte ser
 > implementada, para que a regra nova não contamine a linha de base.
 
-**Status da emenda:** Proposta. Nada implementado em dataset, validador,
-`norm_map.py`, `gold.py` ou `metrics.py`.
+**Status da emenda:** Aceita e implementada em
+`evaluation/dataset/pilot_dataset.json`. Medições pendentes.
 
 O piloto passa de duas para **três regras**, somando um recorte objetivo do
 **`coding_standards.md` §4.1 - Tratamento de Exceções**:
@@ -323,7 +323,7 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
   abreviações como `cnt`) e 2.3 (função que retorna booleano sem `is_`,
   `has_`, `can_`, `should_`).
 
-#### Composição proposta (a confirmar na construção)
+#### Composição implementada
 
 - **25 PRs novos** (PR-056 a PR-080), dos quais **7 de controle**, espelhando
   a Seção 2.
@@ -331,7 +331,10 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
   porque cada bloco ocupa ao menos 4 linhas e o limite de 15 linhas por PR
   (D-004) precisa ser mantido. Vários `except` sob o mesmo `try` ajudam a
   caber.
-- **Negativos difíceis:** ao menos tantos quanto as positivas. Catálogo
+- **Linhas:** 287 nos PRs novos; o dataset passa a 75 PRs e 761 linhas
+  (54 PRs com violação, 21 de controle, 132 positivas, 132 negativos
+  difíceis).
+- **Negativos difíceis:** 32, tantos quanto as positivas. Catálogo
   mínimo, cada padrão em ao menos uma linha:
   `except Exception as exc:` + `logger.exception(...)` ·
   `except Exception:` + `raise` ·
@@ -339,24 +342,30 @@ indentação do corpo, um `raise` (com ou sem `from`) ou uma chamada
   `except KeyError:` + `logger.exception(...)` ·
   comentário com `except Exception: pass` ·
   string com `except Exception: pass`.
-- Os números finais vão para `SCHEMA.md` quando o dataset for construído.
+- Os números por regra estão em `evaluation/dataset/SCHEMA.md`.
 
-#### Pendências de implementação
+#### Implementação
 
-- Dataset: `regra: "coding-4.1"`, sub-regras acima. As linhas de todas as
-  regras continuam sem construção proibida das outras duas.
-- `validate_pilot_dataset.py`: verificar o rótulo de cada `except` pelo
-  critério do gabarito (via `ast`, não regex, já que depende do corpo) e as
-  restrições de escopo e de texto único por PR.
-- `norm_map.py` e `gold.py`: chave nova apontando só para chunks do
+- Dataset: PR-056 a PR-080 com `regra: "coding-4.1"` e as duas sub-regras.
+  As linhas de todas as regras continuam sem construção proibida das
+  outras duas.
+- `validate_pilot_dataset.py`: `except_labels` rotula cada `except` pelo
+  critério do gabarito sobre a AST do PR e rejeita o que está fora do
+  escopo; `block_duplicates` impõe o texto único por PR;
+  `HARD_NEGATIVE_CATALOG_EXCECAO` confere o catálogo por par de linhas.
+- `norm_map.py` e `gold.py`: chave `NORM_EXCECAO`, só com chunks do
   `coding_standards.md` §4.1.
-- `metrics.py`: `cites_norm_of` passa a reconhecer a §4.1 do
-  `coding_standards.md`; diagnóstico de FP no corpo de bloco violador.
-- Prompt do LLM: instrução para reportar a linha do `except`.
+- `metrics.py`: `cites_norm_of` reconhece a §4.1 (`_SECTION_4_1_PATTERN`);
+  `RepetitionResult.misplaced_block_fps` conta os FPs no corpo de bloco
+  violador, exibido e salvo por `run_evaluation.py`.
+- `review_template.txt`: instrução para reportar a linha que abre o bloco.
 - O dataset atual não precisa de reclassificação: nenhuma das 474 linhas
   contém `except` (verificado em 2026-09-25).
 - O corpus indexado não muda (D-007): o `coding_standards.md` já está
   indexado.
+- Os resultados publicados continuam sendo do dataset anterior. A linha de
+  base das Seções 5 e 2 é medida na árvore de `0237b3d`, antes do prompt
+  novo.
 
 ---
 

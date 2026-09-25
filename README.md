@@ -1,6 +1,6 @@
 # RAG-Reviewer - Projeto Piloto
 
-Validação ponta a ponta de um pipeline RAG que detecta violações de duas regras de estilo nas linhas adicionadas de Pull Requests. O desempenho é medido com matriz de confusão completa, Precisão, Recall e F1-Score.
+Validação ponta a ponta de um pipeline RAG que detecta violações de três regras de estilo nas linhas adicionadas de Pull Requests. O desempenho é medido com matriz de confusão completa, Precisão, Recall e F1-Score.
 
 **Instituição:** Universidade do Estado do Amazonas (UEA) - TCC-2
 
@@ -13,7 +13,7 @@ Validação ponta a ponta de um pipeline RAG que detecta violações de duas reg
 | Regras | Seção 5 do `guia_python_pep8.md`, comparações: proibido `== True`, `== False`, `== None` e `!= None`, obrigatório `is` / `is not` com `None`. E um recorte da Seção 2, nomenclatura: funções em `snake_case`, classes em `PascalCase`, e `l`, `O`, `I` proibidos como nome de uma letra (D-002 e sua emenda) |
 | Unidade de avaliação | A linha adicionada (D-001) |
 | Corpus indexado | Os três guias de `docs/style_guides/`: 52 seções, 52 chunks (D-007) |
-| Dataset | 50 PRs sintéticos, 474 linhas adicionadas. 100 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura) e 374 negativas, das quais 100 são negativos difíceis. 36 PRs com violação e 14 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
+| Dataset | 75 PRs sintéticos, 761 linhas adicionadas. 132 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 16 por sub-regra de exceção) e 629 negativas, das quais 132 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
 | LLM | `qwen/qwen3.8-27b` via Groq, temperatura 0.0 (D-005, D-006) |
 | Embedding | `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensões) mais BM25 esparso (ADR-002, ADR-004) |
 | Banco de vetores | Qdrant (ADR-001) |
@@ -45,7 +45,7 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Os resultados desta seção foram medidos no dataset anterior, de 30 PRs e só a Seção 5. O dataset atual tem 50 PRs e duas regras, e as medições precisam ser refeitas. Em uma verificação de retrieval no dataset novo (recall@5 por regra, hybrid por linha), a Seção 5 manteve 1.0, enquanto a nomenclatura ficou em 0.0 para funções, 1.0 para classes e 0.69 para `l`/`O`/`I`.
+> Os resultados desta seção foram medidos no dataset anterior, de 30 PRs e só a Seção 5. O dataset atual tem 75 PRs e três regras, e as medições precisam ser refeitas; a regra de exceções (`coding_standards.md` 4.1) ainda não foi medida. Em uma verificação de retrieval no dataset novo (recall@5 por regra, hybrid por linha), a Seção 5 manteve 1.0, enquanto a nomenclatura ficou em 0.0 para funções, 1.0 para classes e 0.69 para `l`/`O`/`I`.
 >
 > A avaliação de detecção já reporta as métricas **por regra** e o recall **por sub-regra** (`per_rule` e `per_sub_rule_recall` em `results.json`). O recorte de uma regra são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a regra alguma e só entram na matriz global, então a precisão por regra não é comparável à global.
 
