@@ -494,6 +494,26 @@ class RepetitionResult:
             for sub, lines in sorted(by_sub.items())
         }
 
+    def misplaced_block_fps(self) -> int:
+        """
+        FPs na linha logo abaixo de um `except` violador do mesmo PR.
+
+        Emenda 2 de D-002: o rótulo da regra de exceções fica na linha
+        `except`, e o corpo de um bloco violador é uma linha só, logo
+        abaixo. Um FP ali quase sempre é o modelo que viu a violação e
+        apontou o `pass` em vez do `except` — erro de localização, não de
+        detecção. D-003 continua contando FP e FN; este número só separa
+        o caso na discussão.
+        """
+        return sum(
+            1
+            for prev, cur in zip(self.line_results, self.line_results[1:])
+            if cur.cell == "FP"
+            and prev.pr_id == cur.pr_id
+            and prev.expected_viola
+            and prev.regra == REGRA_EXCECAO
+        )
+
     # ── Agregação a nível de PR (gate de CI/CD) ─────────────────────────
 
     def pr_gate_results(self) -> list[PRGateResult]:

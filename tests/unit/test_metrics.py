@@ -438,6 +438,21 @@ class TestPerRule:
         }
         assert por_sub["nome_classe"]["recall"] == 1.0
 
+    def test_fp_logo_abaixo_de_except_violador_e_erro_de_localizacao(self):
+        results = [
+            _line_result("PR-1", "FN", regra="coding-4.1", sub_regra="captura_generica"),
+            _line_result("PR-1", "FP"),  # o `pass` do bloco violador
+            _line_result("PR-1", "TN", viola=False, regra="coding-4.1"),  # except correto
+            _line_result("PR-1", "FP"),  # corpo de bloco que nao viola
+            _line_result("PR-2", "FN", regra="coding-4.1", sub_regra="captura_silenciosa"),
+            _line_result("PR-3", "FP"),  # primeira linha de outro PR
+            _line_result("PR-3", "TP", regra="secao-5", sub_regra="nulo"),
+            _line_result("PR-3", "FP"),  # abaixo de positiva de outra regra
+        ]
+        rep = RepetitionResult(repetition_index=0, line_results=results)
+
+        assert rep.misplaced_block_fps() == 1
+
     def test_norm_reference_precision_por_regra_usa_a_norma_da_regra(self):
         gold = [
             GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5"),

@@ -421,6 +421,10 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
         f"  Taxa de alucinação de localização: {published.hallucination_rate:.4f} "
         f"({published.hallucinated_detections}/{published.total_detections} detecções)"
     )
+    console.print(
+        f"  FPs no corpo de except violador (erro de localização): "
+        f"{published.misplaced_block_fps()}"
+    )
     norm_prec = published.norm_reference_precision
     norm_prec_str = f"{norm_prec:.4f}" if norm_prec is not None else "N/A (nenhum TP nesta execução)"
     console.print(f"  Precisão de referência normativa (entre os TPs): {norm_prec_str}\n")
@@ -444,6 +448,7 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
 _ROTULO_REGRA = {
     "secao-5": "Seção 5 — comparações",
     "secao-2": "Seção 2 — nomenclatura",
+    "coding-4.1": "coding_standards 4.1 — exceções",
 }
 
 
@@ -543,6 +548,7 @@ def _save_results(
                 ),
                 "total_detections": r.total_detections,
                 "hallucinated_detections": r.hallucinated_detections,
+                "misplaced_block_fps": r.misplaced_block_fps(),
                 "per_rule": {regra: rm.as_dict() for regra, rm in r.per_rule().items()},
                 "per_sub_rule_recall": r.per_sub_rule_recall(),
             }
@@ -578,6 +584,7 @@ def _save_results(
                 ),
             },
             "hallucination_rate": round(published.hallucination_rate, 4),
+            "misplaced_block_fps": published.misplaced_block_fps(),
             "norm_reference_precision": (
                 round(published.norm_reference_precision, 4)
                 if published.norm_reference_precision is not None
