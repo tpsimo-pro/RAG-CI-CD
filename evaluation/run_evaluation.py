@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
 import sys
 import time
@@ -239,6 +240,22 @@ _CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
 # reconstrói um `LineResult` atual e é descartado em vez de quebrar a execução.
 _CHECKPOINT_SCHEMA = 2
 
+# O caminho do dataset não basta como chave: a linha de base das Seções 5 e 2
+# roda num checkout antigo, com o mesmo caminho, outro conteúdo e outro prompt
+# (emenda 2 de D-002). Retomar um checkpoint desses misturaria as medições.
+_PROMPT_FILES = (
+    _PROJECT_ROOT / "rag_reviewer" / "prompts" / "system_prompt.txt",
+    _PROJECT_ROOT / "rag_reviewer" / "prompts" / "review_template.txt",
+)
+
+
+def _config_fingerprint(dataset_path: Path) -> str:
+    """sha256 do conteúdo do dataset e dos prompts."""
+    digest = hashlib.sha256()
+    for path in (dataset_path, *_PROMPT_FILES):
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
+
 
 def _line_result_to_dict(r: LineResult) -> dict:
     return dataclasses.asdict(r)
@@ -251,7 +268,8 @@ def _line_result_from_dict(d: dict) -> LineResult:
 def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
     """
     Carrega o checkpoint se existir e for compatível com esta execução
-    (mesmo dataset e número de repetições). Checkpoint de uma configuração
+    (mesmo dataset, mesmo conteúdo de dataset e prompts, mesmo número de
+    repetições). Checkpoint de uma configuração
     diferente é ignorado — nunca aplicado por engano a outra.
     """
     if not _CHECKPOINT_PATH.exists():
@@ -264,6 +282,7 @@ def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
         data.get("dataset_path") != str(dataset_path)
         or data.get("repeticoes") != repeticoes
         or data.get("schema") != _CHECKPOINT_SCHEMA
+        or data.get("fingerprint") != _config_fingerprint(dataset_path)
     ):
         return {}
     return data.get("completed_prs", {})
@@ -275,6 +294,7 @@ def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -
         "schema": _CHECKPOINT_SCHEMA,
         "dataset_path": str(dataset_path),
         "repeticoes": repeticoes,
+        "fingerprint": _config_fingerprint(dataset_path),
         "completed_prs": completed_prs,
     }
     tmp = _CHECKPOINT_PATH.with_suffix(".json.tmp")
