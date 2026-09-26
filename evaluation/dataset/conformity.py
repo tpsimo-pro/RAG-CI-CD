@@ -17,7 +17,7 @@ _RUFF_ARGS = [
     "check", "--isolated", "--no-cache", "--preview",
     "--output-format", "json", "--line-length", "79",
     "--select", "E,W,N,D,ANN001,ANN201,ANN202,ANN204,I,F403",
-    "--ignore", "D105,D107",
+    "--ignore", "D105",
     "--config", "lint.pydocstyle.convention='google'",
     "--config", "lint.pycodestyle.max-doc-length=72",
     "--stdin-filename", "pr.py", "-",
@@ -28,7 +28,7 @@ _RUFF_ARGS = [
 ALLOWED_BY_SUB = {
     "booleano": {"E712"},
     "nulo": {"E711"},
-    "nome_funcao": {"N802", "prefixo-booleano"},
+    "nome_funcao": {"N802"},
     "nome_classe": {"N801"},
     # N806: `O`/`I` dentro de funcao e a mesma violacao vista como maiuscula.
     "nome_proibido": {"E741", "N806", "uma-letra", "nome-de-modulo"},
@@ -36,6 +36,9 @@ ALLOWED_BY_SUB = {
 
 GENERIC_NAMES = {"data", "info", "temp", "obj", "result", "cnt", "mx", "err", "val"}
 _BOOL_PREFIXES = ("is_", "has_", "can_", "should_")
+# pep8 2.1: `l`, `O` e `I` so aparecem na linha positiva que os atribui;
+# ler o nome em outra linha seria uma violacao fora do gabarito.
+_FORBIDDEN_NAMES = {"l", "O", "I"}
 _SECRET = re.compile(r"://|sk-|password", re.IGNORECASE)
 _UPPER = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
@@ -120,6 +123,8 @@ def ast_findings(code: str) -> list[tuple[int, str]]:
             out += _function_findings(node)
         elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
             out += _name_findings(node.id, node.lineno)
+        elif isinstance(node, ast.Name) and node.id in _FORBIDDEN_NAMES:
+            out.append((node.lineno - 1, "uso-nome-proibido"))
         elif isinstance(node, ast.arg):
             out += _name_findings(node.arg, node.lineno)
         elif isinstance(node, ast.ExceptHandler) and node.name:

@@ -661,20 +661,21 @@ código isolado, exceto a violação que o seu rótulo declara. Assim o rótulo
 |---|---|
 | pep8 1.1 (79 caracteres; 72 em docstring e comentário) | ruff E501, W505 |
 | pep8 1.2, 1.3, 4 (indentação, linhas em branco, espaços) | ruff E, W (com `--preview`, para E30x) |
-| pep8 2, 2.1 (nomes; exceção com sufixo `Error`) | ruff N; nome de uma letra só `i` e `j` |
+| pep8 2, 2.1 (nomes; exceção com sufixo `Error`) | ruff N; nome de uma letra só `i`, `j` e `_`; `l`, `O` e `I` nunca lidos fora da linha positiva que os atribui |
 | pep8 3, cs 6 (imports agrupados e ordenados, sem `*`) | ruff I, F403 |
 | cs 2.2 (nomes genéricos e abreviações) | lista proibida: `data`, `info`, `temp`, `obj`, `result`, `cnt`, `mx`, `err`, `val` |
 | cs 2.3 (prefixo booleano) | prefixo `is_`/`has_`/`can_`/`should_` se e somente se o retorno anotado é `bool` |
 | cs 3.1, 3.2 (até 30 linhas; até 4 parâmetros; sem parâmetro booleano) | AST |
 | cs 3.3 (tipo de retorno) | ruff ANN001, ANN201, ANN202, ANN204: toda função com parâmetros e retorno anotados |
-| cs 5.1 (docstring Google Style em módulo, classe e função) | ruff D (convenção `google`); `Args:` se há parâmetro, `Returns:` se o retorno não é `None`, `Raises:` se há `raise` |
+| cs 5.1 (docstring Google Style em módulo, classe e função) | ruff D (convenção `google`, `__init__` inclusive; só D105, métodos mágicos, fica de fora); `Args:` se há parâmetro, `Returns:` se o retorno não é `None`, `Raises:` se há `raise` |
 | cs 7.1 (segredos e URLs fixas) | nenhum literal com `://`, `sk-` ou `password` |
 | Nomes de módulo | atribuição de módulo só em `UPPER_SNAKE_CASE` ou `logger` |
 
-Os códigos do ruff que correspondem às regras do piloto só são aceitos na
-linha positiva da própria regra: E712 (`booleano`), E711 (`nulo`), N802
-(`nome_funcao`), N801 (`nome_classe`), E741 (`nome_proibido`). Qualquer
-outro diagnóstico, em qualquer linha, reprova o PR. A linha positiva cumpre
+Os achados que correspondem às regras do piloto só são aceitos na linha
+positiva da própria regra: E712 (`booleano`), E711 (`nulo`), N802
+(`nome_funcao`), N801 (`nome_classe`), e E741, N806, nome de uma letra e
+nome de módulo (`nome_proibido`, que é a mesma violação vista por quatro
+checagens). Qualquer outro achado, em qualquer linha, reprova o PR. A linha positiva cumpre
 o resto: `def CalculateTax(amount: float) -> float:` viola só a
 nomenclatura.
 
@@ -695,7 +696,8 @@ O texto delas pode mudar só para cumprir as demais normas (anotações de
 tipo, indentação). Linhas novas (docstrings, imports, linhas em branco) são
 negativos comuns. Em 11 PRs da Seção 5 o `return` rotulado foi movido para
 o fim da função, porque o código antigo tinha instruções inalcançáveis
-depois dele; o conjunto de rótulos de cada PR é o mesmo.
+depois dele; o conjunto de rótulos de cada PR é o mesmo. As positivas
+`nome_funcao` não retornam `bool`, para não violarem também a cs 2.3.
 
 ### Emenda a D-004
 
@@ -704,8 +706,8 @@ depois dele; o conjunto de rótulos de cada PR é o mesmo.
   (O plano previa 40; subiu na reescrita, porque o custo de tokens é
   governado pelo teto de caracteres, não pelo número de linhas.)
 - O texto do dataset inteiro tem no máximo **90.000 caracteres** (hoje,
-  23.441). Resultado da reescrita: 1.984 linhas e 48.816 caracteres, de 18
-  a 52 linhas por PR. São ~7 mil tokens a mais por rodada, dentro da cota
+  23.441). Resultado da reescrita: 2.025 linhas e 49.829 caracteres, de 18
+  a 52 linhas por PR. São ~8 mil tokens a mais por rodada, dentro da cota
   diária de 200 mil do Groq (D-006). Uma rodada por dia; o checkpoint
   retoma se a cota acabar.
 
@@ -738,6 +740,13 @@ ajuste ao dataset.
   consultas e podem levar o chunk da cs 5.1 a ocupar uma das 8 vagas que
   antes eram da Seção 5 ou da cs 4.1. É um efeito real (código de verdade
   tem docstring) e será reportado se aparecer.
+- **Texto repetido multiplica FP.** D-003 agrupa linhas de texto igual:
+  sinalizar uma sinaliza todas. O dataset novo tem até 17 linhas em branco
+  por PR e linhas de docstring repetidas (`"""`, `Args:`, `Returns:`).
+  Uma detecção com `line_content` vazio, que antes era alucinação, agora
+  marca todas as linhas em branco do PR como FP. A regra de atribuição não
+  muda (a métrica fica como está); a análise da rodada reporta à parte os
+  FPs em linha em branco ou de docstring.
 - A acurácia sobe artificialmente com o N maior (a proporção de positivas
   cai de 17% para ~7%). Precisão, recall e F1 não usam TN e continuam
   comparáveis.

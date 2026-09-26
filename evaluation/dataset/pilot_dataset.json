@@ -4544,7 +4544,7 @@
     "pr_id": "PR-032",
     "description": "Servico de usuarios",
     "filename": "users/service.py",
-    "patch": "@@ -0,0 +1,35 @@\n+\"\"\"Serviço de usuários.\"\"\"\n+\n+\n+class UserService:\n+    \"\"\"Operações de usuário sobre o repositório.\"\"\"\n+\n+    def __init__(self, repository: UserRepository) -> None:\n+        self.repository = repository\n+\n+    def getUser(self, user_id: int) -> User:\n+        \"\"\"Busca um usuário pelo identificador.\n+\n+        Args:\n+            user_id: Identificador do usuário.\n+\n+        Returns:\n+            Usuário encontrado.\n+        \"\"\"\n+        return self.repository.find(user_id)\n+\n+    def DeleteUser(self, user_id: int) -> None:\n+        \"\"\"Remove um usuário.\n+\n+        Args:\n+            user_id: Identificador do usuário.\n+        \"\"\"\n+        self.repository.remove(user_id)\n+\n+    def listActiveUsers(self) -> list[User]:\n+        \"\"\"Lista os usuários ativos.\n+\n+        Returns:\n+            Usuários ativos.\n+        \"\"\"\n+        return self.repository.filter(active=1)",
+    "patch": "@@ -0,0 +1,40 @@\n+\"\"\"Serviço de usuários.\"\"\"\n+\n+\n+class UserService:\n+    \"\"\"Operações de usuário sobre o repositório.\"\"\"\n+\n+    def __init__(self, repository: UserRepository) -> None:\n+        \"\"\"Guarda o repositório de usuários.\n+\n+        Args:\n+            repository: Repositório de usuários.\n+        \"\"\"\n+        self.repository = repository\n+\n+    def getUser(self, user_id: int) -> User:\n+        \"\"\"Busca um usuário pelo identificador.\n+\n+        Args:\n+            user_id: Identificador do usuário.\n+\n+        Returns:\n+            Usuário encontrado.\n+        \"\"\"\n+        return self.repository.find(user_id)\n+\n+    def DeleteUser(self, user_id: int) -> None:\n+        \"\"\"Remove um usuário.\n+\n+        Args:\n+            user_id: Identificador do usuário.\n+        \"\"\"\n+        self.repository.remove(user_id)\n+\n+    def listActiveUsers(self) -> list[User]:\n+        \"\"\"Lista os usuários ativos.\n+\n+        Returns:\n+            Usuários ativos.\n+        \"\"\"\n+        return self.repository.filter(active=1)",
     "added_lines": [
       {
         "line": "\"\"\"Serviço de usuários.\"\"\"",
@@ -4594,6 +4594,41 @@
         "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
+      },
+      {
+        "line": "        \"\"\"Guarda o repositório de usuários.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            repository: Repositório de usuários.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
       },
       {
         "line": "        self.repository = repository",
@@ -5471,7 +5506,7 @@
     "pr_id": "PR-035",
     "description": "Validacao de formularios",
     "filename": "forms/validators.py",
-    "patch": "@@ -0,0 +1,51 @@\n+\"\"\"Validação de dados de contato.\"\"\"\n+\n+MAX_LENGTH = 80\n+\n+\n+def ValidateEmail(value: str) -> bool:\n+    \"\"\"Confere se o texto tem formato de e-mail.\n+\n+    Args:\n+        value: Texto informado.\n+\n+    Returns:\n+        True se houver arroba no texto.\n+    \"\"\"\n+    return \"@\" in value\n+\n+\n+def validate_phone(value: str) -> str:\n+    \"\"\"Normaliza o telefone informado.\n+\n+    Args:\n+        value: Telefone informado.\n+\n+    Returns:\n+        Telefone só com dígitos.\n+    \"\"\"\n+    return normalize_digits(value)\n+\n+\n+def checkAge(value: int) -> bool:\n+    \"\"\"Confere se a idade é plausível.\n+\n+    Args:\n+        value: Idade informada.\n+\n+    Returns:\n+        True se a idade estiver entre 1 e 129.\n+    \"\"\"\n+    return 0 < value < 130\n+\n+\n+def _normalize(value: str) -> str:\n+    \"\"\"Remove espaços das pontas.\n+\n+    Args:\n+        value: Texto informado.\n+\n+    Returns:\n+        Texto sem espaços nas pontas.\n+    \"\"\"\n+    return value.strip()",
+    "patch": "@@ -0,0 +1,51 @@\n+\"\"\"Validação de dados de contato.\"\"\"\n+\n+MAX_AGE = 129\n+\n+\n+def ValidateEmail(value: str) -> str:\n+    \"\"\"Padroniza o e-mail informado.\n+\n+    Args:\n+        value: E-mail informado.\n+\n+    Returns:\n+        E-mail sem espaços e em minúsculas.\n+    \"\"\"\n+    return value.strip().lower()\n+\n+\n+def validate_phone(value: str) -> str:\n+    \"\"\"Normaliza o telefone informado.\n+\n+    Args:\n+        value: Telefone informado.\n+\n+    Returns:\n+        Telefone só com dígitos.\n+    \"\"\"\n+    return normalize_digits(value)\n+\n+\n+def checkAge(value: int) -> int:\n+    \"\"\"Limita a idade informada à faixa plausível.\n+\n+    Args:\n+        value: Idade informada.\n+\n+    Returns:\n+        Idade entre 0 e 129.\n+    \"\"\"\n+    return min(max(value, 0), 129)\n+\n+\n+def _normalize(value: str) -> str:\n+    \"\"\"Remove espaços das pontas.\n+\n+    Args:\n+        value: Texto informado.\n+\n+    Returns:\n+        Texto sem espaços nas pontas.\n+    \"\"\"\n+    return value.strip()",
     "added_lines": [
       {
         "line": "\"\"\"Validação de dados de contato.\"\"\"",
@@ -5488,7 +5523,7 @@
         "hard_negative": false
       },
       {
-        "line": "MAX_LENGTH = 80",
+        "line": "MAX_AGE = 129",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5509,14 +5544,14 @@
         "hard_negative": false
       },
       {
-        "line": "def ValidateEmail(value: str) -> bool:",
+        "line": "def ValidateEmail(value: str) -> str:",
         "viola": true,
         "regra": "secao-2",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
       {
-        "line": "    \"\"\"Confere se o texto tem formato de e-mail.",
+        "line": "    \"\"\"Padroniza o e-mail informado.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5537,7 +5572,7 @@
         "hard_negative": false
       },
       {
-        "line": "        value: Texto informado.",
+        "line": "        value: E-mail informado.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5558,7 +5593,7 @@
         "hard_negative": false
       },
       {
-        "line": "        True se houver arroba no texto.",
+        "line": "        E-mail sem espaços e em minúsculas.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5572,7 +5607,7 @@
         "hard_negative": false
       },
       {
-        "line": "    return \"@\" in value",
+        "line": "    return value.strip().lower()",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5677,14 +5712,14 @@
         "hard_negative": false
       },
       {
-        "line": "def checkAge(value: int) -> bool:",
+        "line": "def checkAge(value: int) -> int:",
         "viola": true,
         "regra": "secao-2",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
       {
-        "line": "    \"\"\"Confere se a idade é plausível.",
+        "line": "    \"\"\"Limita a idade informada à faixa plausível.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5726,7 +5761,7 @@
         "hard_negative": false
       },
       {
-        "line": "        True se a idade estiver entre 1 e 129.",
+        "line": "        Idade entre 0 e 129.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -5740,7 +5775,7 @@
         "hard_negative": false
       },
       {
-        "line": "    return 0 < value < 130",
+        "line": "    return min(max(value, 0), 129)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -6152,7 +6187,7 @@
     "pr_id": "PR-037",
     "description": "Processamento de pagamentos",
     "filename": "payments/processor.py",
-    "patch": "@@ -0,0 +1,40 @@\n+\"\"\"Processamento, estorno e auditoria de pagamentos.\"\"\"\n+\n+\n+class payment_processor:\n+    \"\"\"Envia cobranças ao gateway.\"\"\"\n+\n+    def __init__(self, gateway: Gateway) -> None:\n+        self.gateway = gateway\n+\n+    def charge(self, amount: float) -> Receipt:\n+        \"\"\"Cobra um valor no gateway.\n+\n+        Args:\n+            amount: Valor a cobrar.\n+\n+        Returns:\n+            Recibo da cobrança.\n+        \"\"\"\n+        return self.gateway.send(amount)\n+\n+\n+class refund_handler:\n+    \"\"\"Estorna pagamentos.\"\"\"\n+\n+    def run(self, payment: Payment) -> Refund:\n+        \"\"\"Estorna o pagamento.\n+\n+        Args:\n+            payment: Pagamento a estornar.\n+\n+        Returns:\n+            Estorno criado.\n+        \"\"\"\n+        return payment.reverse()\n+\n+\n+class Payment_Audit(object):\n+    \"\"\"Contador de pagamentos auditados.\"\"\"\n+\n+    total_audited = 0",
+    "patch": "@@ -0,0 +1,45 @@\n+\"\"\"Processamento, estorno e auditoria de pagamentos.\"\"\"\n+\n+\n+class payment_processor:\n+    \"\"\"Envia cobranças ao gateway.\"\"\"\n+\n+    def __init__(self, gateway: Gateway) -> None:\n+        \"\"\"Guarda o gateway de pagamento.\n+\n+        Args:\n+            gateway: Gateway usado nas cobranças.\n+        \"\"\"\n+        self.gateway = gateway\n+\n+    def charge(self, amount: float) -> Receipt:\n+        \"\"\"Cobra um valor no gateway.\n+\n+        Args:\n+            amount: Valor a cobrar.\n+\n+        Returns:\n+            Recibo da cobrança.\n+        \"\"\"\n+        return self.gateway.send(amount)\n+\n+\n+class refund_handler:\n+    \"\"\"Estorna pagamentos.\"\"\"\n+\n+    def run(self, payment: Payment) -> Refund:\n+        \"\"\"Estorna o pagamento.\n+\n+        Args:\n+            payment: Pagamento a estornar.\n+\n+        Returns:\n+            Estorno criado.\n+        \"\"\"\n+        return payment.reverse()\n+\n+\n+class Payment_Audit(object):\n+    \"\"\"Contador de pagamentos auditados.\"\"\"\n+\n+    total_audited = 0",
     "added_lines": [
       {
         "line": "\"\"\"Processamento, estorno e auditoria de pagamentos.\"\"\"",
@@ -6202,6 +6237,41 @@
         "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
+      },
+      {
+        "line": "        \"\"\"Guarda o gateway de pagamento.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            gateway: Gateway usado nas cobranças.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
       },
       {
         "line": "        self.gateway = gateway",
@@ -6440,7 +6510,7 @@
     "pr_id": "PR-038",
     "description": "Modelos de fatura",
     "filename": "billing/models.py",
-    "patch": "@@ -0,0 +1,34 @@\n+\"\"\"Montagem de faturas e itens.\"\"\"\n+\n+\n+class InvalidInvoiceError(Exception):\n+    \"\"\"Fatura com dados inconsistentes.\"\"\"\n+\n+\n+class invoice_builder:\n+    \"\"\"Monta as linhas da fatura.\"\"\"\n+\n+    def build(self, order: Order) -> list[InvoiceLine]:\n+        \"\"\"Gera as linhas da fatura do pedido.\n+\n+        Args:\n+            order: Pedido faturado.\n+\n+        Returns:\n+            Linhas da fatura.\n+        \"\"\"\n+        return order.lines\n+\n+\n+class line_item:\n+    \"\"\"Item de uma fatura.\"\"\"\n+\n+    def __init__(self, sku: str, quantity: int) -> None:\n+        self.sku = sku\n+        self.quantity = quantity\n+\n+\n+class Tax_Rule:\n+    \"\"\"Alíquota aplicada aos itens.\"\"\"\n+\n+    rate = 0.1",
+    "patch": "@@ -0,0 +1,40 @@\n+\"\"\"Montagem de faturas e itens.\"\"\"\n+\n+\n+class InvalidInvoiceError(Exception):\n+    \"\"\"Fatura com dados inconsistentes.\"\"\"\n+\n+\n+class invoice_builder:\n+    \"\"\"Monta as linhas da fatura.\"\"\"\n+\n+    def build(self, order: Order) -> list[InvoiceLine]:\n+        \"\"\"Gera as linhas da fatura do pedido.\n+\n+        Args:\n+            order: Pedido faturado.\n+\n+        Returns:\n+            Linhas da fatura.\n+        \"\"\"\n+        return order.lines\n+\n+\n+class line_item:\n+    \"\"\"Item de uma fatura.\"\"\"\n+\n+    def __init__(self, sku: str, quantity: int) -> None:\n+        \"\"\"Cria o item com código e quantidade.\n+\n+        Args:\n+            sku: Código do produto.\n+            quantity: Quantidade faturada.\n+        \"\"\"\n+        self.sku = sku\n+        self.quantity = quantity\n+\n+\n+class Tax_Rule:\n+    \"\"\"Alíquota aplicada aos itens.\"\"\"\n+\n+    rate = 0.1",
     "added_lines": [
       {
         "line": "\"\"\"Montagem de faturas e itens.\"\"\"",
@@ -6625,6 +6695,48 @@
         "hard_negative": true
       },
       {
+        "line": "        \"\"\"Cria o item com código e quantidade.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            sku: Código do produto.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            quantity: Quantidade faturada.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
         "line": "        self.sku = sku",
         "viola": false,
         "regra": null,
@@ -6686,7 +6798,7 @@
     "pr_id": "PR-039",
     "description": "Filas de mensagens",
     "filename": "messaging/queues.py",
-    "patch": "@@ -0,0 +1,32 @@\n+\"\"\"Filas de mensagens e políticas de nova tentativa.\"\"\"\n+\n+\n+class message_queue:\n+    \"\"\"Fila de mensagens em memória.\"\"\"\n+\n+    def __init__(self) -> None:\n+        self.items = []\n+\n+    def push(self, item: Message) -> None:\n+        \"\"\"Adiciona uma mensagem ao fim da fila.\n+\n+        Args:\n+            item: Mensagem a enfileirar.\n+        \"\"\"\n+        self.items.append(item)\n+\n+\n+class dead_letter_queue(message_queue):\n+    \"\"\"Fila das mensagens que falharam.\"\"\"\n+\n+\n+class Retry_Policy:\n+    \"\"\"Política de novas tentativas.\"\"\"\n+\n+    attempts = 3\n+\n+\n+class BackoffPolicy:\n+    \"\"\"Política de espera exponencial.\"\"\"\n+\n+    base = 2",
+    "patch": "@@ -0,0 +1,33 @@\n+\"\"\"Filas de mensagens e políticas de nova tentativa.\"\"\"\n+\n+\n+class message_queue:\n+    \"\"\"Fila de mensagens em memória.\"\"\"\n+\n+    def __init__(self) -> None:\n+        \"\"\"Cria a fila vazia.\"\"\"\n+        self.items = []\n+\n+    def push(self, item: Message) -> None:\n+        \"\"\"Adiciona uma mensagem ao fim da fila.\n+\n+        Args:\n+            item: Mensagem a enfileirar.\n+        \"\"\"\n+        self.items.append(item)\n+\n+\n+class dead_letter_queue(message_queue):\n+    \"\"\"Fila das mensagens que falharam.\"\"\"\n+\n+\n+class Retry_Policy:\n+    \"\"\"Política de novas tentativas.\"\"\"\n+\n+    attempts = 3\n+\n+\n+class BackoffPolicy:\n+    \"\"\"Política de espera exponencial.\"\"\"\n+\n+    base = 2",
     "added_lines": [
       {
         "line": "\"\"\"Filas de mensagens e políticas de nova tentativa.\"\"\"",
@@ -6732,6 +6844,13 @@
       },
       {
         "line": "    def __init__(self) -> None:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"Cria a fila vazia.\"\"\"",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7206,7 +7325,7 @@
     "pr_id": "PR-041",
     "description": "Agendador de tarefas",
     "filename": "scheduling/jobs.py",
-    "patch": "@@ -0,0 +1,31 @@\n+\"\"\"Agendamento de jobs por expressão cron.\"\"\"\n+\n+\n+class job_scheduler:\n+    \"\"\"Agenda execuções de jobs.\"\"\"\n+\n+    def __init__(self, clock: Clock) -> None:\n+        self.clock = clock\n+\n+    def next_run(self) -> datetime:\n+        \"\"\"Informa o horário da próxima execução.\n+\n+        Returns:\n+            Horário da próxima execução.\n+        \"\"\"\n+        return self.clock.now()\n+\n+\n+class Cron_Parser:\n+    \"\"\"Interpreta expressões cron.\"\"\"\n+\n+    def _split(self, expression: str) -> list[str]:\n+        \"\"\"Separa os campos da expressão.\n+\n+        Args:\n+            expression: Expressão cron.\n+\n+        Returns:\n+            Campos da expressão.\n+        \"\"\"\n+        return expression.split()",
+    "patch": "@@ -0,0 +1,36 @@\n+\"\"\"Agendamento de jobs por expressão cron.\"\"\"\n+\n+\n+class job_scheduler:\n+    \"\"\"Agenda execuções de jobs.\"\"\"\n+\n+    def __init__(self, clock: Clock) -> None:\n+        \"\"\"Guarda o relógio usado no agendamento.\n+\n+        Args:\n+            clock: Relógio de referência.\n+        \"\"\"\n+        self.clock = clock\n+\n+    def next_run(self) -> datetime:\n+        \"\"\"Informa o horário da próxima execução.\n+\n+        Returns:\n+            Horário da próxima execução.\n+        \"\"\"\n+        return self.clock.now()\n+\n+\n+class Cron_Parser:\n+    \"\"\"Interpreta expressões cron.\"\"\"\n+\n+    def _split(self, expression: str) -> list[str]:\n+        \"\"\"Separa os campos da expressão.\n+\n+        Args:\n+            expression: Expressão cron.\n+\n+        Returns:\n+            Campos da expressão.\n+        \"\"\"\n+        return expression.split()",
     "added_lines": [
       {
         "line": "\"\"\"Agendamento de jobs por expressão cron.\"\"\"",
@@ -7256,6 +7375,41 @@
         "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
+      },
+      {
+        "line": "        \"\"\"Guarda o relógio usado no agendamento.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            clock: Relógio de referência.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
       },
       {
         "line": "        self.clock = clock",
@@ -7691,7 +7845,7 @@
     "pr_id": "PR-043",
     "description": "Agregacao de estatisticas",
     "filename": "stats/aggregate.py",
-    "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Consolidação de valores de linhas.\"\"\"\n+\n+\n+def summarize_amounts(rows: list[Row]) -> str:\n+    \"\"\"Soma os valores das linhas e monta o rótulo.\n+\n+    Args:\n+        rows: Linhas com valores.\n+\n+    Returns:\n+        Rótulo com o total.\n+    \"\"\"\n+    l = []\n+    for row in rows:\n+        l.append(row.amount)\n+    O = 0\n+    lower = 1\n+    total = sum(l) + O + lower\n+    I = \"\"\n+    for i in range(3):\n+        total += i\n+    return \"n=\" + str(total) + I",
+    "patch": "@@ -0,0 +1,23 @@\n+\"\"\"Consolidação de valores de linhas.\"\"\"\n+\n+\n+def summarize_amounts(rows: list[Row]) -> str:\n+    \"\"\"Soma os valores das linhas e monta o rótulo.\n+\n+    Args:\n+        rows: Linhas com valores.\n+\n+    Returns:\n+        Rótulo com o total.\n+    \"\"\"\n+    amounts = []\n+    l = []\n+    for row in rows:\n+        amounts.append(row.amount)\n+    O = 0\n+    lower = 1\n+    total = sum(amounts) + lower\n+    I = \"\"\n+    for i in range(3):\n+        total += i\n+    return \"n=\" + str(total)",
     "added_lines": [
       {
         "line": "\"\"\"Consolidação de valores de linhas.\"\"\"",
@@ -7778,6 +7932,13 @@
         "hard_negative": false
       },
       {
+        "line": "    amounts = []",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
         "line": "    l = []",
         "viola": true,
         "regra": "secao-2",
@@ -7792,7 +7953,7 @@
         "hard_negative": false
       },
       {
-        "line": "        l.append(row.amount)",
+        "line": "        amounts.append(row.amount)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7813,7 +7974,7 @@
         "hard_negative": true
       },
       {
-        "line": "    total = sum(l) + O + lower",
+        "line": "    total = sum(amounts) + lower",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7841,7 +8002,7 @@
         "hard_negative": false
       },
       {
-        "line": "    return \"n=\" + str(total) + I",
+        "line": "    return \"n=\" + str(total)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7853,7 +8014,7 @@
     "pr_id": "PR-044",
     "description": "Filtros de busca",
     "filename": "search/filters.py",
-    "patch": "@@ -0,0 +1,19 @@\n+\"\"\"Exibição de resultados de busca.\"\"\"\n+\n+\n+def show_results(results: list[Entry], rows: list[Row]) -> None:\n+    \"\"\"Mostra os resultados e a primeira página.\n+\n+    Args:\n+        results: Resultados da busca.\n+        rows: Linhas a conferir.\n+    \"\"\"\n+    for l in results:\n+        show(l)\n+    for j in rows:\n+        check(j)\n+    O = compute_offset(results)\n+    page = results[O:O + 10]\n+    I = len(page)\n+    # l = 1 é apenas um exemplo\n+    print(page[:I])",
+    "patch": "@@ -0,0 +1,20 @@\n+\"\"\"Exibição de resultados de busca.\"\"\"\n+\n+\n+def show_results(results: list[Entry], rows: list[Row]) -> None:\n+    \"\"\"Mostra os resultados e a primeira página.\n+\n+    Args:\n+        results: Resultados da busca.\n+        rows: Linhas a conferir.\n+    \"\"\"\n+    displayed = 0\n+    for l in results:\n+        displayed += 1\n+    for j in rows:\n+        check(j)\n+    O = compute_offset(results)\n+    page = results[:10]\n+    I = len(page)\n+    # l = 1 e apenas um exemplo\n+    print(page, displayed)",
     "added_lines": [
       {
         "line": "\"\"\"Exibição de resultados de busca.\"\"\"",
@@ -7926,6 +8087,13 @@
         "hard_negative": false
       },
       {
+        "line": "    displayed = 0",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
         "line": "    for l in results:",
         "viola": true,
         "regra": "secao-2",
@@ -7933,7 +8101,7 @@
         "hard_negative": false
       },
       {
-        "line": "        show(l)",
+        "line": "        displayed += 1",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7961,7 +8129,7 @@
         "hard_negative": false
       },
       {
-        "line": "    page = results[O:O + 10]",
+        "line": "    page = results[:10]",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7975,14 +8143,14 @@
         "hard_negative": false
       },
       {
-        "line": "    # l = 1 é apenas um exemplo",
+        "line": "    # l = 1 e apenas um exemplo",
         "viola": false,
         "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "    print(page[:I])",
+        "line": "    print(page, displayed)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -7994,7 +8162,7 @@
     "pr_id": "PR-045",
     "description": "Contadores de acesso",
     "filename": "analytics/counters.py",
-    "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Contagem de eventos por item.\"\"\"\n+\n+\n+def count_events(item: Item, events: list[Event]) -> int:\n+    \"\"\"Conta os eventos do item.\n+\n+    Args:\n+        item: Item observado.\n+        events: Eventos recebidos.\n+\n+    Returns:\n+        Quantidade de eventos, limitada a cinco.\n+    \"\"\"\n+    l = 0\n+    hits = l\n+    item_length = item.l\n+    hits += item_length\n+    for O in events:\n+        hits += 1\n+    I = hits\n+    lower = min(I, 5)\n+    return lower",
+    "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Contagem de eventos por item.\"\"\"\n+\n+\n+def count_events(item: Item, events: list[Event]) -> int:\n+    \"\"\"Conta os eventos do item.\n+\n+    Args:\n+        item: Item observado.\n+        events: Eventos recebidos.\n+\n+    Returns:\n+        Quantidade de eventos, limitada a cinco.\n+    \"\"\"\n+    l = 0\n+    hits = 0\n+    item_length = item.l\n+    hits += item_length\n+    for O in events:\n+        hits += 1\n+    I = hits\n+    lower = min(hits, 5)\n+    return lower",
     "added_lines": [
       {
         "line": "\"\"\"Contagem de eventos por item.\"\"\"",
@@ -8095,7 +8263,7 @@
         "hard_negative": false
       },
       {
-        "line": "    hits = l",
+        "line": "    hits = 0",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8137,7 +8305,7 @@
         "hard_negative": false
       },
       {
-        "line": "    lower = min(I, 5)",
+        "line": "    lower = min(hits, 5)",
         "viola": false,
         "regra": "secao-2",
         "sub_regra": null,
@@ -8156,7 +8324,7 @@
     "pr_id": "PR-046",
     "description": "Ordenacao de itens",
     "filename": "catalog/sorting.py",
-    "patch": "@@ -0,0 +1,20 @@\n+\"\"\"Descrição de listas ordenadas.\"\"\"\n+\n+\n+def describe_sorted(items: list[int]) -> str:\n+    \"\"\"Ordena os itens e descreve o primeiro e o miolo.\n+\n+    Args:\n+        items: Itens a ordenar.\n+\n+    Returns:\n+        Descrição dos itens.\n+    \"\"\"\n+    l = sorted(items)\n+    first = l[0]\n+    for i in range(len(items)):\n+        swap(items, i)\n+    O = items[-1]\n+    middle = items[1:-1]\n+    message = \"l = 1\"\n+    return f\"{first} {middle} {O} {message}\"",
+    "patch": "@@ -0,0 +1,20 @@\n+\"\"\"Descrição de listas ordenadas.\"\"\"\n+\n+\n+def describe_sorted(items: list[int]) -> str:\n+    \"\"\"Ordena os itens e descreve o primeiro e o miolo.\n+\n+    Args:\n+        items: Itens a ordenar.\n+\n+    Returns:\n+        Descrição dos itens.\n+    \"\"\"\n+    l = sorted(items)\n+    first = min(items)\n+    for i in range(len(items)):\n+        swap(items, i)\n+    O = items[-1]\n+    middle = items[1:-1]\n+    message = \"l = 1\"\n+    return f\"{first} {middle} {message}\"",
     "added_lines": [
       {
         "line": "\"\"\"Descrição de listas ordenadas.\"\"\"",
@@ -8250,7 +8418,7 @@
         "hard_negative": false
       },
       {
-        "line": "    first = l[0]",
+        "line": "    first = min(items)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8292,7 +8460,7 @@
         "hard_negative": true
       },
       {
-        "line": "    return f\"{first} {middle} {O} {message}\"",
+        "line": "    return f\"{first} {middle} {message}\"",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8304,7 +8472,7 @@
     "pr_id": "PR-047",
     "description": "Leitura de arquivos",
     "filename": "io/reader.py",
-    "patch": "@@ -0,0 +1,21 @@\n+\"\"\"Leitura de arquivos de linhas.\"\"\"\n+\n+\n+def trim_lines(path: Path) -> int:\n+    \"\"\"Lê o arquivo e descarta as três últimas linhas.\n+\n+    Args:\n+        path: Arquivo a ler.\n+\n+    Returns:\n+        Limite calculado para as linhas restantes.\n+    \"\"\"\n+    lines = []\n+    for l in open(path):\n+        lines.append(l)\n+    I = 0\n+    for j in range(3):\n+        lines.pop(I)\n+    count = line_stats(lines)\n+    limit = count.l\n+    return limit",
+    "patch": "@@ -0,0 +1,21 @@\n+\"\"\"Leitura de arquivos de linhas.\"\"\"\n+\n+\n+def trim_lines(path: Path) -> int:\n+    \"\"\"Conta as linhas do arquivo, descontando o cabeçalho de três.\n+\n+    Args:\n+        path: Arquivo a ler.\n+\n+    Returns:\n+        Limite do arquivo somado às linhas de conteúdo.\n+    \"\"\"\n+    line_count = 0\n+    for l in open(path, encoding=\"utf-8\"):\n+        line_count += 1\n+    I = 0\n+    for j in range(3):\n+        line_count -= 1\n+    count = line_stats(path)\n+    limit = count.l\n+    return limit + line_count",
     "added_lines": [
       {
         "line": "\"\"\"Leitura de arquivos de linhas.\"\"\"",
@@ -8335,7 +8503,7 @@
         "hard_negative": false
       },
       {
-        "line": "    \"\"\"Lê o arquivo e descarta as três últimas linhas.",
+        "line": "    \"\"\"Conta as linhas do arquivo, descontando o cabeçalho de três.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8377,7 +8545,7 @@
         "hard_negative": false
       },
       {
-        "line": "        Limite calculado para as linhas restantes.",
+        "line": "        Limite do arquivo somado às linhas de conteúdo.",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8391,21 +8559,21 @@
         "hard_negative": false
       },
       {
-        "line": "    lines = []",
+        "line": "    line_count = 0",
         "viola": false,
         "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
-        "line": "    for l in open(path):",
+        "line": "    for l in open(path, encoding=\"utf-8\"):",
         "viola": true,
         "regra": "secao-2",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
-        "line": "        lines.append(l)",
+        "line": "        line_count += 1",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8426,14 +8594,14 @@
         "hard_negative": true
       },
       {
-        "line": "        lines.pop(I)",
+        "line": "        line_count -= 1",
         "viola": false,
         "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
-        "line": "    count = line_stats(lines)",
+        "line": "    count = line_stats(path)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8447,7 +8615,7 @@
         "hard_negative": true
       },
       {
-        "line": "    return limit",
+        "line": "    return limit + line_count",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8459,10 +8627,24 @@
     "pr_id": "PR-048",
     "description": "Buffer de eventos",
     "filename": "events/buffer.py",
-    "patch": "@@ -0,0 +1,20 @@\n+\"\"\"Descarte de eventos do buffer.\"\"\"\n+\n+\n+def drain_events(events: list[Event]) -> list[Event]:\n+    \"\"\"Descarta eventos do buffer até o limite.\n+\n+    Args:\n+        events: Eventos pendentes.\n+\n+    Returns:\n+        Eventos que sobraram no buffer.\n+    \"\"\"\n+    l = []\n+    later = 1\n+    O = None\n+    buffer = list(events) + l\n+    I = 10\n+    for i in range(I_MAX):\n+        buffer.pop()\n+    return buffer[later:I]",
+    "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Descarte de eventos do buffer.\"\"\"\n+\n+I_MAX = 5\n+\n+\n+def drain_events(events: list[Event]) -> list[Event]:\n+    \"\"\"Descarta eventos do buffer até o limite.\n+\n+    Args:\n+        events: Eventos pendentes.\n+\n+    Returns:\n+        Eventos que sobraram no buffer.\n+    \"\"\"\n+    l = []\n+    later = 1\n+    O = None\n+    buffer = list(events)\n+    I = 10\n+    for i in range(I_MAX):\n+        buffer.pop()\n+    return buffer[later:]",
     "added_lines": [
       {
         "line": "\"\"\"Descarte de eventos do buffer.\"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "I_MAX = 5",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8567,7 +8749,7 @@
         "hard_negative": false
       },
       {
-        "line": "    buffer = list(events) + l",
+        "line": "    buffer = list(events)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8595,7 +8777,7 @@
         "hard_negative": false
       },
       {
-        "line": "    return buffer[later:I]",
+        "line": "    return buffer[later:]",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -8607,7 +8789,7 @@
     "pr_id": "PR-049",
     "description": "Auditoria de acessos",
     "filename": "audit/access.py",
-    "patch": "@@ -0,0 +1,30 @@\n+\"\"\"Registro de acessos de usuários.\"\"\"\n+\n+MAX_ROWS = 100\n+\n+\n+class AccessLog:\n+    \"\"\"Registro de acessos de usuários.\"\"\"\n+\n+    def __init__(self, sink: LogSink) -> None:\n+        self.sink = sink\n+\n+    def record(self, user: User) -> None:\n+        \"\"\"Grava o acesso do usuário.\n+\n+        Args:\n+            user: Usuário que acessou.\n+        \"\"\"\n+        self.sink.write(user.name)\n+\n+\n+def build_report(log: AccessLog) -> str:\n+    \"\"\"Monta o relatório de acessos.\n+\n+    Args:\n+        log: Registro de acessos.\n+\n+    Returns:\n+        Texto do relatório.\n+    \"\"\"\n+    return log.sink.read()",
+    "patch": "@@ -0,0 +1,35 @@\n+\"\"\"Registro de acessos de usuários.\"\"\"\n+\n+MAX_ROWS = 100\n+\n+\n+class AccessLog:\n+    \"\"\"Registro de acessos de usuários.\"\"\"\n+\n+    def __init__(self, sink: LogSink) -> None:\n+        \"\"\"Guarda o destino dos registros.\n+\n+        Args:\n+            sink: Destino dos registros de acesso.\n+        \"\"\"\n+        self.sink = sink\n+\n+    def record(self, user: User) -> None:\n+        \"\"\"Grava o acesso do usuário.\n+\n+        Args:\n+            user: Usuário que acessou.\n+        \"\"\"\n+        self.sink.write(user.name)\n+\n+\n+def build_report(log: AccessLog) -> str:\n+    \"\"\"Monta o relatório de acessos.\n+\n+    Args:\n+        log: Registro de acessos.\n+\n+    Returns:\n+        Texto do relatório.\n+    \"\"\"\n+    return log.sink.read()",
     "added_lines": [
       {
         "line": "\"\"\"Registro de acessos de usuários.\"\"\"",
@@ -8671,6 +8853,41 @@
         "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
+      },
+      {
+        "line": "        \"\"\"Guarda o destino dos registros.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            sink: Destino dos registros de acesso.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
       },
       {
         "line": "        self.sink = sink",
@@ -9015,7 +9232,7 @@
     "pr_id": "PR-051",
     "description": "Contas de clientes",
     "filename": "accounts/customers.py",
-    "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Contas de clientes.\"\"\"\n+\n+\n+class CustomerAccount:\n+    \"\"\"Conta de um cliente.\"\"\"\n+\n+    def __init__(self, owner: Customer) -> None:\n+        self.owner = owner\n+\n+    def balance(self) -> float:\n+        \"\"\"Informa o saldo da conta.\n+\n+        Returns:\n+            Saldo do titular.\n+        \"\"\"\n+        return self.owner.total\n+\n+\n+def open_account(owner: Customer) -> CustomerAccount:\n+    \"\"\"Abre uma conta para o cliente.\n+\n+    Args:\n+        owner: Titular da conta.\n+\n+    Returns:\n+        Conta aberta.\n+    \"\"\"\n+    return CustomerAccount(owner)",
+    "patch": "@@ -0,0 +1,33 @@\n+\"\"\"Contas de clientes.\"\"\"\n+\n+\n+class CustomerAccount:\n+    \"\"\"Conta de um cliente.\"\"\"\n+\n+    def __init__(self, owner: Customer) -> None:\n+        \"\"\"Guarda o titular da conta.\n+\n+        Args:\n+            owner: Titular da conta.\n+        \"\"\"\n+        self.owner = owner\n+\n+    def balance(self) -> float:\n+        \"\"\"Informa o saldo da conta.\n+\n+        Returns:\n+            Saldo do titular.\n+        \"\"\"\n+        return self.owner.total\n+\n+\n+def open_account(owner: Customer) -> CustomerAccount:\n+    \"\"\"Abre uma conta para o cliente.\n+\n+    Args:\n+        owner: Titular da conta.\n+\n+    Returns:\n+        Conta aberta.\n+    \"\"\"\n+    return CustomerAccount(owner)",
     "added_lines": [
       {
         "line": "\"\"\"Contas de clientes.\"\"\"",
@@ -9065,6 +9282,41 @@
         "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
+      },
+      {
+        "line": "        \"\"\"Guarda o titular da conta.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            owner: Titular da conta.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
       },
       {
         "line": "        self.owner = owner",
@@ -13541,7 +13793,7 @@
     "pr_id": "PR-076",
     "description": "Cliente de armazenamento (controle)",
     "filename": "storage/bucket_client.py",
-    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Cliente de armazenamento.\"\"\"\n+\n+\n+class BucketClient:\n+    \"\"\"Acesso a objetos do armazenamento.\"\"\"\n+\n+    def __init__(self, session: StorageSession) -> None:\n+        self.session = session\n+\n+    def download(self, key: str) -> bytes:\n+        \"\"\"Baixa um objeto pela chave.\n+\n+        Args:\n+            key: Chave do objeto.\n+\n+        Returns:\n+            Conteúdo do objeto.\n+\n+        Raises:\n+            StorageError: Se a chave não existir.\n+        \"\"\"\n+        # jamais usar except Exception: pass em downloads\n+        try:\n+            return self.session.get(key)\n+        except KeyError as exc:\n+            raise StorageError(\"Chave ausente\") from exc",
+    "patch": "@@ -0,0 +1,31 @@\n+\"\"\"Cliente de armazenamento.\"\"\"\n+\n+\n+class BucketClient:\n+    \"\"\"Acesso a objetos do armazenamento.\"\"\"\n+\n+    def __init__(self, session: StorageSession) -> None:\n+        \"\"\"Guarda a sessão do armazenamento.\n+\n+        Args:\n+            session: Sessão autenticada no armazenamento.\n+        \"\"\"\n+        self.session = session\n+\n+    def download(self, key: str) -> bytes:\n+        \"\"\"Baixa um objeto pela chave.\n+\n+        Args:\n+            key: Chave do objeto.\n+\n+        Returns:\n+            Conteúdo do objeto.\n+\n+        Raises:\n+            StorageError: Se a chave não existir.\n+        \"\"\"\n+        # jamais usar except Exception: pass em downloads\n+        try:\n+            return self.session.get(key)\n+        except KeyError as exc:\n+            raise StorageError(\"Chave ausente\") from exc",
     "added_lines": [
       {
         "line": "\"\"\"Cliente de armazenamento.\"\"\"",
@@ -13587,6 +13839,41 @@
       },
       {
         "line": "    def __init__(self, session: StorageSession) -> None:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"Guarda a sessão do armazenamento.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        Args:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "            session: Sessão autenticada no armazenamento.",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        \"\"\"",
         "viola": false,
         "regra": null,
         "sub_regra": null,

@@ -138,8 +138,39 @@ def test_segredo_em_literal():
 
 
 def test_nome_proibido_maiusculo_em_funcao_vale_so_na_positiva():
-    lines = LIMPO[:-1] + ["    O = price", "    return O == 0"]
+    lines = LIMPO[:-1] + ["    O = price", "    return price == 0"]
     assert any("N806" in e for e in _erros(lines))
     subs = [None] * len(lines)
     subs[-2] = "nome_proibido"
     assert _erros(lines, subs) == []
+
+
+def test_uso_de_nome_proibido_fora_da_atribuicao_reprova():
+    assert "uso-nome-proibido" in _tags(
+        "def f_(count: int) -> int:\n    l = count\n    return l\n"
+    )
+    assert "uso-nome-proibido" not in _tags(
+        "def f_(count: int) -> int:\n    l = count\n    return count\n"
+    )
+
+
+def test_positiva_nome_funcao_com_retorno_bool_viola_tambem_a_2_3():
+    lines = LIMPO.copy()
+    idx = lines.index("def is_free(price: float) -> bool:")
+    lines[idx] = "def isFree(price: float) -> bool:"
+    subs = [None] * len(lines)
+    subs[idx] = "nome_funcao"
+    assert any("prefixo-booleano" in e for e in _erros(lines, subs))
+
+
+def test_init_sem_docstring_reprova():
+    lines = LIMPO + [
+        "",
+        "",
+        "class Wallet:",
+        '    """Carteira do cliente."""',
+        "",
+        "    def __init__(self, owner: str) -> None:",
+        "        self.owner = owner",
+    ]
+    assert any("D107" in e for e in _erros(lines))

@@ -13,7 +13,7 @@ Validação ponta a ponta de um pipeline RAG que detecta violações de três re
 | Regras | Seção 5 do `guia_python_pep8.md`, comparações: proibido `== True`, `== False`, `== None` e `!= None`, obrigatório `is` / `is not` com `None`. E um recorte da Seção 2, nomenclatura: funções em `snake_case`, classes em `PascalCase`, e `l`, `O`, `I` proibidos como nome de uma letra (D-002 e sua emenda) |
 | Unidade de avaliação | A linha adicionada (D-001) |
 | Corpus indexado | Os três guias de `docs/style_guides/`: 52 seções, 52 chunks (D-007) |
-| Dataset | 75 PRs sintéticos, 1984 linhas adicionadas, com código conforme o corpus inteiro fora a violação rotulada (D-008). 132 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 16 por sub-regra de exceção) e 1852 negativas, das quais 132 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
+| Dataset | 75 PRs sintéticos, 2025 linhas adicionadas, com código conforme o corpus inteiro fora a violação rotulada (D-008). 132 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 16 por sub-regra de exceção) e 1893 negativas, das quais 132 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
 | LLM | `qwen/qwen3.8-27b` via Groq, temperatura 0.0 (D-005, D-006) |
 | Embedding | `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensões) mais BM25 esparso (ADR-002, ADR-004) |
 | Banco de vetores | Qdrant (ADR-001) |
