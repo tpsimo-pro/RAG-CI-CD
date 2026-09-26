@@ -626,6 +626,130 @@ sinal para detectar. O sistema degeneraria em "um LLM com um prompt bom", e o
 
 ---
 
+## D-008 — Código do dataset conforme o corpus inteiro
+
+**Data:** 2026-09-26
+**Status:** Aceita
+
+### Contexto
+
+A primeira rodada no dataset de três regras (75 PRs, 761 linhas) deu
+TP 114, FP 61, FN 18, TN 567: precisão 0.648, abaixo da meta de 0.70. O
+detalhe por PR (`per_pr_detail`) mostrou que **53 dos 61 FPs não são erros
+do modelo**: são violações reais de outras normas do corpus que o código do
+dataset comete e o gabarito não rotula. O código dos PRs não tinha docstring
+(`coding_standards.md` 5.1, 25 FPs), tipo de retorno (3.3, 13 FPs), linhas
+em branco entre definições (`guia_python_pep8.md` 1.3, 6 FPs), além de
+funções que o modelo tomou por booleanas sem prefixo (2.3, 6 FPs). O mesmo
+efeito bloqueou 20 dos 21 PRs de controle no gate por PR.
+
+O rótulo "não viola" de D-001 é relativo às regras do piloto, mas o sistema
+recebe o corpus inteiro (D-007) e a instrução de apontar qualquer violação.
+A tarefa medida e a tarefa executada divergiam, e a diferença aparecia como
+FP.
+
+### Decisão
+
+O gabarito e a métrica **não mudam**. Muda o **código** dos 75 PRs: toda
+linha passa a cumprir todas as normas do corpus aplicáveis a um trecho de
+código isolado, exceto a violação que o seu rótulo declara. Assim o rótulo
+"não viola" fica verdadeiro para o corpus inteiro, não só para o piloto.
+
+**Normas garantidas pelo validador** (`validate_pilot_dataset.py`):
+
+| Norma | Checagem |
+|---|---|
+| pep8 1.1 (79 caracteres; 72 em docstring e comentário) | ruff E501, W505 |
+| pep8 1.2, 1.3, 4 (indentação, linhas em branco, espaços) | ruff E, W (com `--preview`, para E30x) |
+| pep8 2, 2.1 (nomes; exceção com sufixo `Error`) | ruff N; nome de uma letra só `i` e `j` |
+| pep8 3, cs 6 (imports agrupados e ordenados, sem `*`) | ruff I, F403 |
+| cs 2.2 (nomes genéricos e abreviações) | lista proibida: `data`, `info`, `temp`, `obj`, `result`, `cnt`, `mx`, `err`, `val` |
+| cs 2.3 (prefixo booleano) | prefixo `is_`/`has_`/`can_`/`should_` se e somente se o retorno anotado é `bool` |
+| cs 3.1, 3.2 (até 30 linhas; até 4 parâmetros; sem parâmetro booleano) | AST |
+| cs 3.3 (tipo de retorno) | ruff ANN001, ANN201, ANN202, ANN204: toda função com parâmetros e retorno anotados |
+| cs 5.1 (docstring Google Style em módulo, classe e função) | ruff D (convenção `google`); `Args:` se há parâmetro, `Returns:` se o retorno não é `None`, `Raises:` se há `raise` |
+| cs 7.1 (segredos e URLs fixas) | nenhum literal com `://`, `sk-` ou `password` |
+| Nomes de módulo | atribuição de módulo só em `UPPER_SNAKE_CASE` ou `logger` |
+
+Os códigos do ruff que correspondem às regras do piloto só são aceitos na
+linha positiva da própria regra: E712 (`booleano`), E711 (`nulo`), N802
+(`nome_funcao`), N801 (`nome_classe`), E741 (`nome_proibido`). Qualquer
+outro diagnóstico, em qualquer linha, reprova o PR. A linha positiva cumpre
+o resto: `def CalculateTax(amount: float) -> float:` viola só a
+nomenclatura.
+
+**Diretriz de escrita, sem checagem:** responsabilidade única (cs 1.1),
+comentários que explicam o porquê (cs 5.2), camadas e N+1
+(`architecture_patterns.md`).
+
+**Fora do escopo, residual declarado:**
+- cs 4.2 (hierarquia de exceções por domínio). O catálogo de negativos
+  difíceis da Seção 2 exige `class XError(Exception):`, e um PR isolado não
+  tem hierarquia de domínio a seguir. Um FP citando 4.2 é discutido no texto.
+- `assert` "em produção". Não é norma do corpus; se o modelo acusar, é FP.
+- cs 8, 9, 7.2 e `architecture_patterns.md` 2 e 3: não se aplicam a um
+  trecho de código.
+
+**Rótulos:** as 132 positivas e os 132 negativos difíceis mantêm o rótulo.
+O texto delas pode mudar só para cumprir as demais normas (anotações de
+tipo). Linhas novas (docstrings, imports, linhas em branco) são negativos
+comuns.
+
+### Emenda a D-004
+
+- Cada PR tem **de 6 a 40 linhas** (antes, 6 a 15). Docstrings Google Style
+  não cabem em 15.
+- O texto do dataset inteiro tem no máximo **90.000 caracteres** (hoje,
+  23.441). Estimativa: cerca de 260 tokens a mais por chamada, uma rodada
+  de ~130 mil tokens, dentro da cota diária de 200 mil do Groq (D-006). Uma
+  rodada por dia; o checkpoint retoma se a cota acabar.
+
+### Mudança no retriever
+
+Linhas em branco (ou só com espaços) deixam de ser **consultas** de
+recuperação: não carregam conteúdo normativo, geram vetor esparso vazio e
+um vetor denso arbitrário que só polui a união dos chunks. Continuam
+chegando ao LLM e continuam sendo linhas avaliadas (D-001). Um diff real
+tem linhas em branco, então a mudança é de robustez do sistema, não um
+ajuste ao dataset.
+
+### Medição
+
+- A rodada oficial é uma só: sistema atual contra o dataset conforme.
+  `evaluation/results.json` é sobrescrito; `results_dev.json` e
+  `results_dev_3regras.json` são removidos (o "antes" fica no histórico do
+  git, commit anterior a esta decisão).
+- **A linha de base das Seções 5 e 2 em `0237b3d` (Emenda 2 de D-002) é
+  abandonada.** Com o código do dataset reescrito, aquela árvore mede outro
+  material. A instrução do prompt sobre a linha que abre o bloco passa a ser
+  parte do sistema avaliado.
+- Critério de sucesso: os FPs que citam normas fora do piloto (docstring,
+  tipo de retorno, prefixo booleano, linhas em branco) somem ou viram casos
+  isolados. O que sobrar é erro do modelo e vai para a discussão.
+
+### Riscos
+
+- **Recall por diluição do retrieval.** As linhas de docstring também são
+  consultas e podem levar o chunk da cs 5.1 a ocupar uma das 8 vagas que
+  antes eram da Seção 5 ou da cs 4.1. É um efeito real (código de verdade
+  tem docstring) e será reportado se aparecer.
+- A acurácia sobe artificialmente com o N maior (a proporção de positivas
+  cai de 17% para ~7%). Precisão, recall e F1 não usam TN e continuam
+  comparáveis.
+
+### Alternativas rejeitadas
+
+- **Estender o gabarito às normas objetivas (cs 5.1, 3.3, pep8 1.3).** As
+  positivas passariam de 132 para mais de 250, sem negativos difíceis para
+  as regras novas; o desenho do piloto (poucas regras, rótulo indiscutível)
+  deixaria de valer, e parte dos rótulos seria discutível (cs 2.3 sem tipo
+  anotado, cs 1.1).
+- **Reportar uma "precisão no escopo" que desconta os FPs fora do piloto.**
+  Mudaria a métrica depois de ver o resultado.
+- **Restringir o prompt às regras do piloto.** Contradiz D-007.
+
+---
+
 ## Pendências (decisões ainda não tomadas)
 
 - **P-004 — Remoção da avaliação humana do planejamento.** Retirar §15.4
