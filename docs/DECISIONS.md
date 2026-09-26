@@ -692,17 +692,22 @@ comentários que explicam o porquê (cs 5.2), camadas e N+1
 
 **Rótulos:** as 132 positivas e os 132 negativos difíceis mantêm o rótulo.
 O texto delas pode mudar só para cumprir as demais normas (anotações de
-tipo). Linhas novas (docstrings, imports, linhas em branco) são negativos
-comuns.
+tipo, indentação). Linhas novas (docstrings, imports, linhas em branco) são
+negativos comuns. Em 11 PRs da Seção 5 o `return` rotulado foi movido para
+o fim da função, porque o código antigo tinha instruções inalcançáveis
+depois dele; o conjunto de rótulos de cada PR é o mesmo.
 
 ### Emenda a D-004
 
-- Cada PR tem **de 6 a 40 linhas** (antes, 6 a 15). Docstrings Google Style
-  não cabem em 15.
+- Cada PR tem **de 6 a 60 linhas** (antes, 6 a 15). Docstrings Google Style
+  não cabem em 15, e um PR com quatro funções documentadas passa de 40.
+  (O plano previa 40; subiu na reescrita, porque o custo de tokens é
+  governado pelo teto de caracteres, não pelo número de linhas.)
 - O texto do dataset inteiro tem no máximo **90.000 caracteres** (hoje,
-  23.441). Estimativa: cerca de 260 tokens a mais por chamada, uma rodada
-  de ~130 mil tokens, dentro da cota diária de 200 mil do Groq (D-006). Uma
-  rodada por dia; o checkpoint retoma se a cota acabar.
+  23.441). Resultado da reescrita: 1.984 linhas e 48.816 caracteres, de 18
+  a 52 linhas por PR. São ~7 mil tokens a mais por rodada, dentro da cota
+  diária de 200 mil do Groq (D-006). Uma rodada por dia; o checkpoint
+  retoma se a cota acabar.
 
 ### Mudança no retriever
 

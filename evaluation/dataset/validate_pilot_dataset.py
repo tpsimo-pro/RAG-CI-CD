@@ -250,11 +250,11 @@ def main() -> int:
         pr_ids_seen.add(pr_id)
 
         added_lines = pr.get("added_lines", [])
-        if not (6 <= len(added_lines) <= 40):
+        if not (6 <= len(added_lines) <= 60):
             fail(
                 errors,
                 f"{pr_id}: {len(added_lines)} linhas adicionadas, fora do "
-                f"intervalo esperado (6-40, D-008).",
+                f"intervalo esperado (6-60, D-008).",
             )
 
         has_violation = False

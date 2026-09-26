@@ -13,7 +13,7 @@ Lista JSON de PRs, UTF-8 sem BOM.
 | `description` | string | Texto livre curto |
 | `filename` | string | Caminho `.py` |
 | `patch` | string | Unified diff de arquivo novo (`@@ -0,0 +1,N @@`). As linhas com `+` são exatamente `added_lines[].line`, na mesma ordem |
-| `added_lines` | lista | 6 a 15 entradas, uma por linha adicionada, sem omitir nenhuma (D-004) |
+| `added_lines` | lista | 6 a 60 entradas, uma por linha adicionada (linhas em branco inclusive), sem omitir nenhuma (D-004, D-008) |
 
 O conjunto das linhas de um PR precisa formar Python válido (`ast.parse`) e
 nenhuma passa de 79 caracteres.
@@ -53,6 +53,15 @@ nenhuma passa de 79 caracteres.
    específico; corpo com `raise ... from` ou `logger.exception` no primeiro
    nível, ou só `pass`/`continue` na linha seguinte). Nenhum `except` nem corpo de bloco violador repete texto
    no PR.
+7. O código cumpre o corpus inteiro (D-008): `conformity.py` roda o ruff
+   (E, W, N, D google, ANN001/201/202/204, I, F403; 79 colunas, 72 em
+   docstring e comentário) e checagens AST (prefixo booleano, até 4
+   parâmetros, sem parâmetro booleano, nomes genéricos, nomes de uma letra,
+   nomes de módulo, seções `Args`/`Returns`/`Raises`, segredos). Um achado
+   só é aceito na linha positiva da própria sub-regra: E712 (`booleano`),
+   E711 (`nulo`), N802 e prefixo booleano (`nome_funcao`), N801
+   (`nome_classe`), E741, N806, uma letra e nome de módulo
+   (`nome_proibido`). O texto do dataset tem no máximo 90.000 caracteres.
 
 ## Composição atual
 
@@ -60,7 +69,7 @@ nenhuma passa de 79 caracteres.
 |---|---|---|---|---|
 | PRs | 25 (PR-001 a PR-030, sem 009, 010, 019, 020, 030) | 25 (PR-031 a PR-055) | 25 (PR-056 a PR-080) | 75 |
 | PRs de controle | 7 | 7 | 7 | 21 |
-| Linhas | 253 | 221 | 287 | 761 |
+| Linhas | 567 | 787 | 630 | 1984 |
 | Positivas | 52 (26 `booleano`, 26 `nulo`) | 48 (16 por sub-regra) | 32 (16 por sub-regra) | 132 |
 | Negativos difíceis | 50 | 50 | 32 | 132 |
 
