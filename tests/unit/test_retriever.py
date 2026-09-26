@@ -295,6 +295,19 @@ class TestRetrieveForFilePorLinha:
             "if z != None:",
         ]
 
+    def test_linhas_em_branco_nao_viram_consulta(self):
+        """D-008: linha em branco nao tem conteudo normativo."""
+        file_diff = make_file_diff(added_lines=["def f():", "", "   ", "    return 1"])
+        embedder = _RecordingEmbedder()
+        store = _FakeStore(chunks=[make_chunk()])
+
+        ctx = Retriever(embedder=embedder, store=store, hybrid=False).retrieve_for_file(
+            file_diff
+        )
+
+        assert embedder.textos_recebidos == ["def f():", "    return 1"]
+        assert ctx.file_diff.added_lines == ["def f():", "", "   ", "    return 1"]
+
     def test_chunks_repetidos_entre_linhas_sao_deduplicados(self):
         file_diff = make_file_diff(added_lines=["if x == True:", "if y == False:"])
         mesmo = make_chunk(text="mesma norma")

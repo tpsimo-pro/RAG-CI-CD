@@ -191,7 +191,10 @@ class Retriever:
         """
         self._ensure_model_guard()
 
-        linhas = file_diff.added_lines
+        # D-008: linha em branco nao carrega conteudo normativo; como consulta
+        # so gera vetor esparso vazio e ruido na uniao. O LLM continua
+        # recebendo o arquivo inteiro (file_diff.added_lines).
+        linhas = [linha for linha in file_diff.added_lines if linha.strip()]
 
         console.log(
             f"[dim]Retriever:[/dim] buscando normas para "
