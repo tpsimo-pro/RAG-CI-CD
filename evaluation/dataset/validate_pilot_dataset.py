@@ -16,6 +16,10 @@ import re
 import sys
 from pathlib import Path
 
+# Rodado como script, a raiz do projeto nao esta no sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from evaluation.dataset.conformity import conformity_errors  # noqa: E402
+
 DATASET_PATH = Path(__file__).parent / "pilot_dataset.json"
 
 # Catalogo minimo de negativos dificeis (D-004). Cada padrao precisa
@@ -246,11 +250,11 @@ def main() -> int:
         pr_ids_seen.add(pr_id)
 
         added_lines = pr.get("added_lines", [])
-        if not (6 <= len(added_lines) <= 15):
+        if not (6 <= len(added_lines) <= 40):
             fail(
                 errors,
                 f"{pr_id}: {len(added_lines)} linhas adicionadas, fora do "
-                f"intervalo esperado (~6-15).",
+                f"intervalo esperado (6-40, D-008).",
             )
 
         has_violation = False
@@ -260,6 +264,10 @@ def main() -> int:
         except SyntaxError:
             # A falha de sintaxe ja e reportada pela checagem de ast.parse.
             labels, scope_errors = {}, []
+        else:
+            subs = [e.get("sub_regra") for e in added_lines]
+            for msg in conformity_errors(texts, subs):
+                fail(errors, f"{pr_id}: {msg} (D-008)")
         for msg in scope_errors + block_duplicates(texts, labels):
             fail(errors, f"{pr_id}: {msg} (emenda 2 de D-002)")
 
@@ -395,7 +403,10 @@ def main() -> int:
     check_eq(errors, "Pull Requests", n_prs, 75)
     check_eq(errors, "PRs de controle (sem violacao)", control_prs, 21)
     check_eq(errors, "PRs com >=1 violacao", violation_prs, 54)
-    check_range(errors, "Total de linhas adicionadas", n_lines, 700, 820)
+    check_range(errors, "Total de linhas adicionadas", n_lines, 1200, 3000)
+    n_chars = sum(len(x["line"]) + 1 for x in all_lines)
+    if n_chars > 90_000:
+        fail(errors, f"Texto do dataset com {n_chars} caracteres (> 90000, D-008).")
     check_eq(errors, "Linhas positivas (violam)", len(positives), 132)
     for sub, expected in (
         ("booleano", 26),
@@ -439,6 +450,7 @@ def main() -> int:
     print(f"PRs de controle:         {control_prs}")
     print(f"PRs com violacao:        {violation_prs}")
     print(f"Linhas adicionadas (N):  {n_lines}")
+    print(f"Caracteres do dataset:   {n_chars}")
     print(f"Linhas positivas:        {len(positives)} "
           + ", ".join(f"{k}={len(v)}" for k, v in by_sub.items()))
     print(f"Linhas negativas:        {len(negatives)}")
