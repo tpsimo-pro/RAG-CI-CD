@@ -30,7 +30,8 @@ ALLOWED_BY_SUB = {
     "nulo": {"E711"},
     "nome_funcao": {"N802", "prefixo-booleano"},
     "nome_classe": {"N801"},
-    "nome_proibido": {"E741", "uma-letra", "nome-de-modulo"},
+    # N806: `O`/`I` dentro de funcao e a mesma violacao vista como maiuscula.
+    "nome_proibido": {"E741", "N806", "uma-letra", "nome-de-modulo"},
 }
 
 GENERIC_NAMES = {"data", "info", "temp", "obj", "result", "cnt", "mx", "err", "val"}

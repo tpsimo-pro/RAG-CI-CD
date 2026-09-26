@@ -135,3 +135,11 @@ def test_secoes_da_docstring():
 
 def test_segredo_em_literal():
     assert "segredo" in _tags('DB_URL = "postgresql://u:p@host/db"\n')
+
+
+def test_nome_proibido_maiusculo_em_funcao_vale_so_na_positiva():
+    lines = LIMPO[:-1] + ["    O = price", "    return O == 0"]
+    assert any("N806" in e for e in _erros(lines))
+    subs = [None] * len(lines)
+    subs[-2] = "nome_proibido"
+    assert _erros(lines, subs) == []
