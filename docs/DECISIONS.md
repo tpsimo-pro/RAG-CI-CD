@@ -143,6 +143,89 @@ existe para evitar, e violaria o "uma única regra" do todo.
 - ~~A indexação do piloto pode restringir-se ao `guia_python_pep8.md`.~~
   **Revertido por D-007** — o corpus completo é necessário como palheiro.
 
+### Emenda (2026-09-18): segunda regra, Seção 2 restrita
+
+**Status da emenda:** Aceita e implementada em `evaluation/dataset/pilot_dataset.json`.
+
+O piloto passa de uma para **duas regras**: a Seção 5 (inalterada, acima) e
+um recorte objetivo da **Seção 2 do `guia_python_pep8.md` - Nomenclatura**.
+A Seção 3.2 (`import *`) continua rejeitada pelos motivos acima. A rejeição
+da Seção 2 sem restrição tinha um motivo preciso (constante versus variável de
+módulo depende da intenção do autor), e o recorte abaixo elimina exatamente
+esse motivo.
+
+**Sub-regras da Seção 2 no escopo** (todas decidíveis olhando uma linha):
+
+| `sub_regra` | Norma | Viola | Não viola |
+|---|---|---|---|
+| `nome_funcao` | 2 - funções em `snake_case` | `def CalculateTax(...)`, `def calculateTax(...)` | `def calculate_tax(...)`, `def __init__(...)`, `def _helper(...)` |
+| `nome_classe` | 2 - classes em `PascalCase` | `class payment_processor:`, `class Payment_Processor:` | `class PaymentProcessor:`, `class InvalidTokenError(Exception):` |
+| `nome_proibido` | 2.1 - `l`, `O`, `I` como nome de uma letra | `l = []`, `for O in items:` | `i = 0`, `for j in rows:`, `lower = 1`, `obj.l` |
+
+**Fora do escopo, de propósito:**
+- Constantes e variáveis de módulo (`UPPER_SNAKE_CASE` versus `snake_case`):
+  depende da intenção do autor, motivo da rejeição original.
+- Nomes com sigla (`HTTPClient`, `parseXML`): o guia não define o tratamento.
+  Nenhuma linha do dataset pode conter sigla em identificador de `def` ou
+  `class`, para não haver rótulo discutível.
+- Variáveis de uma letra fora de `l`, `O`, `I` ("evite `x`, `y`"): o guia
+  ressalva índices de loop, então a fronteira é subjetiva.
+- Exceções com sufixo `Error`, pacotes e módulos: exigem contexto de mais de
+  uma linha ou de nome de arquivo.
+
+**Por que este recorte responde às objeções anteriores:**
+1. *Negativos difíceis existem.* `def __init__`, `def _helper`, `lower = 1`,
+   `obj.l` e o texto `"l = 1"` dentro de string ou comentário são visualmente
+   próximos das violações. A matriz não fica degenerada.
+2. *Rotulação objetiva.* Cada sub-regra tem exemplos literais de correto e
+   incorreto, e a tabela acima é o gabarito.
+3. *Deixa de ser puramente lexical.* Decidir se `calculateTax` viola exige
+   reconhecer o padrão de capitalização, o que o BM25 não resolve sozinho.
+   Isso é o que falta para isolar o valor do embedding multilíngue, hoje uma
+   limitação declarada.
+
+**Consequências da emenda:**
+- O dataset atual não precisou ser reclassificado: uma verificação por
+  expressão regular nas 300 linhas achou **zero** violações de nomenclatura
+  (30 linhas de `def` ou `class`, todas corretas).
+- **Composição nova, 50 PRs (substitui os números de D-004):** dos 30 PRs
+  antigos foram removidos 5 (PR-009, PR-010, PR-019, PR-020 e PR-030), para
+  manter as sub-regras da Seção 5 balanceadas (26 booleanas e 26 de nulo), e
+  foram somados 25 PRs novos da Seção 2 (PR-031 a PR-055). Resultado: 36 PRs
+  com violação e 14 de controle, 474 linhas, 100 positivas (26 booleano, 26
+  nulo, 16 por sub-regra da Seção 2) e 100 negativos difíceis. O esquema está
+  em `evaluation/dataset/SCHEMA.md`. O arquivo passou a se chamar
+  `pilot_dataset.json`.
+- **A nomenclatura está em dois guias do corpus.** Além do
+  `guia_python_pep8.md` (Seção 2 e 2.1), o `coding_standards.md` (2.1 e 2.2)
+  traz as mesmas três sub-regras, de forma consistente. Uma detecção que cite
+  qualquer um dos dois é correta, e o gabarito de retrieval aceita chunks de
+  ambos. O `coding_standards.md` também tem regras vizinhas (2.3, funções que
+  retornam booleano devem começar com `is_`/`has_`; 2.2, nomes genéricos)
+  que ficam fora do escopo, e os negativos novos foram escritos para não
+  violá-las de forma óbvia.
+- Os resultados de detecção e de retrieval publicados (`results.json` e
+  `results_L0` a `results_L4`) foram medidos no dataset antigo de 30 PRs e
+  precisam ser refeitos para o dataset novo.
+- Métricas passam a ser reportadas **por regra** além do total. Implementado
+  em `metrics.py` (`RuleMetrics`, `RepetitionResult.per_rule`,
+  `per_sub_rule_recall`, `AggregatedEvaluation.per_rule_summary`) e exibido e
+  serializado por `run_evaluation.py` (chaves `per_rule` e
+  `per_sub_rule_recall` em `results.json`). O recorte de uma regra são as
+  linhas cujo campo `regra` é ela — as positivas mais os negativos difíceis
+  escritos contra ela. Negativos comuns (`regra: null`) não pertencem a regra
+  alguma e só entram na matriz global, então a soma das matrizes por regra é
+  menor que N e a precisão por regra não é comparável à global. O recall por
+  sub-regra é reportado à parte, porque uma sub-regra não tem negativos
+  próprios.
+- A precisão de referência normativa passou a ser **relativa à regra
+  violada**: Seção 5 para comparações, Seção 2 (de qualquer um dos dois guias,
+  subseção inclusive) para nomenclatura. O campo `cites_section_5` de
+  `LineResult` virou `cites_correct_norm`.
+- `norm_map.py`, `gold.py` e `validate_pilot_dataset.py` já cobrem as
+  sub-regras novas.
+- O corpus indexado não muda (D-007): a Seção 2 já está entre os 52 chunks.
+
 ---
 
 ## D-003 — Atribuição detecção→linha: coincidência exata após normalização

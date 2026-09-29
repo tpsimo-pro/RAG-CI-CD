@@ -1,0 +1,367 @@
+{
+  "config": {
+    "dataset": "C:\\Users\\Thiago-PC\\Desktop\\TCC\\RAG-CI-CD\\evaluation\\dataset\\pilot_dataset.json",
+    "repeticoes": 1,
+    "model": "qwen/qwen3.8-27b",
+    "temperature": 0.0
+  },
+  "repetitions": [
+    {
+      "repetition_index": 0,
+      "confusion_matrix": {
+        "tp": 99,
+        "fp": 48,
+        "fn": 1,
+        "tn": 326,
+        "n": 474
+      },
+      "precision": 0.6735,
+      "recall": 0.99,
+      "f1": 0.8016,
+      "accuracy": 0.8966,
+      "hallucination_rate": 0.0,
+      "norm_reference_precision": 0.5152,
+      "total_detections": 195,
+      "hallucinated_detections": 0
+    }
+  ],
+  "summary": {
+    "precision_mean": 0.6735,
+    "precision_stdev": 0.0,
+    "recall_mean": 0.99,
+    "recall_stdev": 0.0,
+    "f1_mean": 0.8016,
+    "f1_stdev": 0.0,
+    "median_f1_repetition_index": 0
+  },
+  "published": {
+    "line_confusion_matrix": {
+      "tp": 99,
+      "fp": 48,
+      "fn": 1,
+      "tn": 326,
+      "n": 474
+    },
+    "pr_gate_confusion_matrix": {
+      "tp": 36,
+      "fp": 13,
+      "fn": 0,
+      "tn": 1,
+      "n": 50
+    },
+    "accuracy": {
+      "value": 0.8966,
+      "note": "SECUNDÁRIA e NÃO-REPRESENTATIVA: conjunto desbalanceado (~80% de linhas negativas, D-004). Não usar para comparar desempenho."
+    },
+    "hallucination_rate": 0.0,
+    "norm_reference_precision": 0.5152
+  },
+  "targets": {
+    "precision": false,
+    "recall": true,
+    "f1": true,
+    "all": false
+  },
+  "per_pr_gate": [
+    {
+      "pr_id": "PR-001",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-002",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-003",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-004",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-005",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-006",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-007",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-008",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-011",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-012",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-013",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-014",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-015",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-016",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-017",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-018",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-021",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-022",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-023",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-024",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-025",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-026",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-027",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-028",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-029",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-031",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-032",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-033",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-034",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-035",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-036",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-037",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-038",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-039",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-040",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-041",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-042",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-043",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-044",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-045",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-046",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-047",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-048",
+      "expected_positive": true,
+      "predicted_positive": true,
+      "cell": "TP"
+    },
+    {
+      "pr_id": "PR-049",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-050",
+      "expected_positive": false,
+      "predicted_positive": false,
+      "cell": "TN"
+    },
+    {
+      "pr_id": "PR-051",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-052",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-053",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-054",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    },
+    {
+      "pr_id": "PR-055",
+      "expected_positive": false,
+      "predicted_positive": true,
+      "cell": "FP"
+    }
+  ]
+}

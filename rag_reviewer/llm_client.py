@@ -168,6 +168,25 @@ class LLMClient:
             retrieved_chunks=chunks_text,
         )
 
+    @staticmethod
+    def _recover_truncated(raw: str) -> list[dict]:
+        """Objetos completos de "violations" numa resposta cortada por max_tokens."""
+        marker = re.search(r'"violations"\s*:\s*\[', raw)
+        if not marker:
+            return []
+        decoder = json.JSONDecoder()
+        pos = marker.end()
+        objetos: list[dict] = []
+        while True:
+            while pos < len(raw) and raw[pos] in " \n\r\t,":
+                pos += 1
+            try:
+                obj, pos = decoder.raw_decode(raw, pos)
+            except json.JSONDecodeError:
+                return objetos
+            if isinstance(obj, dict):
+                objetos.append(obj)
+
     def _call_api(self, user_message: str) -> str:
         """Chama a API da Groq e retorna o texto bruto da resposta."""
         client = self._get_client()
@@ -227,6 +246,14 @@ class LLMClient:
         match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
         if match:
             return json.loads(match.group(1))
+
+        recovered = self._recover_truncated(raw)
+        if recovered:
+            console.log(
+                f"[yellow]⚠️  LLMClient:[/yellow] resposta truncada; "
+                f"{len(recovered)} violação(ões) completa(s) recuperada(s)."
+            )
+            return {"violations": recovered}
 
         raise json.JSONDecodeError(
             f"LLM não retornou JSON válido. Resposta recebida:\n{raw[:500]}",

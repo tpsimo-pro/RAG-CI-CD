@@ -155,17 +155,19 @@ class TestClassifyLines:
         assert results[0].cell == "TP"
         assert hallucinated == 0
 
-    def test_cites_section_5_e_none_para_fp_fn_tn(self):
+    def test_cites_correct_norm_e_none_para_fp_fn_tn(self):
         gold = [
             GoldLine(pr_id="PR-1", line="fn viola", viola=True),  # FN
             GoldLine(pr_id="PR-1", line="fn correta", viola=False),  # TN
         ]
         results, _, _ = classify_lines(gold, [])
         for r in results:
-            assert r.cites_section_5 is None
+            assert r.cites_correct_norm is None
 
-    def test_cites_section_5_verdadeiro_quando_tp_cita_secao_5(self):
-        gold = [GoldLine(pr_id="PR-1", line="if x == True:", viola=True)]
+    def test_cites_correct_norm_verdadeiro_quando_tp_cita_secao_5(self):
+        gold = [
+            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5")
+        ]
         dets = [
             _Det(
                 line_content="if x == True:",
@@ -176,10 +178,12 @@ class TestClassifyLines:
         results, _, _ = classify_lines(gold, dets)
 
         assert results[0].cell == "TP"
-        assert results[0].cites_section_5 is True
+        assert results[0].cites_correct_norm is True
 
-    def test_cites_section_5_falso_quando_tp_cita_outra_secao(self):
-        gold = [GoldLine(pr_id="PR-1", line="if x == True:", viola=True)]
+    def test_cites_correct_norm_falso_quando_tp_cita_outra_secao(self):
+        gold = [
+            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5")
+        ]
         dets = [
             _Det(
                 line_content="if x == True:",
@@ -190,7 +194,7 @@ class TestClassifyLines:
         results, _, _ = classify_lines(gold, dets)
 
         assert results[0].cell == "TP"
-        assert results[0].cites_section_5 is False
+        assert results[0].cites_correct_norm is False
 
     def test_multiplas_linhas_do_gabarito_sao_classificadas_independentemente(self):
         gold = [
@@ -227,7 +231,14 @@ def test_confusion_counts_lista_vazia():
 # ── RepetitionResult ──────────────────────────────────────────────────────────
 
 
-def _line_result(pr_id: str, cell: str, viola: bool | None = None, signaled: bool | None = None) -> LineResult:
+def _line_result(
+    pr_id: str,
+    cell: str,
+    viola: bool | None = None,
+    signaled: bool | None = None,
+    regra: str | None = None,
+    sub_regra: str | None = None,
+) -> LineResult:
     if viola is None:
         viola = cell in ("TP", "FN")
     if signaled is None:
@@ -236,11 +247,12 @@ def _line_result(pr_id: str, cell: str, viola: bool | None = None, signaled: boo
         pr_id=pr_id,
         line=f"linha-{cell}",
         expected_viola=viola,
-        sub_regra=None,
+        regra=regra,
+        sub_regra=sub_regra,
         hard_negative=False,
         signaled=signaled,
         cell=cell,
-        cites_section_5=True if cell == "TP" else None,
+        cites_correct_norm=True if cell == "TP" else None,
     )
 
 
@@ -266,11 +278,12 @@ class TestRepetitionResult:
             pr_id="PR-1",
             line="x",
             expected_viola=True,
+            regra=None,
             sub_regra=None,
             hard_negative=False,
             signaled=True,
             cell="BOGUS",
-            cites_section_5=None,
+            cites_correct_norm=None,
         )
         with pytest.raises(AssertionError):
             RepetitionResult(repetition_index=0, line_results=[bad])
@@ -324,16 +337,17 @@ class TestRepetitionResult:
         assert rep.norm_reference_precision is None
 
     def test_norm_reference_precision_fracao_correta(self):
-        tp_certo = _line_result("PR-1", "TP")  # cites_section_5=True por default
+        tp_certo = _line_result("PR-1", "TP")  # cites_correct_norm=True por default
         tp_errado = LineResult(
             pr_id="PR-1",
             line="tp-errado",
             expected_viola=True,
+            regra=None,
             sub_regra=None,
             hard_negative=False,
             signaled=True,
             cell="TP",
-            cites_section_5=False,
+            cites_correct_norm=False,
         )
         rep = RepetitionResult(repetition_index=0, line_results=[tp_certo, tp_errado])
         assert rep.norm_reference_precision == pytest.approx(0.5)
@@ -364,6 +378,119 @@ class TestRepetitionResult:
         rep = RepetitionResult(repetition_index=0, line_results=results)
         matrix = rep.pr_gate_confusion_matrix()
         assert matrix["n"] == 2  # 2 PRs, não 3 linhas
+
+
+# ── Recorte por regra (emenda de D-002) ──────────────────────────────────────
+
+
+class TestPerRule:
+    def test_separa_as_regras_e_ignora_linhas_sem_regra(self):
+        results = [
+            _line_result("PR-1", "TP", regra="secao-5", sub_regra="booleano"),
+            _line_result("PR-1", "FP", regra="secao-5"),
+            _line_result("PR-2", "TP", regra="secao-2", sub_regra="nome_funcao"),
+            _line_result("PR-2", "FN", regra="secao-2", sub_regra="nome_classe"),
+            _line_result("PR-3", "FP"),  # negativo comum: fora de toda regra
+            _line_result("PR-3", "TN"),
+        ]
+        rep = RepetitionResult(repetition_index=0, line_results=results)
+
+        por_regra = rep.per_rule()
+
+        assert set(por_regra) == {"secao-5", "secao-2"}
+        assert por_regra["secao-5"].confusion_matrix == {
+            "tp": 1, "fp": 1, "fn": 0, "tn": 0, "n": 2
+        }
+        assert por_regra["secao-5"].precision == pytest.approx(0.5)
+        assert por_regra["secao-5"].recall == pytest.approx(1.0)
+        assert por_regra["secao-2"].recall == pytest.approx(0.5)
+        assert por_regra["secao-2"].precision == pytest.approx(1.0)
+
+    def test_fp_em_linha_sem_regra_nao_entra_em_regra_alguma(self):
+        """
+        A soma das matrizes por regra é menor que N de propósito: os FPs em
+        negativos comuns só existem na matriz global (per_rule_note).
+        """
+        results = [
+            _line_result("PR-1", "TP", regra="secao-5"),
+            _line_result("PR-1", "FP"),
+        ]
+        rep = RepetitionResult(repetition_index=0, line_results=results)
+
+        assert rep.precision == pytest.approx(0.5)
+        assert rep.per_rule()["secao-5"].precision == pytest.approx(1.0)
+
+    def test_recall_por_sub_regra_so_conta_positivas(self):
+        results = [
+            _line_result("PR-1", "TP", regra="secao-2", sub_regra="nome_funcao"),
+            _line_result("PR-1", "FN", regra="secao-2", sub_regra="nome_funcao"),
+            _line_result("PR-1", "TP", regra="secao-2", sub_regra="nome_classe"),
+            _line_result("PR-1", "FP", regra="secao-2"),  # negativo difícil
+        ]
+        rep = RepetitionResult(repetition_index=0, line_results=results)
+
+        por_sub = rep.per_sub_rule_recall()
+
+        assert set(por_sub) == {"nome_funcao", "nome_classe"}
+        assert por_sub["nome_funcao"] == {
+            "positivas": 2, "tp": 1, "fn": 1, "recall": 0.5
+        }
+        assert por_sub["nome_classe"]["recall"] == 1.0
+
+    def test_norm_reference_precision_por_regra_usa_a_norma_da_regra(self):
+        gold = [
+            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5"),
+            GoldLine(pr_id="PR-1", line="def CalculateTax(a):", viola=True, regra="secao-2"),
+        ]
+        dets = [
+            _Det(
+                line_content="if x == True:",
+                norm_reference="guia_python_pep8.md | Seção: 5. Práticas",
+            ),
+            _Det(
+                line_content="def CalculateTax(a):",
+                norm_reference="coding_standards.md | Seção: 2.1 Python",
+            ),
+        ]
+
+        results, _, _ = classify_lines(gold, dets)
+        rep = RepetitionResult(repetition_index=0, line_results=results)
+
+        assert rep.per_rule()["secao-5"].norm_reference_precision == 1.0
+        assert rep.per_rule()["secao-2"].norm_reference_precision == 1.0
+
+    def test_citacao_da_secao_errada_nao_conta(self):
+        gold = [
+            GoldLine(pr_id="PR-1", line="def CalculateTax(a):", viola=True, regra="secao-2")
+        ]
+        dets = [
+            _Det(
+                line_content="def CalculateTax(a):",
+                norm_reference="guia_python_pep8.md | Seção: 5. Práticas",
+            )
+        ]
+
+        results, _, _ = classify_lines(gold, dets)
+
+        assert results[0].cell == "TP"
+        assert results[0].cites_correct_norm is False
+
+    def test_per_rule_summary_agrega_entre_repeticoes(self):
+        reps = [
+            RepetitionResult(
+                repetition_index=i,
+                line_results=[
+                    _line_result("PR-1", "TP", regra="secao-5"),
+                    _line_result("PR-1", "FN", regra="secao-2"),
+                ],
+            )
+            for i in range(2)
+        ]
+        resumo = AggregatedEvaluation(repetitions=reps).per_rule_summary()
+
+        assert resumo["secao-5"]["recall_mean"] == 1.0
+        assert resumo["secao-5"]["recall_stdev"] == 0.0
+        assert resumo["secao-2"]["recall_mean"] == 0.0
 
 
 # ── PRGateResult ──────────────────────────────────────────────────────────────

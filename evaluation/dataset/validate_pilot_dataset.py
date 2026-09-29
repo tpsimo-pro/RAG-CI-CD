@@ -16,7 +16,7 @@ import re
 import sys
 from pathlib import Path
 
-DATASET_PATH = Path(__file__).parent / "pilot_secao5.json"
+DATASET_PATH = Path(__file__).parent / "pilot_dataset.json"
 
 # Catalogo minimo de negativos dificeis (D-004). Cada padrao precisa
 # aparecer pelo menos uma vez em alguma linha marcada hard_negative=true.
@@ -39,6 +39,52 @@ HARD_NEGATIVE_CATALOG = {
 # um rotulo inconsistente com o guia).
 BOOLEAN_VIOLATION = re.compile(r"==\s*True\b|==\s*False\b")
 NULL_VIOLATION = re.compile(r"!=\s*None\b|==\s*None\b")
+
+# Emenda de D-002: Secao 2 restrita. Uma linha viola se o NOME declarado em
+# `def`/`class` foge do padrao, ou se atribui/itera `l`, `O` ou `I`.
+_DEF = re.compile(r"^\s*def\s+(\w+)")
+_CLASS = re.compile(r"^\s*class\s+(\w+)")
+_SNAKE = re.compile(r"^_{0,2}[a-z][a-z0-9_]*$")
+_PASCAL = re.compile(r"^_?[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$")
+_SIGLA = re.compile(r"[A-Z]{2,}")
+FORBIDDEN_NAME = re.compile(r"^\s*(?:for\s+)?(?:l|O|I)\s*(?:=(?!=)|\bin\b)")
+
+SUB_REGRAS = {
+    "secao-5": {"booleano", "nulo"},
+    "secao-2": {"nome_funcao", "nome_classe", "nome_proibido"},
+}
+
+
+def violation_kind(line: str) -> str | None:
+    """Sub-regra que a linha viola segundo os padroes do guia, ou None."""
+    if BOOLEAN_VIOLATION.search(line):
+        return "booleano"
+    if NULL_VIOLATION.search(line):
+        return "nulo"
+    m = _DEF.match(line)
+    if m and not _SNAKE.match(m.group(1)):
+        return "nome_funcao"
+    m = _CLASS.match(line)
+    if m and not _PASCAL.match(m.group(1)):
+        return "nome_classe"
+    if FORBIDDEN_NAME.match(line):
+        return "nome_proibido"
+    return None
+
+
+HARD_NEGATIVE_CATALOG_SECAO2 = {
+    "def __init__": re.compile(r"^\s*def\s+__init__\("),
+    "def _privado": re.compile(r"^\s*def\s+_[a-z]\w*\("),
+    "def snake_case": re.compile(r"^\s*def\s+[a-z]+_[a-z_]+\("),
+    "class PascalCase": re.compile(r"^\s*class\s+[A-Z][a-z]+[A-Z]\w*[:(]"),
+    "class ...Error(Exception)": re.compile(r"^\s*class\s+\w+Error\(Exception\):"),
+    "lower = ...": re.compile(r"^\s*lower\s*="),
+    "for i in ...": re.compile(r"^\s*for\s+i\s+in\b"),
+    "for j in ...": re.compile(r"^\s*for\s+j\s+in\b"),
+    "atributo .l": re.compile(r"\.l\b"),
+    "comentario com l = 1": re.compile(r"^\s*#.*\bl\s*="),
+    "string com l = 1": re.compile(r"[\"'][^\"']*\b[lOI]\s*=\s*1[\"']"),
+}
 
 
 def fail(errors: list[str], msg: str) -> None:
@@ -91,7 +137,7 @@ def main() -> int:
         has_violation = False
         for i, entry in enumerate(added_lines):
             loc = f"{pr_id}[{i}]"
-            for field in ("line", "viola", "sub_regra", "hard_negative"):
+            for field in ("line", "viola", "regra", "sub_regra", "hard_negative"):
                 if field not in entry:
                     fail(errors, f"{loc}: campo ausente: {field}")
                     continue
@@ -106,13 +152,13 @@ def main() -> int:
             if not isinstance(hard_negative, bool):
                 fail(errors, f"{loc}: 'hard_negative' deve ser bool.")
 
-            # sub_regra so pode ser nao-nulo quando viola=true
+            regra = entry.get("regra")
             if viola:
-                if sub_regra not in ("booleano", "nulo"):
+                if regra not in SUB_REGRAS or sub_regra not in SUB_REGRAS[regra]:
                     fail(
                         errors,
-                        f"{loc}: viola=true exige sub_regra em "
-                        f"{{'booleano','nulo'}}, obtido {sub_regra!r}.",
+                        f"{loc}: viola=true exige regra/sub_regra coerentes, "
+                        f"obtido {regra!r}/{sub_regra!r}.",
                     )
                 has_violation = True
             else:
@@ -122,6 +168,10 @@ def main() -> int:
                         f"{loc}: viola=false mas sub_regra={sub_regra!r} "
                         f"(deveria ser null).",
                     )
+                if hard_negative and regra not in SUB_REGRAS:
+                    fail(errors, f"{loc}: hard_negative exige 'regra' valida.")
+                if not hard_negative and regra is not None:
+                    fail(errors, f"{loc}: negativo comum deve ter regra=null.")
 
             # hard_negative so pode ser true quando viola=false
             if hard_negative and viola:
@@ -135,28 +185,30 @@ def main() -> int:
             if line.startswith("+"):
                 fail(errors, f"{loc}: 'line' nao deve conter o prefixo '+' do diff.")
 
-            # Checagem semantica contra o guia (D-002): toda linha marcada
-            # como violacao booleana/nula precisa realmente conter a
-            # construcao proibida, e vice-versa (nenhuma linha negativa
-            # deveria conter == True/False ou != None/== None "soltos").
-            if sub_regra == "booleano" and not BOOLEAN_VIOLATION.search(line):
+            # Checagem semantica contra o guia (D-002 e emenda): a sub_regra
+            # rotulada precisa ser a que os padroes do guia detectam na
+            # linha, e nenhuma linha negativa pode conter construcao proibida
+            # de nenhuma das duas regras.
+            kind = violation_kind(line)
+            if viola and kind != sub_regra:
                 fail(
                     errors,
-                    f"{loc}: sub_regra=booleano mas a linha nao contem "
-                    f"'== True'/'== False': {line!r}",
+                    f"{loc}: sub_regra={sub_regra!r} mas os padroes do guia "
+                    f"detectam {kind!r}: {line!r}",
                 )
-            if sub_regra == "nulo" and not NULL_VIOLATION.search(line):
+            if not viola and kind is not None:
                 fail(
                     errors,
-                    f"{loc}: sub_regra=nulo mas a linha nao contem "
-                    f"'!= None'/'== None': {line!r}",
+                    f"{loc}: viola=false mas a linha contem construcao "
+                    f"proibida ({kind}): {line!r}",
                 )
-            if not viola:
-                if BOOLEAN_VIOLATION.search(line) or NULL_VIOLATION.search(line):
+            for rx in (_DEF, _CLASS):
+                m = rx.match(line)
+                if m and _SIGLA.search(m.group(1)):
                     fail(
                         errors,
-                        f"{loc}: viola=false mas a linha contem uma "
-                        f"construcao proibida pela Secao 5: {line!r}",
+                        f"{loc}: identificador com sigla fora do escopo "
+                        f"(emenda de D-002): {line!r}",
                     )
 
             all_lines.append(entry)
@@ -203,21 +255,31 @@ def main() -> int:
     positives = [l for l in all_lines if l["viola"]]
     negatives = [l for l in all_lines if not l["viola"]]
     hard_negatives = [l for l in negatives if l["hard_negative"]]
-    bool_pos = [l for l in positives if l["sub_regra"] == "booleano"]
-    null_pos = [l for l in positives if l["sub_regra"] == "nulo"]
+    by_sub = {
+        sub: [l for l in positives if l["sub_regra"] == sub]
+        for subs in SUB_REGRAS.values()
+        for sub in subs
+    }
 
-    check_eq(errors, "Pull Requests", n_prs, 30)
-    check_eq(errors, "PRs de controle (sem violacao)", control_prs, 8)
-    check_eq(errors, "PRs com >=1 violacao", violation_prs, 22)
-    check_range(errors, "Total de linhas adicionadas", n_lines, 290, 310)
-    check_eq(errors, "Linhas positivas (violam)", len(positives), 60)
-    check_eq(errors, "Positivas - booleano", len(bool_pos), 30)
-    check_eq(errors, "Positivas - nulo", len(null_pos), 30)
-    check_eq(errors, "Negativos dificeis", len(hard_negatives), 60)
+    check_eq(errors, "Pull Requests", n_prs, 50)
+    check_eq(errors, "PRs de controle (sem violacao)", control_prs, 14)
+    check_eq(errors, "PRs com >=1 violacao", violation_prs, 36)
+    check_range(errors, "Total de linhas adicionadas", n_lines, 460, 520)
+    check_eq(errors, "Linhas positivas (violam)", len(positives), 100)
+    for sub, expected in (
+        ("booleano", 26),
+        ("nulo", 26),
+        ("nome_funcao", 16),
+        ("nome_classe", 16),
+        ("nome_proibido", 16),
+    ):
+        check_eq(errors, f"Positivas - {sub}", len(by_sub[sub]), expected)
+    check_eq(errors, "Negativos dificeis", len(hard_negatives), 100)
 
     # --- Cobertura do catalogo minimo de negativos dificeis ---------------
     hard_texts = [l["line"] for l in hard_negatives]
-    for name, pattern in HARD_NEGATIVE_CATALOG.items():
+    catalog = {**HARD_NEGATIVE_CATALOG, **HARD_NEGATIVE_CATALOG_SECAO2}
+    for name, pattern in catalog.items():
         if not any(pattern.search(t) for t in hard_texts):
             fail(
                 errors,
@@ -232,11 +294,11 @@ def main() -> int:
     print(f"PRs com violacao:        {violation_prs}")
     print(f"Linhas adicionadas (N):  {n_lines}")
     print(f"Linhas positivas:        {len(positives)} "
-          f"(booleano={len(bool_pos)}, nulo={len(null_pos)})")
+          + ", ".join(f"{k}={len(v)}" for k, v in by_sub.items()))
     print(f"Linhas negativas:        {len(negatives)}")
     print(f"  dos quais dificeis:    {len(hard_negatives)}")
     print("\nCobertura do catalogo minimo de negativos dificeis:")
-    for name, pattern in HARD_NEGATIVE_CATALOG.items():
+    for name, pattern in catalog.items():
         count = sum(1 for t in hard_texts if pattern.search(t))
         print(f"  {name:<28} {count}x")
 

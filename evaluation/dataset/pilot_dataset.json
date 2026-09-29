@@ -8,60 +8,70 @@
       {
         "line": "def can_access_dashboard(user, account):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if user.is_admin == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        return True",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if account.suspended == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        allow_dashboard_access(user)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return user.two_factor_enabled == True",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "    if account.owner is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        log_account_access(account)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if account.billing_profile is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        return False",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -76,60 +86,70 @@
       {
         "line": "def process_transaction_result(transaction, gateway_response):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if gateway_response.approved == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        transaction.mark_completed()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if gateway_response.declined == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        retry_transaction(transaction)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return transaction.refunded == True",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "    if transaction.is_recurring:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        schedule_next_charge(transaction)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if not gateway_response.fraud_flag:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        log_transaction(transaction)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -144,60 +164,70 @@
       {
         "line": "def invalidate_session_cache(session, cache_client):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if session.dirty == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        cache_client.delete(session.key)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if session.locked == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        cache_client.expire(session.key, 0)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return session.revoked == True",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "    if session.region != cache_client.region:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        cache_client.sync(session)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if session.version == cache_client.schema_version:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        purge_related_keys(session)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -212,60 +242,70 @@
       {
         "line": "def build_monthly_export(report, options):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if report.finalized == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        return generate_pdf(report)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if options.include_charts == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        strip_chart_section(report)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if report.has_errors == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        raise ExportError(report.id)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    assert report.draft_version is None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    cleanup_temp_files(report)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return report.file_path is not None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -280,54 +320,63 @@
       {
         "line": "def dispatch_push_notification(user, notification):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if user.push_enabled == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        send_to_device(user.device_token, notification)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if notification.muted == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        increment_delivery_count(notification)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if user.device_token is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        log_dispatch(user, notification)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if notification.scheduled_at is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        notification.scheduled_at = now()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -342,54 +391,63 @@
       {
         "line": "def check_stock_availability(product, warehouse):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if product.discontinued == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        return False",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if warehouse.active == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        route_to_backup_warehouse(product)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if product.backorder_allowed:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        trigger_low_stock_alert(product)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if not warehouse.has_capacity:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        return warehouse.quantity_for(product)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -404,60 +462,70 @@
       {
         "line": "def update_order_status(order, event):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if event.cancelled == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        order.status = 'cancelled'",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if event.shipped == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        order.status = 'processing'",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return event.delivered == True",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "    if order.priority != event.priority:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        persist_order(order)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if order.warehouse_id == event.warehouse_id:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        skip_reallocation(order)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -472,186 +540,72 @@
       {
         "line": "def generate_invoice(customer, plan):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if plan.active == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        invoice = build_invoice(customer, plan)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if customer.tax_exempt == False:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        invoice.apply_tax(plan.tax_rate)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if plan.trial == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        invoice.apply_discount(plan.trial_discount)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    assert invoice.due_date is None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    invoice.due_date = calculate_due_date(plan)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return invoice.total is not None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
-      }
-    ]
-  },
-  {
-    "pr_id": "PR-009",
-    "description": "Aplicação de filtros de busca avançada no catálogo",
-    "filename": "search/filters.py",
-    "patch": "@@ -0,0 +1,9 @@\n+def apply_search_filters(query, filters):\n+    if filters.in_stock_only == True:\n+        query = query.filter(in_stock=True)\n+    if filters.on_sale == False:\n+        query = query.exclude(on_sale=True)\n+    if filters.category is not None:\n+        query = query.filter(category=filters.category)\n+    if filters.price_range is None:\n+        filters.price_range = default_price_range()",
-    "added_lines": [
-      {
-        "line": "def apply_search_filters(query, filters):",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if filters.in_stock_only == True:",
-        "viola": true,
-        "sub_regra": "booleano",
-        "hard_negative": false
-      },
-      {
-        "line": "        query = query.filter(in_stock=True)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if filters.on_sale == False:",
-        "viola": true,
-        "sub_regra": "booleano",
-        "hard_negative": false
-      },
-      {
-        "line": "        query = query.exclude(on_sale=True)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if filters.category is not None:",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "        query = query.filter(category=filters.category)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if filters.price_range is None:",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "        filters.price_range = default_price_range()",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      }
-    ]
-  },
-  {
-    "pr_id": "PR-010",
-    "description": "Verificação de expiração de sessão de usuário",
-    "filename": "sessions/timeout.py",
-    "patch": "@@ -0,0 +1,9 @@\n+def check_session_timeout(session, now):\n+    if session.expired == True:\n+        invalidate_session(session)\n+    if session.remember_me == False:\n+        session.ttl = SHORT_TTL\n+    if session.idle_too_long:\n+        force_logout(session)\n+    if not session.is_active:\n+        return session.ttl",
-    "added_lines": [
-      {
-        "line": "def check_session_timeout(session, now):",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if session.expired == True:",
-        "viola": true,
-        "sub_regra": "booleano",
-        "hard_negative": false
-      },
-      {
-        "line": "        invalidate_session(session)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if session.remember_me == False:",
-        "viola": true,
-        "sub_regra": "booleano",
-        "hard_negative": false
-      },
-      {
-        "line": "        session.ttl = SHORT_TTL",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if session.idle_too_long:",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "        force_logout(session)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if not session.is_active:",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "        return session.ttl",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
       }
     ]
   },
@@ -664,60 +618,70 @@
       {
         "line": "def update_user_profile(user, payload):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if payload.email != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        user.email = payload.email",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if payload.avatar_url == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        user.avatar_url = DEFAULT_AVATAR",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return payload.phone != None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if payload.locale != user.locale:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        user.locale = payload.locale",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if payload.timezone == user.timezone:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        user.save()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -732,60 +696,70 @@
       {
         "line": "def process_uploaded_file(upload, storage):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if upload.content_type != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        validate_content_type(upload.content_type)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if upload.checksum == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        upload.checksum = compute_checksum(upload.data)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if upload.virus_scan_result != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        quarantine_if_flagged(upload)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    assert upload.temp_path is None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    upload.temp_path = storage.write_temp(upload.data)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return storage.finalize(upload) is not None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -800,60 +774,70 @@
       {
         "line": "def schedule_recurring_task(task, scheduler):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if task.cron_expression == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        raise InvalidScheduleError(task.id)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if task.last_run != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        scheduler.skip_immediate_run(task)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return task.owner == None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if task.retry_policy is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        task.retry_policy.attach(scheduler)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if task.timeout is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        task.timeout = DEFAULT_TIMEOUT",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -868,60 +852,70 @@
       {
         "line": "def track_event(event, session):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if event.user_id != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        event.attach_user(session.user_id)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if event.metadata == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        event.metadata = {}",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return session.referrer != None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if event.is_anonymous:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        event.metadata['anonymous'] = True",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if not session.is_authenticated:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        event.metadata['guest'] = True",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -936,54 +930,63 @@
       {
         "line": "def consume_queue_message(message, handler):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if message.payload == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        reject_message(message)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if message.correlation_id != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        handler.track_correlation(message.correlation_id)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if message.retry_count != message.max_retries:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        handler.process(message)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if message.priority == handler.default_priority:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        acknowledge(message)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -998,54 +1001,63 @@
       {
         "line": "def check_rate_limit(client, window):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if client.override_token != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        return True",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if window.remaining_quota == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        window.remaining_quota = window.max_quota",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    window.remaining_quota -= 1",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    log_rate_limit_check(client)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    assert client.blocked_until is None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    return window.remaining_quota is not None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -1060,60 +1072,70 @@
       {
         "line": "def evaluate_feature_flag(flag, context):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if flag.rollout_percentage == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        flag.rollout_percentage = 0",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if context.user_segment != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        apply_segment_override(flag, context.user_segment)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return flag.expires_at == None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if flag.description is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        log_flag_description(flag)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if context.experiment_id is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        return flag.enabled",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1128,186 +1150,72 @@
       {
         "line": "def format_log_entry(record, config):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if record.trace_id != None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        record.tags['trace_id'] = record.trace_id",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if record.exception == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        record.exception = 'none'",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return config.include_hostname != None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if config.pretty_print:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        record.tags['pretty'] = True",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if not config.include_stack_trace:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        record.stack_trace = None",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
-      }
-    ]
-  },
-  {
-    "pr_id": "PR-019",
-    "description": "Agendamento de backups incrementais",
-    "filename": "backups/scheduler.py",
-    "patch": "@@ -0,0 +1,9 @@\n+def schedule_incremental_backup(job, storage):\n+    if job.last_snapshot == None:\n+        job.last_snapshot = storage.latest_snapshot()\n+    if job.retention_days != None:\n+        storage.set_retention(job.retention_days)\n+    if job.compression != storage.default_compression:\n+        storage.enqueue(job)\n+    if job.destination == storage.primary_region:\n+        return job",
-    "added_lines": [
-      {
-        "line": "def schedule_incremental_backup(job, storage):",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if job.last_snapshot == None:",
-        "viola": true,
-        "sub_regra": "nulo",
-        "hard_negative": false
-      },
-      {
-        "line": "        job.last_snapshot = storage.latest_snapshot()",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if job.retention_days != None:",
-        "viola": true,
-        "sub_regra": "nulo",
-        "hard_negative": false
-      },
-      {
-        "line": "        storage.set_retention(job.retention_days)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if job.compression != storage.default_compression:",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "        storage.enqueue(job)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if job.destination == storage.primary_region:",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "        return job",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      }
-    ]
-  },
-  {
-    "pr_id": "PR-020",
-    "description": "Rastreamento de status de envio de pedidos",
-    "filename": "shipping/tracking.py",
-    "patch": "@@ -0,0 +1,9 @@\n+def update_shipping_status(shipment, carrier_event):\n+    if carrier_event.delivered_at == None:\n+        shipment.status = 'in_transit'\n+    if carrier_event.exception_code != None:\n+        shipment.flag_exception(carrier_event.exception_code)\n+    shipment.last_updated = carrier_event.timestamp\n+    notify_recipient(shipment)\n+    assert shipment.cancelled_at is None\n+    return shipment.delivered_at is not None",
-    "added_lines": [
-      {
-        "line": "def update_shipping_status(shipment, carrier_event):",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if carrier_event.delivered_at == None:",
-        "viola": true,
-        "sub_regra": "nulo",
-        "hard_negative": false
-      },
-      {
-        "line": "        shipment.status = 'in_transit'",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if carrier_event.exception_code != None:",
-        "viola": true,
-        "sub_regra": "nulo",
-        "hard_negative": false
-      },
-      {
-        "line": "        shipment.flag_exception(carrier_event.exception_code)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    shipment.last_updated = carrier_event.timestamp",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    notify_recipient(shipment)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    assert shipment.cancelled_at is None",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
-      },
-      {
-        "line": "    return shipment.delivered_at is not None",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": true
       }
     ]
   },
@@ -1320,66 +1228,77 @@
       {
         "line": "def validate_coupon(coupon, cart):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if coupon.expired == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        raise CouponExpiredError(coupon.code)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return coupon.min_purchase != None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if coupon.applicable_category == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        coupon.applicable_category = 'all'",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return coupon.single_use == False",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "    if coupon.owner_id is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        validate_owner(coupon)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if cart.applied_coupon is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        cart.applied_coupon = coupon.code",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1394,66 +1313,77 @@
       {
         "line": "def moderate_review(review, rules):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if review.flagged == True:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "        send_to_manual_review(review)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return review.moderator_id != None",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    if review.rejection_reason == None:",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "        review.rejection_reason = 'unspecified'",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return review.auto_approved == False",
         "viola": true,
+        "regra": "secao-5",
         "sub_regra": "booleano",
         "hard_negative": false
       },
       {
         "line": "    if rules.strict_mode:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        queue_for_approval(review)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if not rules.allow_profanity:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        flag_profanity(review)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1468,66 +1398,77 @@
       {
         "line": "def renew_subscription(subscription, billing):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    days_remaining = subscription.days_until_expiration()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    invoice = billing.create_renewal_invoice(subscription)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    subscription.last_renewal_attempt = now()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    apply_proration(invoice, subscription)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    billing.charge(invoice)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    record_renewal_metrics(subscription)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if subscription.plan_id != billing.default_plan_id:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        flag_plan_mismatch(subscription)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if subscription.currency == billing.account_currency:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        skip_currency_conversion(invoice)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1542,66 +1483,77 @@
       {
         "line": "def track_referral_signup(referral, new_user):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    referral.signup_count += 1",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    reward = calculate_referral_reward(referral)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    referral.pending_rewards.append(reward)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    new_user.referred_by = referral.referrer_id",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    check_milestone_progress(referral)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    notify_referrer(referral.referrer_id)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    log_referral_event(referral, new_user)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    update_leaderboard(referral.referrer_id)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    assert referral.processed_at is None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    return referral.reward_id is not None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -1616,66 +1568,77 @@
       {
         "line": "def open_support_ticket(customer, subject, body_text):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    ticket = Ticket(customer_id=customer.id, subject=subject)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    ticket.body = body_text",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    ticket.priority = determine_priority(subject)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    ticket.queue = route_to_queue(ticket.priority)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    ticket.save()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    notify_support_team(ticket)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if customer.assigned_agent is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        ticket.assigned_agent = customer.assigned_agent",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if ticket.sla_deadline is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        ticket.sla_deadline = calculate_sla_deadline(ticket.priority)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1690,66 +1653,77 @@
       {
         "line": "def resolve_ip_location(ip_address, geo_client):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    location = geo_client.lookup(ip_address)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    country_code = location.country_code",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    region = location.region_name",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    cache_key = build_cache_key(ip_address)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    cache.set(cache_key, location, ttl=CACHE_TTL)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    record_lookup_metrics(ip_address)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if location.is_vpn:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        flag_suspicious_origin(location)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if not location.is_trusted_source:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        increase_verification_level(location)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1764,66 +1738,77 @@
       {
         "line": "def dispatch_webhook(event, subscribers):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    payload = serialize_event(event)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    signature = sign_payload(payload, subscribers.secret)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    headers = build_webhook_headers(signature)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    response = http_post(subscribers.endpoint_url, payload, headers)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    record_delivery_attempt(subscribers, response)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    increment_dispatch_metrics(event.type)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if event.retry_count != subscribers.max_retries:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        schedule_retry(event)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if event.source == subscribers.trusted_source:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        skip_signature_check(event)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
@@ -1838,60 +1823,70 @@
       {
         "line": "def write_audit_entry(actor, action, target):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    entry = AuditEntry(actor_id=actor.id, action=action)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    entry.target_type = type(target).__name__",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    entry.target_id = target.id",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    entry.timestamp = current_timestamp()",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    entry.ip_address = actor.last_known_ip",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    audit_store.append(entry)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    flush_if_needed(audit_store)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    assert entry.reviewed_at is None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    return entry.checksum is not None",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -1906,134 +1901,1817 @@
       {
         "line": "def calculate_final_price(product, promotions):",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    base_price = product.list_price",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    discount_total = sum(promo.amount for promo in promotions)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if product.active_promotion is not None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        discount_total += product.active_promotion.bonus",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    if product.discount_cap is None:",
         "viola": false,
+        "regra": "secao-5",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "        product.discount_cap = DEFAULT_DISCOUNT_CAP",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    final_price = max(base_price - discount_total, MIN_PRICE)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    record_price_calculation(product, final_price)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
         "line": "    return round(final_price, 2)",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }
     ]
   },
   {
-    "pr_id": "PR-030",
-    "description": "Fluxo de redefinição de senha de usuário",
-    "filename": "auth/password_reset.py",
-    "patch": "@@ -0,0 +1,11 @@\n+def initiate_password_reset(user, request_ip):\n+    token = generate_reset_token()\n+    user.reset_token = token\n+    user.reset_token_expires = now() + RESET_TOKEN_TTL\n+    send_reset_email(user.email, token)\n+    log_reset_request(user.id, request_ip)\n+    if user.two_factor_enabled:\n+        flag_for_manual_review(user)\n+    if not user.email_verified:\n+        send_verification_reminder(user)\n+    return token",
+    "pr_id": "PR-031",
+    "description": "Calculo de impostos do pedido",
+    "filename": "taxes/calculator.py",
+    "patch": "@@ -0,0 +1,11 @@\n+def CalculateTax(order):\n+    rate = TAX_TABLE[order.region]\n+    return order.subtotal * rate\n+def calculate_discount(order):\n+    if order.total > LIMIT:\n+        return order.total * DISCOUNT\n+    return 0\n+def applyShipping(order):\n+    return order.total + order.shipping_fee\n+def GetFinalPrice(order):\n+    return calculate_discount(order)",
     "added_lines": [
       {
-        "line": "def initiate_password_reset(user, request_ip):",
+        "line": "def CalculateTax(order):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    rate = TAX_TABLE[order.region]",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
-        "line": "    token = generate_reset_token()",
+        "line": "    return order.subtotal * rate",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
-        "line": "    user.reset_token = token",
+        "line": "def calculate_discount(order):",
         "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    user.reset_token_expires = now() + RESET_TOKEN_TTL",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    send_reset_email(user.email, token)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    log_reset_request(user.id, request_ip)",
-        "viola": false,
-        "sub_regra": null,
-        "hard_negative": false
-      },
-      {
-        "line": "    if user.two_factor_enabled:",
-        "viola": false,
+        "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        flag_for_manual_review(user)",
+        "line": "    if order.total > LIMIT:",
         "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
-        "line": "    if not user.email_verified:",
+        "line": "        return order.total * DISCOUNT",
         "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return 0",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def applyShipping(order):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return order.total + order.shipping_fee",
+        "viola": false,
+        "regra": "secao-2",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        send_verification_reminder(user)",
+        "line": "def GetFinalPrice(order):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return calculate_discount(order)",
         "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-032",
+    "description": "Servico de usuarios",
+    "filename": "users/service.py",
+    "patch": "@@ -0,0 +1,9 @@\n+class UserService:\n+    def __init__(self, repo):\n+        self.repo = repo\n+    def getUser(self, user_id):\n+        return self.repo.find(user_id)\n+    def DeleteUser(self, user_id):\n+        self.repo.remove(user_id)\n+    def listActiveUsers(self):\n+        return self.repo.filter(active=1)",
+    "added_lines": [
+      {
+        "line": "class UserService:",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    def __init__(self, repo):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        self.repo = repo",
+        "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       },
       {
-        "line": "    return token",
+        "line": "    def getUser(self, user_id):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "        return self.repo.find(user_id)",
         "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def DeleteUser(self, user_id):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "        self.repo.remove(user_id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def listActiveUsers(self):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "        return self.repo.filter(active=1)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-033",
+    "description": "Notificacoes de pedido",
+    "filename": "orders/notifier.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def sendConfirmation(order):\n+    message = build_message(order)\n+    deliver(message, order.email)\n+def _build_message(order):\n+    return \"Pedido \" + str(order.id)\n+def SendCancellation(order):\n+    deliver(\"Cancelado\", order.email)\n+def notifyWarehouse(order):\n+    for i in range(3):\n+        queue.put(order.id)",
+    "added_lines": [
+      {
+        "line": "def sendConfirmation(order):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    message = build_message(order)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    deliver(message, order.email)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def _build_message(order):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return \"Pedido \" + str(order.id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def SendCancellation(order):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    deliver(\"Cancelado\", order.email)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def notifyWarehouse(order):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    for i in range(3):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        queue.put(order.id)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-034",
+    "description": "Exportacao de relatorios",
+    "filename": "reports/exporter.py",
+    "patch": "@@ -0,0 +1,10 @@\n+def ExportCsv(report):\n+    rows = report.rows()\n+    return \"\\n\".join(rows)\n+def export_json(report):\n+    return report.to_json()\n+def exportPdf(report):\n+    return render(report)\n+def BuildSummary(report):\n+    return {\"total\": len(report.rows())}\n+summary_cache = {}",
+    "added_lines": [
+      {
+        "line": "def ExportCsv(report):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    rows = report.rows()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return \"\\n\".join(rows)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def export_json(report):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return report.to_json()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def exportPdf(report):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return render(report)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def BuildSummary(report):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return {\"total\": len(report.rows())}",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "summary_cache = {}",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-035",
+    "description": "Validacao de formularios",
+    "filename": "forms/validators.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def ValidateEmail(value):\n+    return \"@\" in value\n+def validate_phone(value):\n+    return normalize_digits(value)\n+def checkAge(value):\n+    return 0 < value < 130\n+def _normalize(value):\n+    return value.strip()\n+MAX_LENGTH = 80",
+    "added_lines": [
+      {
+        "line": "def ValidateEmail(value):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return \"@\" in value",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def validate_phone(value):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return normalize_digits(value)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def checkAge(value):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return 0 < value < 130",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def _normalize(value):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return value.strip()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "MAX_LENGTH = 80",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-036",
+    "description": "Cache de sessoes",
+    "filename": "sessions/cache.py",
+    "patch": "@@ -0,0 +1,9 @@\n+def ClearExpired(store):\n+    for key in store.keys():\n+        store.check(key)\n+def refresh_all(store):\n+    store.refresh()\n+def getSessionCount(store):\n+    return len(store)\n+def __getattr__(name):\n+    raise AttributeError(name)",
+    "added_lines": [
+      {
+        "line": "def ClearExpired(store):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    for key in store.keys():",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        store.check(key)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def refresh_all(store):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    store.refresh()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def getSessionCount(store):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_funcao",
+        "hard_negative": false
+      },
+      {
+        "line": "    return len(store)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def __getattr__(name):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    raise AttributeError(name)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-037",
+    "description": "Processamento de pagamentos",
+    "filename": "payments/processor.py",
+    "patch": "@@ -0,0 +1,10 @@\n+class payment_processor:\n+    def __init__(self, gateway):\n+        self.gateway = gateway\n+    def charge(self, amount):\n+        return self.gateway.send(amount)\n+class refund_handler:\n+    def run(self, payment):\n+        return payment.reverse()\n+class Payment_Audit(object):\n+    total_audited = 0",
+    "added_lines": [
+      {
+        "line": "class payment_processor:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self, gateway):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        self.gateway = gateway",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def charge(self, amount):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return self.gateway.send(amount)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class refund_handler:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def run(self, payment):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return payment.reverse()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class Payment_Audit(object):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    total_audited = 0",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-038",
+    "description": "Modelos de fatura",
+    "filename": "billing/models.py",
+    "patch": "@@ -0,0 +1,11 @@\n+class InvalidInvoiceError(Exception):\n+    pass\n+class invoice_builder:\n+    def build(self, order):\n+        return order.lines\n+class line_item:\n+    def __init__(self, sku, qty):\n+        self.sku = sku\n+        self.qty = qty\n+class Tax_Rule:\n+    rate = 0.1",
+    "added_lines": [
+      {
+        "line": "class InvalidInvoiceError(Exception):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class invoice_builder:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def build(self, order):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return order.lines",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class line_item:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self, sku, qty):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        self.sku = sku",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        self.qty = qty",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class Tax_Rule:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    rate = 0.1",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-039",
+    "description": "Filas de mensagens",
+    "filename": "messaging/queues.py",
+    "patch": "@@ -0,0 +1,11 @@\n+class message_queue:\n+    def __init__(self):\n+        self.items = []\n+    def push(self, item):\n+        self.items.append(item)\n+class dead_letter_queue(message_queue):\n+    pass\n+class Retry_Policy:\n+    attempts = 3\n+class BackoffPolicy:\n+    base = 2",
+    "added_lines": [
+      {
+        "line": "class message_queue:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        self.items = []",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    def push(self, item):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        self.items.append(item)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class dead_letter_queue(message_queue):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class Retry_Policy:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    attempts = 3",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class BackoffPolicy:",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    base = 2",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-040",
+    "description": "Repositorio de produtos",
+    "filename": "catalog/repository.py",
+    "patch": "@@ -0,0 +1,11 @@\n+class product_repository:\n+    def find(self, sku):\n+        return DB.get(sku)\n+class Category_Repository:\n+    def all(self):\n+        return DB.list()\n+class stock_cache:\n+    size = 10\n+class StockError(Exception):\n+    pass\n+DEFAULT_LIMIT = 50",
+    "added_lines": [
+      {
+        "line": "class product_repository:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def find(self, sku):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return DB.get(sku)",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "class Category_Repository:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def all(self):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return DB.list()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class stock_cache:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    size = 10",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class StockError(Exception):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "DEFAULT_LIMIT = 50",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-041",
+    "description": "Agendador de tarefas",
+    "filename": "scheduling/jobs.py",
+    "patch": "@@ -0,0 +1,8 @@\n+class job_scheduler:\n+    def __init__(self, clock):\n+        self.clock = clock\n+    def next_run(self):\n+        return self.clock.now()\n+class Cron_Parser:\n+    def _split(self, expr):\n+        return expr.split()",
+    "added_lines": [
+      {
+        "line": "class job_scheduler:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self, clock):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        self.clock = clock",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def next_run(self):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return self.clock.now()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class Cron_Parser:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def _split(self, expr):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        return expr.split()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-042",
+    "description": "Leitor de configuracao",
+    "filename": "config/reader.py",
+    "patch": "@@ -0,0 +1,9 @@\n+class ConfigReader:\n+    source = \"env\"\n+class env_loader:\n+    def load(self):\n+        return dict(ENV)\n+class Yaml_Loader:\n+    def load(self, path):\n+        return parse(path)\n+    default_path = \"app.yml\"",
+    "added_lines": [
+      {
+        "line": "class ConfigReader:",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    source = \"env\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class env_loader:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def load(self):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return dict(ENV)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class Yaml_Loader:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_classe",
+        "hard_negative": false
+      },
+      {
+        "line": "    def load(self, path):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return parse(path)",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    default_path = \"app.yml\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-043",
+    "description": "Agregacao de estatisticas",
+    "filename": "stats/aggregate.py",
+    "patch": "@@ -0,0 +1,10 @@\n+l = []\n+for row in rows:\n+    values.append(row.amount)\n+O = 0\n+lower = 1\n+total = sum(values)\n+I = \"\"\n+for i in range(3):\n+    label = \"n=\" + str(total)\n+print(label)",
+    "added_lines": [
+      {
+        "line": "l = []",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "for row in rows:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    values.append(row.amount)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "O = 0",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "lower = 1",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "total = sum(values)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "I = \"\"",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "for i in range(3):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    label = \"n=\" + str(total)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "print(label)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-044",
+    "description": "Filtros de busca",
+    "filename": "search/filters.py",
+    "patch": "@@ -0,0 +1,9 @@\n+for l in results:\n+    show(l_item)\n+for j in rows:\n+    check(j)\n+O = compute_offset(results)\n+page = results[:10]\n+I = len(page)\n+# l = 1 e apenas um exemplo\n+print(page)",
+    "added_lines": [
+      {
+        "line": "for l in results:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "    show(l_item)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "for j in rows:",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    check(j)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "O = compute_offset(results)",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "page = results[:10]",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "I = len(page)",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "# l = 1 e apenas um exemplo",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "print(page)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-045",
+    "description": "Contadores de acesso",
+    "filename": "analytics/counters.py",
+    "patch": "@@ -0,0 +1,9 @@\n+l = 0\n+hits = 0\n+obj_len = item.l\n+hits += 1\n+for O in events:\n+    hits += 1\n+I = hits\n+lower = min(hits, 5)\n+print(hits)",
+    "added_lines": [
+      {
+        "line": "l = 0",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "hits = 0",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "obj_len = item.l",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "hits += 1",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "for O in events:",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "    hits += 1",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "I = hits",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "lower = min(hits, 5)",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "print(hits)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-046",
+    "description": "Ordenacao de itens",
+    "filename": "catalog/sorting.py",
+    "patch": "@@ -0,0 +1,8 @@\n+l = sorted(items)\n+first = items[0]\n+for i in range(len(items)):\n+    swap(items, i)\n+O = items[-1]\n+middle = items[1:-1]\n+message = \"l = 1\"\n+print(first, middle)",
+    "added_lines": [
+      {
+        "line": "l = sorted(items)",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "first = items[0]",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "for i in range(len(items)):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    swap(items, i)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "O = items[-1]",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "middle = items[1:-1]",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "message = \"l = 1\"",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "print(first, middle)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-047",
+    "description": "Leitura de arquivos",
+    "filename": "io/reader.py",
+    "patch": "@@ -0,0 +1,8 @@\n+for l in open(path):\n+    lines.append(entry)\n+I = 0\n+for j in range(3):\n+    lines.pop()\n+count = len(lines)\n+limit = count.l\n+print(count)",
+    "added_lines": [
+      {
+        "line": "for l in open(path):",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "    lines.append(entry)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "I = 0",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "for j in range(3):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    lines.pop()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "count = len(lines)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "limit = count.l",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "print(count)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-048",
+    "description": "Buffer de eventos",
+    "filename": "events/buffer.py",
+    "patch": "@@ -0,0 +1,9 @@\n+l = []\n+later = 1\n+events = []\n+O = None\n+buffer = list(events)\n+I = 10\n+for i in range(I_MAX):\n+    buffer.pop()\n+print(buffer)",
+    "added_lines": [
+      {
+        "line": "l = []",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "later = 1",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "events = []",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "O = None",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "buffer = list(events)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "I = 10",
+        "viola": true,
+        "regra": "secao-2",
+        "sub_regra": "nome_proibido",
+        "hard_negative": false
+      },
+      {
+        "line": "for i in range(I_MAX):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    buffer.pop()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "print(buffer)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-049",
+    "description": "Auditoria de acessos",
+    "filename": "audit/access.py",
+    "patch": "@@ -0,0 +1,8 @@\n+class AccessLog:\n+    def __init__(self, sink):\n+        self.sink = sink\n+    def record(self, user):\n+        self.sink.write(user.name)\n+def build_report(log):\n+    return log.sink.read()\n+MAX_ROWS = 100",
+    "added_lines": [
+      {
+        "line": "class AccessLog:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self, sink):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        self.sink = sink",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def record(self, user):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        self.sink.write(user.name)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def build_report(log):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return log.sink.read()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "MAX_ROWS = 100",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-050",
+    "description": "Limpeza de arquivos temporarios",
+    "filename": "cleanup/tmp.py",
+    "patch": "@@ -0,0 +1,7 @@\n+def _remove_old(path):\n+    path.unlink()\n+def clean_all(paths):\n+    for path in paths:\n+        _remove_old(path)\n+    return len(paths)\n+RETENTION_DAYS = 7",
+    "added_lines": [
+      {
+        "line": "def _remove_old(path):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    path.unlink()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def clean_all(paths):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for path in paths:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        _remove_old(path)",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return len(paths)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "RETENTION_DAYS = 7",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-051",
+    "description": "Contas de clientes",
+    "filename": "accounts/customers.py",
+    "patch": "@@ -0,0 +1,7 @@\n+class CustomerAccount:\n+    def __init__(self, owner):\n+        self.owner = owner\n+    def balance(self):\n+        return self.owner.total\n+def open_account(owner):\n+    return CustomerAccount(owner)",
+    "added_lines": [
+      {
+        "line": "class CustomerAccount:",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def __init__(self, owner):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        self.owner = owner",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    def balance(self):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "        return self.owner.total",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "def open_account(owner):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return CustomerAccount(owner)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-052",
+    "description": "Relatorio mensal",
+    "filename": "reports/monthly.py",
+    "patch": "@@ -0,0 +1,7 @@\n+def build_monthly(rows):\n+    for i in range(len(rows)):\n+        rows[i].close()\n+    return rows\n+message = \"I = 1\"\n+print(message)\n+MONTHS = 12",
+    "added_lines": [
+      {
+        "line": "def build_monthly(rows):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for i in range(len(rows)):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        rows[i].close()",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return rows",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "message = \"I = 1\"",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "print(message)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "MONTHS = 12",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-053",
+    "description": "Preferencias de usuario",
+    "filename": "users/preferences.py",
+    "patch": "@@ -0,0 +1,7 @@\n+class PreferenceError(Exception):\n+    pass\n+def load_preferences(user):\n+    lower = user.settings.get(\"theme\")\n+    return lower\n+DEFAULT_THEME = \"dark\"\n+print(DEFAULT_THEME)",
+    "added_lines": [
+      {
+        "line": "class PreferenceError(Exception):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def load_preferences(user):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    lower = user.settings.get(\"theme\")",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    return lower",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "DEFAULT_THEME = \"dark\"",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "print(DEFAULT_THEME)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-054",
+    "description": "Fila de envio de emails",
+    "filename": "mail/outbox.py",
+    "patch": "@@ -0,0 +1,7 @@\n+def flush_outbox(outbox):\n+    for j in range(len(outbox)):\n+        send(outbox[j])\n+    return len(outbox)\n+class OutboxFull(Exception):\n+    pass\n+MAX_PENDING = 20",
+    "added_lines": [
+      {
+        "line": "def flush_outbox(outbox):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    for j in range(len(outbox)):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "        send(outbox[j])",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return len(outbox)",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class OutboxFull(Exception):",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    pass",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "MAX_PENDING = 20",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      }
+    ]
+  },
+  {
+    "pr_id": "PR-055",
+    "description": "Regras de frete",
+    "filename": "shipping/rules.py",
+    "patch": "@@ -0,0 +1,7 @@\n+def shipping_cost(weight):\n+    return weight * RATE_PER_KG\n+def is_heavy(weight):\n+    return weight > HEAVY_LIMIT\n+class ShippingRule:\n+    zone = \"I\"\n+print(HEAVY_LIMIT)",
+    "added_lines": [
+      {
+        "line": "def shipping_cost(weight):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return weight * RATE_PER_KG",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "def is_heavy(weight):",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "    return weight > HEAVY_LIMIT",
+        "viola": false,
+        "regra": null,
+        "sub_regra": null,
+        "hard_negative": false
+      },
+      {
+        "line": "class ShippingRule:",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "    zone = \"I\"",
+        "viola": false,
+        "regra": "secao-2",
+        "sub_regra": null,
+        "hard_negative": true
+      },
+      {
+        "line": "print(HEAVY_LIMIT)",
+        "viola": false,
+        "regra": null,
         "sub_regra": null,
         "hard_negative": false
       }

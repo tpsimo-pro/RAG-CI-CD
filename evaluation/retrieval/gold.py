@@ -1,7 +1,7 @@
 """
 gold.py — Gabarito de retrieval, derivado do dataset do piloto.
 
-Para cada uma das 60 linhas POSITIVAS de `pilot_secao5.json`, qual chave
+Para cada linha POSITIVA de `pilot_dataset.json`, qual chave
 normativa precisa ter chegado ao LLM.
 
 Apenas as positivas entram (spec §6.1): para uma linha negativa como
@@ -16,11 +16,20 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from evaluation.retrieval.norm_map import NORM_BOOLEANO, NORM_NULO
+from evaluation.retrieval.norm_map import (
+    NORM_BOOLEANO,
+    NORM_NOME_CLASSE,
+    NORM_NOME_FUNCAO,
+    NORM_NOME_PROIBIDO,
+    NORM_NULO,
+)
 
 _SUB_REGRA_PARA_CHAVE = {
     "booleano": NORM_BOOLEANO,
     "nulo": NORM_NULO,
+    "nome_funcao": NORM_NOME_FUNCAO,
+    "nome_classe": NORM_NOME_CLASSE,
+    "nome_proibido": NORM_NOME_PROIBIDO,
 }
 
 
