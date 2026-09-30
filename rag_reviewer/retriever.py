@@ -224,16 +224,18 @@ class Retriever:
                 score_threshold=self._score_threshold,
             )
 
-        vistos: set[tuple[str, str]] = set()
-        unidos: list[dict] = []
+        # Um chunk repetido entre linhas fica com o MAIOR score: manter o da
+        # primeira linha fazia a norma que vem em 1o para a linha violadora
+        # herdar o score baixo de uma linha anterior e cair no corte abaixo.
+        melhores: dict[tuple[str, str], dict] = {}
 
         for resultados in resultados_por_linha:
             for chunk in resultados:
                 chave = (chunk["source"], chunk["section"])
-                if chave in vistos:
-                    continue
-                vistos.add(chave)
-                unidos.append(chunk)
+                if chave not in melhores or chunk["score"] > melhores[chave]["score"]:
+                    melhores[chave] = chunk
+
+        unidos = list(melhores.values())
 
         if not unidos:
             console.log(

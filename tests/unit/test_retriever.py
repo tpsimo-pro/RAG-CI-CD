@@ -320,6 +320,28 @@ class TestRetrieveForFilePorLinha:
         assert ctx is not None
         assert len(ctx.chunks) == 1
 
+    def test_chunk_repetido_fica_com_o_maior_score_entre_as_linhas(self):
+        """
+        A norma que vem em 1o para a linha violadora nao pode herdar o score
+        baixo de uma linha anterior e cair fora do corte de max_chunks.
+        """
+        file_diff = make_file_diff(added_lines=["def f():", "if x == True:"])
+        norma = make_chunk(text="secao 5", section="5", score=0.3)
+        outra = make_chunk(text="outra", section="1.1", score=0.5)
+        store = _FakeStore(chunks=[])
+        store.search_batch = lambda query_vectors, top_k, score_threshold: [
+            [outra, norma],
+            [dict(norma, score=1.0)],
+        ]
+
+        ctx = Retriever(
+            embedder=_RecordingEmbedder(), store=store, max_chunks=1, hybrid=False
+        ).retrieve_for_file(file_diff)
+
+        assert ctx is not None
+        assert [c["section"] for c in ctx.chunks] == ["5"]
+        assert ctx.chunks[0]["score"] == 1.0
+
     def test_uniao_e_limitada_por_max_chunks(self):
         file_diff = make_file_diff(added_lines=["linha um", "linha dois"])
         chunks = [
