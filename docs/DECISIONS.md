@@ -746,6 +746,23 @@ O `recall@k` da ablação (L0 a L4) não enxergava o defeito: ele mede cada
 linha isolada, antes da união e do corte. A rodada de `b2eddf4` fica como
 o "antes"; a rodada oficial de D-008 passa a ser a do sistema corrigido.
 
+### Ablação de recuperação refeita (2026-09-29)
+
+`results_L0` a `results_L4` foram refeitos no dataset atual (132 linhas
+positivas, antes 60 só da Seção 5), cumprindo a pendência da Emenda de
+D-002. L0 a L2 e `L4_sem_multilingue` foram medidos em coleções
+temporárias do Qdrant com o modelo em inglês (L0 com o loader e o chunker
+de `1e21350`), apagadas depois; a coleção de produção não mudou.
+
+recall@5: L0 0,64 · L1 0,70 · L2 0,16 · L3 0,67 · L4 0,84 ·
+L4 com o modelo em inglês 0,89. O critério (>= 0,95) deixa de ser
+atingido. Em L4 a Seção 5, a cs 4.1 e os nomes de classe ficam em 1,0; as
+falhas são nomes de função (0 de 16) e `l`/`O`/`I` (11 de 16), violações
+sem texto em comum com a norma. Duas conclusões da ablação antiga não se
+mantêm: a consulta por arquivo deixou de ser a pior configuração, e o
+modelo multilíngue não supera o inglês com o BM25 ativo (ADR-002 e
+ADR-004 citam os números antigos).
+
 ### Medição
 
 - A rodada oficial é uma só: sistema atual contra o dataset conforme.

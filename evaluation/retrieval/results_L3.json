@@ -2,15 +2,15 @@
   "label": "L3",
   "config": {
     "per_line": true,
+    "hybrid": false,
     "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "top_k": 5,
     "score_threshold": 0.35,
     "collection": "style_guide_chunks"
   },
-  "n_gold_lines": 60,
-  "recall_at_1": 0.5333,
-  "recall_at_3": 0.6833,
-  "recall_at_5": 0.75,
-  "mrr": 0.6103,
-  "context_precision_at_5": 0.2053
+  "n_gold_lines": 132,
+  "recall_at_1": 0.4697,
+  "recall_at_3": 0.6136,
+  "recall_at_5": 0.6742,
+  "context_precision_at_5": 0.2199
 }

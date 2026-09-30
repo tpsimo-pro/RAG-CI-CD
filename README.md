@@ -45,23 +45,30 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Os resultados desta seção foram medidos no dataset anterior, de 30 PRs e só a Seção 5. O dataset atual tem 75 PRs e três regras, e as medições precisam ser refeitas; a regra de exceções (`coding_standards.md` 4.1) ainda não foi medida. Em uma verificação de retrieval no dataset novo (recall@5 por regra, hybrid por linha), a Seção 5 manteve 1.0, enquanto a nomenclatura ficou em 0.0 para funções, 1.0 para classes e 0.69 para `l`/`O`/`I`.
+> Os resultados de detecção desta seção foram medidos no dataset anterior, de 30 PRs e só a Seção 5, e serão refeitos na rodada oficial de D-008. Os de recuperação já foram refeitos no dataset atual (75 PRs, três regras).
 >
 > A avaliação de detecção já reporta as métricas **por regra** e o recall **por sub-regra** (`per_rule` e `per_sub_rule_recall` em `results.json`). O recorte de uma regra são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a regra alguma e só entram na matriz global, então a precisão por regra não é comparável à global.
 
 ### Recuperação (sem LLM)
 
-`recall@k` é a fração das 60 linhas positivas cuja norma correta aparece entre os k primeiros chunks. `context_precision@5` é a fração dos chunks entregues ao LLM que carregam a norma correta.
+`recall@k` é a fração das 132 linhas positivas cuja norma correta aparece entre os k primeiros chunks recuperados **para aquela linha**. `context_precision@5` é a fração dos chunks recuperados que carregam a norma correta. Todas as configurações foram medidas sobre o mesmo corpus; L0 a L2 em coleções temporárias com o modelo em inglês, L0 com o loader e o chunker de `1e21350`.
 
 | Config | recall@1 | recall@3 | recall@5 | context_precision@5 |
 |---|---|---|---|---|
-| L0 - linha de base: consulta por arquivo, MiniLM em inglês, só denso | 0.0833 | 0.1500 | 0.1500 | 0.1000 |
-| L1 - loader e chunker que respeitam blocos cercados | 0.0833 | 0.1500 | 0.2167 | 0.1133 |
-| L2 - consulta por linha | 0.0667 | 0.0667 | 0.0667 | 0.0667 |
-| L3 - modelo multilíngue | 0.5333 | 0.6833 | 0.7500 | 0.2053 |
-| L4 - busca híbrida denso + BM25 com RRF | 0.8333 | 1.0000 | 1.0000 | 0.2000 |
+| L0 - linha de base: consulta por arquivo, MiniLM em inglês, só denso | 0.2273 | 0.5985 | 0.6364 | 0.1828 |
+| L1 - loader e chunker que respeitam blocos cercados | 0.3864 | 0.6515 | 0.7045 | 0.2250 |
+| L2 - consulta por linha | 0.1136 | 0.1591 | 0.1591 | 0.1114 |
+| L3 - modelo multilíngue | 0.4697 | 0.6136 | 0.6742 | 0.2199 |
+| L4 - busca híbrida denso + BM25 com RRF | 0.6667 | 0.8182 | 0.8409 | 0.1894 |
+| L4 com o MiniLM em inglês | 0.6212 | 0.8712 | 0.8939 | 0.2182 |
 
-Critério do plano: `recall@5 >= 0.95`, atingido em L4. Detalhes em `docs/agent-reports/2026-09-01-ablacao-retrieval.md`.
+Critério do plano: `recall@5 >= 0.95`, não atingido. Em L4, a Seção 5 e a cs 4.1 têm recall@5 de 1.0 (84 de 84 linhas) e os nomes de classe também (16 de 16). As falhas são todas de nomenclatura: 0 de 16 para nomes de função (`def CalculateTax(...)` traz docstrings, tipo de retorno e funções booleanas, nunca a tabela de convenções) e 11 de 16 para `l`/`O`/`I`. Uma violação de nome não tem texto em comum com a norma que a proíbe.
+
+Três leituras mudaram em relação à medição no dataset antigo (só Seção 5, 60 linhas; ver `docs/agent-reports/2026-09-01-ablacao-retrieval.md`):
+
+- A consulta por arquivo (L0, L1) deixou de ser a pior. Com o código de D-008, cada arquivo passou a ser uma consulta rica; a consulta por linha só compensa com o modelo multilíngue e o BM25.
+- Com o BM25 ativo, o modelo em inglês supera o multilíngue (0.89 contra 0.84). O ganho do multilíngue não se sustenta no dataset atual.
+- O `recall@k` mede cada linha isolada. Ele não passa pela união por arquivo e pelo corte em 8 chunks do `Retriever`, e por isso não viu o defeito corrigido em `fb05820` (D-008).
 
 ### Detecção (3 repetições, temperatura 0.0)
 
@@ -87,9 +94,9 @@ Taxa de alucinação 0.0 (nenhuma detecção aponta uma linha que não existe no
 ### Limitações
 
 - O dataset é sintético e escrito pelo autor, o que ameaça a validade externa (D-004).
-- Todas as violações do gabarito são lexicais. Com o BM25 ativo, o modelo de embedding em inglês entrega o mesmo `recall@5`, então o ganho do modelo multilíngue não está isolado nesse recorte.
+- Com o BM25 ativo, o modelo de embedding em inglês entrega `recall@5` maior que o multilíngue no dataset atual, então o ganho do modelo multilíngue não se sustenta nesse recorte.
 - A Precisão fica abaixo da meta mínima. Os 8 PRs de controle foram todos sinalizados no nível de PR.
-- Quatro de cada cinco chunks entregues ao LLM não carregam a norma correta (`context_precision@5` = 0.20).
+- Quatro de cada cinco chunks recuperados não carregam a norma correta (`context_precision@5` = 0.19 em L4).
 
 ---
 

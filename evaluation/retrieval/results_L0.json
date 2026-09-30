@@ -2,15 +2,15 @@
   "label": "L0",
   "config": {
     "per_line": false,
+    "hybrid": false,
     "embedding_model": "all-MiniLM-L6-v2",
     "top_k": 5,
     "score_threshold": 0.35,
-    "collection": "style_guide_chunks"
+    "collection": "abl_tmp_minilm_l0"
   },
-  "n_gold_lines": 60,
-  "recall_at_1": 0.0833,
-  "recall_at_3": 0.15,
-  "recall_at_5": 0.15,
-  "mrr": 0.1056,
-  "context_precision_at_5": 0.1
+  "n_gold_lines": 132,
+  "recall_at_1": 0.2273,
+  "recall_at_3": 0.5985,
+  "recall_at_5": 0.6364,
+  "context_precision_at_5": 0.1828
 }
