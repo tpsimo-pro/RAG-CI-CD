@@ -9,89 +9,89 @@
     {
       "repetition_index": 0,
       "confusion_matrix": {
-        "tp": 85,
-        "fp": 22,
-        "fn": 47,
-        "tn": 1871,
+        "tp": 116,
+        "fp": 17,
+        "fn": 16,
+        "tn": 1876,
         "n": 2025
       },
-      "precision": 0.7944,
-      "recall": 0.6439,
-      "f1": 0.7113,
-      "accuracy": 0.9659,
+      "precision": 0.8722,
+      "recall": 0.8788,
+      "f1": 0.8755,
+      "accuracy": 0.9837,
       "hallucination_rate": 0.0,
-      "norm_reference_precision": 0.7412,
-      "total_detections": 107,
+      "norm_reference_precision": 0.9397,
+      "total_detections": 133,
       "hallucinated_detections": 0,
       "misplaced_block_fps": 0,
       "per_rule": {
         "coding-4.1": {
           "regra": "coding-4.1",
           "confusion_matrix": {
-            "tp": 10,
-            "fp": 1,
-            "fn": 22,
-            "tn": 31,
+            "tp": 18,
+            "fp": 5,
+            "fn": 14,
+            "tn": 27,
             "n": 64
           },
-          "precision": 0.9091,
-          "recall": 0.3125,
-          "f1": 0.4651,
-          "norm_reference_precision": 0.9
+          "precision": 0.7826,
+          "recall": 0.5625,
+          "f1": 0.6545,
+          "norm_reference_precision": 1.0
         },
         "secao-2": {
           "regra": "secao-2",
           "confusion_matrix": {
-            "tp": 45,
-            "fp": 1,
-            "fn": 3,
-            "tn": 49,
+            "tp": 46,
+            "fp": 2,
+            "fn": 2,
+            "tn": 48,
             "n": 98
           },
-          "precision": 0.9783,
-          "recall": 0.9375,
-          "f1": 0.9574,
-          "norm_reference_precision": 0.9111
+          "precision": 0.9583,
+          "recall": 0.9583,
+          "f1": 0.9583,
+          "norm_reference_precision": 0.8478
         },
         "secao-5": {
           "regra": "secao-5",
           "confusion_matrix": {
-            "tp": 30,
+            "tp": 52,
             "fp": 0,
-            "fn": 22,
+            "fn": 0,
             "tn": 50,
             "n": 102
           },
           "precision": 1.0,
-          "recall": 0.5769,
-          "f1": 0.7317,
-          "norm_reference_precision": 0.4333
+          "recall": 1.0,
+          "f1": 1.0,
+          "norm_reference_precision": 1.0
         }
       },
       "per_sub_rule_recall": {
         "booleano": {
           "positivas": 26,
-          "tp": 12,
-          "fn": 14,
-          "recall": 0.4615
+          "tp": 26,
+          "fn": 0,
+          "recall": 1.0
         },
         "captura_generica": {
           "positivas": 16,
-          "tp": 9,
-          "fn": 7,
-          "recall": 0.5625
+          "tp": 16,
+          "fn": 0,
+          "recall": 1.0
         },
         "captura_silenciosa": {
           "positivas": 16,
-          "tp": 1,
-          "fn": 15,
-          "recall": 0.0625
+          "tp": 2,
+          "fn": 14,
+          "recall": 0.125
         },
         "nome_classe": {
           "positivas": 16,
-          "tp": 15,
-          "fn": 1,
-          "recall": 0.9375
+          "tp": 16,
+          "fn": 0,
+          "recall": 1.0
         },
         "nome_funcao": {
           "positivas": 16,
@@ -107,125 +107,125 @@
         },
         "nulo": {
           "positivas": 26,
-          "tp": 18,
-          "fn": 8,
-          "recall": 0.6923
+          "tp": 26,
+          "fn": 0,
+          "recall": 1.0
         }
       }
     }
   ],
   "summary": {
-    "precision_mean": 0.7944,
+    "precision_mean": 0.8722,
     "precision_stdev": 0.0,
-    "recall_mean": 0.6439,
+    "recall_mean": 0.8788,
     "recall_stdev": 0.0,
-    "f1_mean": 0.7113,
+    "f1_mean": 0.8755,
     "f1_stdev": 0.0,
     "median_f1_repetition_index": 0,
     "per_rule": {
       "coding-4.1": {
-        "precision_mean": 0.9091,
+        "precision_mean": 0.7826,
         "precision_stdev": 0.0,
-        "recall_mean": 0.3125,
+        "recall_mean": 0.5625,
         "recall_stdev": 0.0,
-        "f1_mean": 0.4651,
+        "f1_mean": 0.6545,
         "f1_stdev": 0.0
       },
       "secao-2": {
-        "precision_mean": 0.9783,
+        "precision_mean": 0.9583,
         "precision_stdev": 0.0,
-        "recall_mean": 0.9375,
+        "recall_mean": 0.9583,
         "recall_stdev": 0.0,
-        "f1_mean": 0.9574,
+        "f1_mean": 0.9583,
         "f1_stdev": 0.0
       },
       "secao-5": {
         "precision_mean": 1.0,
         "precision_stdev": 0.0,
-        "recall_mean": 0.5769,
+        "recall_mean": 1.0,
         "recall_stdev": 0.0,
-        "f1_mean": 0.7317,
+        "f1_mean": 1.0,
         "f1_stdev": 0.0
       }
     }
   },
   "published": {
     "line_confusion_matrix": {
-      "tp": 85,
-      "fp": 22,
-      "fn": 47,
-      "tn": 1871,
+      "tp": 116,
+      "fp": 17,
+      "fn": 16,
+      "tn": 1876,
       "n": 2025
     },
     "per_rule": {
       "coding-4.1": {
         "regra": "coding-4.1",
         "confusion_matrix": {
-          "tp": 10,
-          "fp": 1,
-          "fn": 22,
-          "tn": 31,
+          "tp": 18,
+          "fp": 5,
+          "fn": 14,
+          "tn": 27,
           "n": 64
         },
-        "precision": 0.9091,
-        "recall": 0.3125,
-        "f1": 0.4651,
-        "norm_reference_precision": 0.9
+        "precision": 0.7826,
+        "recall": 0.5625,
+        "f1": 0.6545,
+        "norm_reference_precision": 1.0
       },
       "secao-2": {
         "regra": "secao-2",
         "confusion_matrix": {
-          "tp": 45,
-          "fp": 1,
-          "fn": 3,
-          "tn": 49,
+          "tp": 46,
+          "fp": 2,
+          "fn": 2,
+          "tn": 48,
           "n": 98
         },
-        "precision": 0.9783,
-        "recall": 0.9375,
-        "f1": 0.9574,
-        "norm_reference_precision": 0.9111
+        "precision": 0.9583,
+        "recall": 0.9583,
+        "f1": 0.9583,
+        "norm_reference_precision": 0.8478
       },
       "secao-5": {
         "regra": "secao-5",
         "confusion_matrix": {
-          "tp": 30,
+          "tp": 52,
           "fp": 0,
-          "fn": 22,
+          "fn": 0,
           "tn": 50,
           "n": 102
         },
         "precision": 1.0,
-        "recall": 0.5769,
-        "f1": 0.7317,
-        "norm_reference_precision": 0.4333
+        "recall": 1.0,
+        "f1": 1.0,
+        "norm_reference_precision": 1.0
       }
     },
     "per_rule_note": "Recorte por regra (emenda de D-002): só as linhas cujo campo 'regra' é a regra em questão (positivas + negativos difíceis escritos contra ela). Negativos comuns (regra=null) entram apenas na matriz global; a precisão por regra não é comparável à global.",
     "per_sub_rule_recall": {
       "booleano": {
         "positivas": 26,
-        "tp": 12,
-        "fn": 14,
-        "recall": 0.4615
+        "tp": 26,
+        "fn": 0,
+        "recall": 1.0
       },
       "captura_generica": {
         "positivas": 16,
-        "tp": 9,
-        "fn": 7,
-        "recall": 0.5625
+        "tp": 16,
+        "fn": 0,
+        "recall": 1.0
       },
       "captura_silenciosa": {
         "positivas": 16,
-        "tp": 1,
-        "fn": 15,
-        "recall": 0.0625
+        "tp": 2,
+        "fn": 14,
+        "recall": 0.125
       },
       "nome_classe": {
         "positivas": 16,
-        "tp": 15,
-        "fn": 1,
-        "recall": 0.9375
+        "tp": 16,
+        "fn": 0,
+        "recall": 1.0
       },
       "nome_funcao": {
         "positivas": 16,
@@ -241,31 +241,31 @@
       },
       "nulo": {
         "positivas": 26,
-        "tp": 18,
-        "fn": 8,
-        "recall": 0.6923
+        "tp": 26,
+        "fn": 0,
+        "recall": 1.0
       }
     },
     "pr_gate_confusion_matrix": {
-      "tp": 49,
-      "fp": 5,
-      "fn": 5,
-      "tn": 16,
+      "tp": 54,
+      "fp": 11,
+      "fn": 0,
+      "tn": 10,
       "n": 75
     },
     "accuracy": {
-      "value": 0.9659,
+      "value": 0.9837,
       "note": "SECUNDÁRIA e NÃO-REPRESENTATIVA: conjunto desbalanceado (~80% de linhas negativas, D-004). Não usar para comparar desempenho."
     },
     "hallucination_rate": 0.0,
     "misplaced_block_fps": 0,
-    "norm_reference_precision": 0.7412
+    "norm_reference_precision": 0.9397
   },
   "targets": {
     "precision": true,
-    "recall": false,
+    "recall": true,
     "f1": true,
-    "all": false
+    "all": true
   },
   "per_pr_gate": [
     {
@@ -409,8 +409,8 @@
     {
       "pr_id": "PR-028",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-029",
@@ -535,8 +535,8 @@
     {
       "pr_id": "PR-050",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-051",
@@ -559,14 +559,14 @@
     {
       "pr_id": "PR-054",
       "expected_positive": false,
-      "predicted_positive": true,
-      "cell": "FP"
+      "predicted_positive": false,
+      "cell": "TN"
     },
     {
       "pr_id": "PR-055",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-056",
@@ -589,8 +589,8 @@
     {
       "pr_id": "PR-059",
       "expected_positive": true,
-      "predicted_positive": false,
-      "cell": "FN"
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-060",
@@ -625,8 +625,8 @@
     {
       "pr_id": "PR-065",
       "expected_positive": true,
-      "predicted_positive": false,
-      "cell": "FN"
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-066",
@@ -637,8 +637,8 @@
     {
       "pr_id": "PR-067",
       "expected_positive": true,
-      "predicted_positive": false,
-      "cell": "FN"
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-068",
@@ -649,8 +649,8 @@
     {
       "pr_id": "PR-069",
       "expected_positive": true,
-      "predicted_positive": false,
-      "cell": "FN"
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-070",
@@ -673,20 +673,20 @@
     {
       "pr_id": "PR-073",
       "expected_positive": true,
-      "predicted_positive": false,
-      "cell": "FN"
+      "predicted_positive": true,
+      "cell": "TP"
     },
     {
       "pr_id": "PR-074",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-075",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-076",
@@ -703,14 +703,14 @@
     {
       "pr_id": "PR-078",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-079",
       "expected_positive": false,
-      "predicted_positive": false,
-      "cell": "TN"
+      "predicted_positive": true,
+      "cell": "FP"
     },
     {
       "pr_id": "PR-080",
@@ -1165,9 +1165,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-002",
@@ -1187,9 +1187,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-002",
@@ -1253,18 +1253,39 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         }
       ],
       "detections": [
+        {
+          "line_content": "    if gateway_response.approved == True:",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Remova a comparação e use 'if gateway_response.approved:'."
+        },
+        {
+          "line_content": "    if gateway_response.declined == False:",
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Remova a comparação e use 'if not gateway_response.declined:'."
+        },
+        {
+          "line_content": "    return transaction.refunded == True",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Remova a comparação e retorne 'transaction.refunded'."
+        },
         {
           "line_content": "def is_refund_required(",
           "violation_description": "Função com múltiplas responsabilidades distintas (marcar, retry, agendar, log).",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
           "severity": "HIGH",
-          "suggestion": "Refatorar em funções menores com responsabilidade única."
+          "suggestion": "Refatore em funções menores com responsabilidades únicas."
         }
       ]
     },
@@ -1311,8 +1332,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -1421,9 +1442,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-003",
@@ -1443,9 +1464,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-003",
@@ -1509,18 +1530,32 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
-          "line_content": "def is_session_revoked(session: Session, cache_client: CacheClient) -> bool:",
-          "violation_description": "Função com múltiplas responsabilidades (invalidação e verificação).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatorar para funções separadas de invalidação e verificação."
+          "line_content": "    if session.dirty == True:",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if session.dirty:'."
+        },
+        {
+          "line_content": "    if session.locked == False:",
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if not session.locked:'."
+        },
+        {
+          "line_content": "    return session.revoked == True",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'return session.revoked'."
         }
       ]
     },
@@ -1710,9 +1745,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-004",
@@ -1732,9 +1767,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-004",
@@ -1754,9 +1789,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-004",
@@ -1805,11 +1840,32 @@
       ],
       "detections": [
         {
+          "line_content": "    if report.finalized == True:",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if report.finalized:'."
+        },
+        {
+          "line_content": "    if options.include_charts == False:",
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if not options.include_charts:'."
+        },
+        {
+          "line_content": "    if report.has_errors == True:",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if report.has_errors:'."
+        },
+        {
           "line_content": "def is_export_ready(report: Report, options: ExportOptions) -> bool:",
-          "violation_description": "Função viola responsabilidade única ao executar múltiplas tarefas distintas.",
+          "violation_description": "Função com múltiplas responsabilidades distintas.",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
           "severity": "HIGH",
-          "suggestion": "Refatore em funções menores para isolar cada responsabilidade."
+          "suggestion": "Refatore em funções menores para cada tarefa."
         }
       ]
     },
@@ -2097,8 +2153,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -2207,9 +2263,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-006",
@@ -2229,9 +2285,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-006",
@@ -2302,11 +2358,18 @@
       ],
       "detections": [
         {
-          "line_content": "def is_stock_available(product: Product, warehouse: Warehouse) -> bool:",
-          "violation_description": "Função viola responsabilidade única ao executar ações de alerta e roteamento.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatore para funções separadas de verificação e ação."
+          "line_content": "    if product.discontinued == True:",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if product.discontinued:'."
+        },
+        {
+          "line_content": "    if warehouse.active == False:",
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if not warehouse.active:'."
         }
       ]
     },
@@ -2463,9 +2526,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-007",
@@ -2485,9 +2548,9 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-007",
@@ -2551,18 +2614,39 @@
           "regra": "secao-5",
           "sub_regra": "booleano",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
+          "line_content": "    if event.cancelled == True:",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if event.cancelled:'."
+        },
+        {
+          "line_content": "    if event.shipped == False:",
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if not event.shipped:'."
+        },
+        {
+          "line_content": "    return event.delivered == True",
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'return event.delivered'."
+        },
+        {
           "line_content": "def is_order_delivered(order: Order, event: OrderEvent) -> bool:",
-          "violation_description": "Função realiza múltiplas tarefas distintas (atualização e persistência).",
+          "violation_description": "Função com múltiplas responsabilidades (atualizar status e persistir).",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
           "severity": "HIGH",
-          "suggestion": "Refatorar para funções menores com responsabilidade única."
+          "suggestion": "Refatore para separar atualização de status e persistência."
         }
       ]
     },
@@ -2609,8 +2693,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -2827,30 +2911,23 @@
         {
           "line_content": "    if plan.active == True:",
           "violation_description": "Comparação booleana explícita com True.",
-          "norm_reference": "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Use 'if plan.active:'."
         },
         {
           "line_content": "    if customer.tax_exempt == False:",
           "violation_description": "Comparação booleana explícita com False.",
-          "norm_reference": "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Use 'if not customer.tax_exempt:'."
         },
         {
           "line_content": "    if plan.trial == True:",
           "violation_description": "Comparação booleana explícita com True.",
-          "norm_reference": "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Use 'if plan.trial:'."
-        },
-        {
-          "line_content": "def is_invoice_issued(customer: Customer, plan: Plan) -> bool:",
-          "violation_description": "Função com múltiplas responsabilidades (construção, confirmação, impostos, desconto).",
-          "norm_reference": "coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatore em funções menores para cada tarefa distinta."
         }
       ]
     },
@@ -3104,23 +3181,23 @@
         {
           "line_content": "    if payload.email != None:",
           "violation_description": "Uso de != para comparação com None.",
-          "norm_reference": "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Use 'is not' para comparar com None."
+          "suggestion": "Use 'is not None' para comparação."
         },
         {
           "line_content": "    if payload.avatar_url == None:",
           "violation_description": "Uso de == para comparação com None.",
-          "norm_reference": "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Use 'is' para comparar com None."
+          "suggestion": "Use 'is None' para comparação."
         },
         {
           "line_content": "    return payload.phone != None",
           "violation_description": "Uso de != para comparação com None.",
-          "norm_reference": "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Use 'is not' para comparar com None."
+          "suggestion": "Use 'is not None' para comparação."
         }
       ]
     },
@@ -3167,8 +3244,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -3279,7 +3356,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-012",
@@ -3301,7 +3378,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-012",
@@ -3323,7 +3400,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-012",
@@ -3372,32 +3449,25 @@
       ],
       "detections": [
         {
-          "line_content": "def is_upload_stored(upload: Upload, storage: Storage) -> bool:",
-          "violation_description": "Função com múltiplas responsabilidades (validação, cálculo, quarentena, escrita).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatorar em funções menores com responsabilidade única."
+          "line_content": "    if upload.content_type != None:",
+          "violation_description": "Uso de != None em vez de is not None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Substituir != None por is not None."
         },
         {
-          "line_content": "if upload.content_type != None:",
-          "violation_description": "Uso de comparação direta com None em vez de 'is not'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 3. Importações (Contexto geral de estilo Python)",
-          "severity": "LOW",
-          "suggestion": "Usar 'is not None' para comparação com None."
+          "line_content": "    if upload.checksum == None:",
+          "violation_description": "Uso de == None em vez de is None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Substituir == None por is None."
         },
         {
-          "line_content": "if upload.checksum == None:",
-          "violation_description": "Uso de comparação direta com None em vez de 'is'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 3. Importações (Contexto geral de estilo Python)",
-          "severity": "LOW",
-          "suggestion": "Usar 'is None' para comparação com None."
-        },
-        {
-          "line_content": "if upload.virus_scan_result != None:",
-          "violation_description": "Uso de comparação direta com None em vez de 'is not'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 3. Importações (Contexto geral de estilo Python)",
-          "severity": "LOW",
-          "suggestion": "Usar 'is not None' para comparação com None."
+          "line_content": "    if upload.virus_scan_result != None:",
+          "violation_description": "Uso de != None em vez de is not None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Substituir != None por is not None."
         }
       ]
     },
@@ -3587,9 +3657,9 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-013",
@@ -3609,9 +3679,9 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-013",
@@ -3675,18 +3745,39 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
           "line_content": "def is_task_orphaned(task: ScheduledTask, scheduler: Scheduler) -> bool:",
-          "violation_description": "Função viola responsabilidade única ao agendar e verificar status.",
+          "violation_description": "Função com múltiplas responsabilidades (validação, agendamento, retorno booleano).",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
           "severity": "HIGH",
-          "suggestion": "Refatore para funções separadas de agendamento e verificação."
+          "suggestion": "Refatorar em funções menores para isolar responsabilidades."
+        },
+        {
+          "line_content": "    if task.cron_expression == None:",
+          "violation_description": "Uso de '==' para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Usar 'is None' para comparação com None."
+        },
+        {
+          "line_content": "    if task.last_run != None:",
+          "violation_description": "Uso de '!=' para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Usar 'is not None' para comparação com None."
+        },
+        {
+          "line_content": "    return task.owner == None",
+          "violation_description": "Uso de '==' para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Usar 'is None' para comparação com None."
         }
       ]
     },
@@ -3733,8 +3824,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -3845,7 +3936,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-014",
@@ -3867,7 +3958,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-014",
@@ -3933,37 +4024,30 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
-          "line_content": "def has_referrer(event: AnalyticsEvent, session: Session) -> bool:",
-          "violation_description": "Função viola responsabilidade única ao modificar estado e retornar valor.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Separar enriquecimento do evento da verificação de referrer."
-        },
-        {
           "line_content": "    if event.user_id != None:",
-          "violation_description": "Uso de comparação com None em vez de 'is not'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Uso de != None em vez de is not None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Usar 'is not None' para comparação com None."
+          "suggestion": "Substituir por 'is not None'."
         },
         {
           "line_content": "    if event.metadata == None:",
-          "violation_description": "Uso de comparação com None em vez de 'is'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Uso de == None em vez de is None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Usar 'is None' para comparação com None."
+          "suggestion": "Substituir por 'is None'."
         },
         {
           "line_content": "    return session.referrer != None",
-          "violation_description": "Uso de comparação com None em vez de 'is not'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Uso de != None em vez de is not None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Usar 'is not None' para comparação com None."
+          "suggestion": "Substituir por 'is not None'."
         }
       ]
     },
@@ -4229,8 +4313,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -4339,9 +4423,9 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-016",
@@ -4361,9 +4445,9 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-016",
@@ -4423,11 +4507,18 @@
       ],
       "detections": [
         {
-          "line_content": "def is_within_rate_limit(client: ApiClient, window: RateWindow) -> bool:",
-          "violation_description": "Função viola responsabilidade única ao consumir cota e validar limite.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Separar consumo de cota e verificação de limite em funções distintas."
+          "line_content": "    if client.override_token != None:",
+          "violation_description": "Uso de != para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is not None'."
+        },
+        {
+          "line_content": "    if window.remaining_quota == None:",
+          "violation_description": "Uso de == para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is None'."
         }
       ]
     },
@@ -4474,8 +4565,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -4584,9 +4675,9 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-017",
@@ -4606,9 +4697,9 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-017",
@@ -4672,18 +4763,32 @@
           "regra": "secao-5",
           "sub_regra": "nulo",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
-          "line_content": "def is_feature_enabled(flag: FeatureFlag, context: FlagContext) -> bool:",
-          "violation_description": "Função realiza múltiplas tarefas distintas (avaliação, log, override).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatorar em funções menores com responsabilidades únicas."
+          "line_content": "    if flag.rollout_percentage == None:",
+          "violation_description": "Uso de '==' para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is None' para comparação."
+        },
+        {
+          "line_content": "    if context.user_segment != None:",
+          "violation_description": "Uso de '!=' para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is not None' para comparação."
+        },
+        {
+          "line_content": "    return flag.expires_at == None",
+          "violation_description": "Uso de '==' para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is None' para comparação."
         }
       ]
     },
@@ -4842,7 +4947,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-018",
@@ -4864,7 +4969,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-018",
@@ -4930,30 +5035,30 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
           "line_content": "    if record.trace_id != None:",
-          "violation_description": "Uso de comparação com None em vez de 'is not'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 1. Layout do Código",
+          "violation_description": "Uso de != para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Substituir '!= None' por 'is not None'."
+          "suggestion": "Use 'is not' para comparação com None."
         },
         {
           "line_content": "    if record.exception == None:",
-          "violation_description": "Uso de comparação com None em vez de 'is'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 1. Layout do Código",
+          "violation_description": "Uso de == para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Substituir '== None' por 'is None'."
+          "suggestion": "Use 'is' para comparação com None."
         },
         {
           "line_content": "    return config.include_hostname != None",
-          "violation_description": "Uso de comparação com None em vez de 'is not'.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 1. Layout do Código",
+          "violation_description": "Uso de != para comparação com None.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
-          "suggestion": "Substituir '!= None' por 'is not None'."
+          "suggestion": "Use 'is not' para comparação com None."
         }
       ]
     },
@@ -5000,8 +5105,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -5145,7 +5250,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-021",
@@ -5211,7 +5316,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-021",
@@ -5244,7 +5349,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-021",
@@ -5255,44 +5360,37 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
-          "line_content": "def is_coupon_valid(coupon: Coupon, cart: Cart) -> bool:",
-          "violation_description": "Função viola responsabilidade única ao validar e modificar estado do carrinho.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatore para separar validação de lógica de aplicação no carrinho."
-        },
-        {
           "line_content": "    if coupon.expired == True:",
-          "violation_description": "Comparação explícita com True viola convenções Python (PEP 8 implícito na seção 2.1).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "LOW",
-          "suggestion": "Use 'if coupon.expired:' em vez de comparação com True."
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if coupon.expired:'."
         },
         {
           "line_content": "    if coupon.applicable_category == None:",
-          "violation_description": "Comparação explícita com None viola convenções Python (PEP 8 implícito na seção 2.1).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "LOW",
-          "suggestion": "Use 'if coupon.applicable_category is None:'."
+          "violation_description": "Comparação com None usando ==.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is None'."
         },
         {
           "line_content": "        return coupon.min_purchase != None",
-          "violation_description": "Comparação explícita com None viola convenções Python (PEP 8 implícito na seção 2.1).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "LOW",
-          "suggestion": "Use 'is not None' em vez de '!= None'."
+          "violation_description": "Comparação com None usando !=.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is not None'."
         },
         {
           "line_content": "    return coupon.single_use == False",
-          "violation_description": "Comparação explícita com False viola convenções Python (PEP 8 implícito na seção 2.1).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "LOW",
-          "suggestion": "Use 'not coupon.single_use' em vez de comparação com False."
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'not coupon.single_use'."
         }
       ]
     },
@@ -5339,8 +5437,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -5451,7 +5549,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-022",
@@ -5517,7 +5615,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-022",
@@ -5550,7 +5648,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-022",
@@ -5561,44 +5659,37 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         }
       ],
       "detections": [
         {
-          "line_content": "def is_review_pending(review: Review, rules: ModerationRules) -> bool:",
-          "violation_description": "Função com múltiplas responsabilidades (verificação e ações de moderação).",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
-          "severity": "HIGH",
-          "suggestion": "Refatorar para funções separadas de verificação e ação."
-        },
-        {
           "line_content": "    if review.flagged == True:",
-          "violation_description": "Uso de comparação explícita com True em vez de avaliação booleana.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
-          "severity": "LOW",
-          "suggestion": "Usar 'if review.flagged:'."
+          "violation_description": "Comparação booleana explícita com True.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'if review.flagged:'."
         },
         {
           "line_content": "    if review.rejection_reason == None:",
-          "violation_description": "Uso de comparação explícita com None em vez de 'is None'.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
-          "severity": "LOW",
-          "suggestion": "Usar 'if review.rejection_reason is None:'."
+          "violation_description": "Comparação com None usando ==.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is None'."
         },
         {
           "line_content": "        return review.moderator_id != None",
-          "violation_description": "Uso de comparação explícita com None em vez de 'is not None'.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
-          "severity": "LOW",
-          "suggestion": "Usar 'return review.moderator_id is not None'."
+          "violation_description": "Comparação com None usando !=.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'is not None'."
         },
         {
           "line_content": "    return review.auto_approved == False",
-          "violation_description": "Uso de comparação explícita com False em vez de negação lógica.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
-          "severity": "LOW",
-          "suggestion": "Usar 'return not review.auto_approved'."
+          "violation_description": "Comparação booleana explícita com False.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "MEDIUM",
+          "suggestion": "Use 'not review.auto_approved'."
         }
       ]
     },
@@ -5840,10 +5931,10 @@
       "detections": [
         {
           "line_content": "def renew_subscription(",
-          "violation_description": "Função pública sem docstring no formato Google Style.",
-          "norm_reference": "coding_standards.md | Seção: 5.1 Docstrings Obrigatórias",
-          "severity": "MEDIUM",
-          "suggestion": "Adicionar docstring completa com Args, Returns e Raises."
+          "violation_description": "Função realiza múltiplas tarefas distintas (cobrança, métricas, flags).",
+          "norm_reference": "coding_standards.md | Seção: 1.1 Responsabilidade Única",
+          "severity": "HIGH",
+          "suggestion": "Refatorar em funções menores com responsabilidades únicas."
         }
       ]
     },
@@ -6107,10 +6198,10 @@
       "detections": [
         {
           "line_content": "def has_referral_reward(referral: Referral, new_user: User) -> bool:",
-          "violation_description": "Função booleana realiza múltiplas tarefas distintas (registro, notificação, log).",
+          "violation_description": "Função com múltiplas responsabilidades (registro, cálculo, notificação, log).",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
           "severity": "HIGH",
-          "suggestion": "Refatorar para funções menores com responsabilidade única."
+          "suggestion": "Refatorar em funções menores com responsabilidade única."
         }
       ]
     },
@@ -6666,7 +6757,7 @@
       "detections": [
         {
           "line_content": "def resolve_ip_location(ip_address: str, geo_client: GeoClient) -> Location:",
-          "violation_description": "Função com múltiplas responsabilidades distintas (lookup, cache, métricas, flags).",
+          "violation_description": "Função realiza múltiplas tarefas distintas (lookup, cache, métricas, flags).",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
           "severity": "HIGH",
           "suggestion": "Refatorar em funções menores com responsabilidade única."
@@ -6942,8 +7033,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -7178,7 +7269,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "def is_audit_entry_signed(",
+          "violation_description": "Função com múltiplas responsabilidades (gravação e verificação).",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1.1 Responsabilidade Única",
+          "severity": "HIGH",
+          "suggestion": "Refatorar para separar gravação da verificação de assinatura."
+        }
+      ]
     },
     {
       "pr_id": "PR-029",
@@ -8029,22 +8128,22 @@
       "detections": [
         {
           "line_content": "def CalculateTax(order: Order) -> float:",
-          "violation_description": "Nome de função não segue snake_case.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
+          "violation_description": "Nome da função não segue snake_case.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
           "severity": "MEDIUM",
           "suggestion": "Renomear para calculate_tax."
         },
         {
           "line_content": "def applyShipping(order: Order) -> float:",
-          "violation_description": "Nome de função não segue snake_case.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
+          "violation_description": "Nome da função não segue snake_case.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
           "severity": "MEDIUM",
           "suggestion": "Renomear para apply_shipping."
         },
         {
           "line_content": "def GetFinalPrice(order: Order) -> float:",
-          "violation_description": "Nome de função não segue snake_case.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas",
+          "violation_description": "Nome da função não segue snake_case.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
           "severity": "MEDIUM",
           "suggestion": "Renomear para get_final_price."
         }
@@ -8497,21 +8596,21 @@
       "detections": [
         {
           "line_content": "    def getUser(self, user_id: int) -> User:",
-          "violation_description": "Nome de método não segue convenção snake_case.",
+          "violation_description": "Método usa camelCase em vez de snake_case.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Renomear para get_user."
         },
         {
           "line_content": "    def DeleteUser(self, user_id: int) -> None:",
-          "violation_description": "Nome de método não segue convenção snake_case.",
+          "violation_description": "Método usa PascalCase em vez de snake_case.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Renomear para delete_user."
         },
         {
           "line_content": "    def listActiveUsers(self) -> list[User]:",
-          "violation_description": "Nome de método não segue convenção snake_case.",
+          "violation_description": "Método usa camelCase em vez de snake_case.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Renomear para list_active_users."
@@ -8987,7 +9086,7 @@
       "detections": [
         {
           "line_content": "def SendCancellation(order: Order) -> None:",
-          "violation_description": "Nome de função pública usa PascalCase em vez de snake_case.",
+          "violation_description": "Nome de função não segue convenção snake_case.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: Guia de Estilo Python Corporativo (Baseado na PEP-8)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para send_cancellation."
@@ -9573,22 +9672,22 @@
       "detections": [
         {
           "line_content": "def ExportCsv(report: Report) -> str:",
-          "violation_description": "Nome de função não segue snake_case.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas (implícito em padrões gerais de nomenclatura Python/PEP8)",
+          "violation_description": "Nome de função não segue snake_case (inicia com maiúscula).",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 1.3 Linhas em Branco (implícito em PEP8 nomenclatura)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para export_csv."
         },
         {
           "line_content": "def exportPdf(report: Report) -> bytes:",
-          "violation_description": "Nome de função não segue snake_case.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas (implícito em padrões gerais de nomenclatura Python/PEP8)",
+          "violation_description": "Nome de função não segue snake_case (camelCase).",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 1.3 Linhas em Branco (implícito em PEP8 nomenclatura)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para export_pdf."
         },
         {
           "line_content": "def BuildSummary(report: Report) -> dict[str, int]:",
-          "violation_description": "Nome de função não segue snake_case.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.3 Nomenclatura de Funções Booleanas (implícito em padrões gerais de nomenclatura Python/PEP8)",
+          "violation_description": "Nome de função não segue snake_case (inicia com maiúscula).",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 1.3 Linhas em Branco (implícito em PEP8 nomenclatura)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para build_summary."
         }
@@ -10162,15 +10261,15 @@
       "detections": [
         {
           "line_content": "def ValidateEmail(value: str) -> str:",
-          "violation_description": "Função deve usar snake_case, não PascalCase.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Nome de função não segue snake_case (PEP 8 implícito nas normas de nomenclatura).",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.2 Proibições de Nomenclatura",
           "severity": "MEDIUM",
           "suggestion": "Renomear para validate_email."
         },
         {
           "line_content": "def checkAge(value: int) -> int:",
-          "violation_description": "Função deve usar snake_case, não camelCase.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Nome de função não segue snake_case (PEP 8 implícito nas normas de nomenclatura).",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.2 Proibições de Nomenclatura",
           "severity": "MEDIUM",
           "suggestion": "Renomear para check_age."
         }
@@ -10667,15 +10766,15 @@
       "detections": [
         {
           "line_content": "def ClearExpired(store: SessionStore) -> None:",
-          "violation_description": "Função pública deve usar snake_case, não PascalCase.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Função deve usar snake_case, não PascalCase.",
+          "norm_reference": "guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para clear_expired."
         },
         {
           "line_content": "def getSessionCount(store: SessionStore) -> int:",
-          "violation_description": "Função pública deve usar snake_case, não camelCase.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Função deve usar snake_case, não camelCase.",
+          "norm_reference": "guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para get_session_count."
         }
@@ -10726,7 +10825,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": true
+          "cites_correct_norm": false
         },
         {
           "pr_id": "PR-037",
@@ -10979,7 +11078,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": true
+          "cites_correct_norm": false
         },
         {
           "pr_id": "PR-037",
@@ -11144,7 +11243,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": true
+          "cites_correct_norm": false
         },
         {
           "pr_id": "PR-037",
@@ -11184,23 +11283,23 @@
         {
           "line_content": "class payment_processor:",
           "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Renomear para PaymentProcessor."
         },
         {
           "line_content": "class refund_handler:",
           "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
           "severity": "MEDIUM",
           "suggestion": "Renomear para RefundHandler."
         },
         {
           "line_content": "class Payment_Audit(object):",
-          "violation_description": "Nome de classe deve usar PascalCase sem underscores.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "MEDIUM",
-          "suggestion": "Renomear para PaymentAudit."
+          "violation_description": "Herança explícita de object desnecessária em Python 3.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos",
+          "severity": "LOW",
+          "suggestion": "Remover (object) da definição da classe."
         }
       ]
     },
@@ -11610,9 +11709,9 @@
           "regra": "secao-2",
           "sub_regra": "nome_classe",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-038",
@@ -11652,16 +11751,23 @@
         {
           "line_content": "class invoice_builder:",
           "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
           "suggestion": "Renomear para InvoiceBuilder."
         },
         {
           "line_content": "class line_item:",
           "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
           "suggestion": "Renomear para LineItem."
+        },
+        {
+          "line_content": "class Tax_Rule:",
+          "violation_description": "Nome de classe deve usar PascalCase sem underscores.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
+          "severity": "MEDIUM",
+          "suggestion": "Renomear para TaxRule."
         }
       ]
     },
@@ -12037,21 +12143,21 @@
           "line_content": "class message_queue:",
           "violation_description": "Nome de classe deve usar PascalCase.",
           "norm_reference": "coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "MEDIUM",
+          "severity": "HIGH",
           "suggestion": "Renomear para MessageQueue."
         },
         {
           "line_content": "class dead_letter_queue(message_queue):",
           "violation_description": "Nome de classe deve usar PascalCase.",
           "norm_reference": "coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "MEDIUM",
+          "severity": "HIGH",
           "suggestion": "Renomear para DeadLetterQueue."
         },
         {
           "line_content": "class Retry_Policy:",
           "violation_description": "Nome de classe deve usar PascalCase.",
           "norm_reference": "coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
-          "severity": "MEDIUM",
+          "severity": "HIGH",
           "suggestion": "Renomear para RetryPolicy."
         }
       ]
@@ -12504,21 +12610,21 @@
         {
           "line_content": "class product_repository:",
           "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
+          "norm_reference": "guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para ProductRepository."
         },
         {
           "line_content": "class Category_Repository:",
-          "violation_description": "Nome de classe deve usar PascalCase sem underscores.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
+          "violation_description": "Nome de classe deve usar PascalCase.",
+          "norm_reference": "guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para CategoryRepository."
         },
         {
           "line_content": "class stock_cache:",
           "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
+          "norm_reference": "guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
           "severity": "MEDIUM",
           "suggestion": "Renomear para StockCache."
         }
@@ -12927,15 +13033,15 @@
       "detections": [
         {
           "line_content": "class job_scheduler:",
-          "violation_description": "Nome de classe deve usar PascalCase.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Classe deve usar PascalCase.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
           "severity": "MEDIUM",
           "suggestion": "Renomear para JobScheduler."
         },
         {
           "line_content": "class Cron_Parser:",
-          "violation_description": "Nome de classe deve usar PascalCase sem underscores.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2. Nomenclatura e Convenções (Naming)",
+          "violation_description": "Classe deve usar PascalCase sem underscores.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
           "severity": "MEDIUM",
           "suggestion": "Renomear para CronParser."
         }
@@ -13351,7 +13457,7 @@
         },
         {
           "line_content": "class Yaml_Loader:",
-          "violation_description": "Nome de classe deve usar PascalCase.",
+          "violation_description": "Nome de classe deve usar PascalCase sem underscores.",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2.1 Python — Convenções Obrigatórias",
           "severity": "MEDIUM",
           "suggestion": "Renomear para YamlLoader."
@@ -13621,21 +13727,21 @@
           "violation_description": "Uso de variável de uma letra 'l' proibido.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
-          "suggestion": "Renomear para nome descritivo ou evitar variável de uma letra."
+          "suggestion": "Renomeie para um nome descritivo ou remova se não for usada."
         },
         {
           "line_content": "    O = 0",
           "violation_description": "Uso de variável de uma letra 'O' proibido.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
-          "suggestion": "Renomear para nome descritivo ou evitar variável de uma letra."
+          "suggestion": "Renomeie para um nome descritivo ou remova se não for usada."
         },
         {
           "line_content": "    I = \"\"",
           "violation_description": "Uso de variável de uma letra 'I' proibido.",
           "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
-          "suggestion": "Renomear para nome descritivo ou evitar variável de uma letra."
+          "suggestion": "Renomeie para um nome descritivo ou remova se não for usada."
         }
       ]
     },
@@ -13682,8 +13788,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -13869,21 +13975,28 @@
           "violation_description": "Uso de 'l' como nome de variável de uma letra.",
           "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
-          "suggestion": "Use um nome descritivo ou 'i' para índice."
+          "suggestion": "Use um nome descritivo ou 'item'."
         },
         {
           "line_content": "    O = compute_offset(results)",
           "violation_description": "Uso de 'O' como nome de variável de uma letra.",
           "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
-          "suggestion": "Use um nome descritivo para a variável."
+          "suggestion": "Use um nome descritivo como 'offset'."
         },
         {
           "line_content": "    I = len(page)",
           "violation_description": "Uso de 'I' como nome de variável de uma letra.",
           "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
-          "suggestion": "Use um nome descritivo para a variável."
+          "suggestion": "Use um nome descritivo como 'page_size'."
+        },
+        {
+          "line_content": "def show_results(results: list[Entry], rows: list[Row]) -> None:",
+          "violation_description": "Docstring ausente a seção 'Returns' obrigatória no formato Google Style.",
+          "norm_reference": "coding_standards.md | Seção: 5.1 Docstrings Obrigatórias",
+          "severity": "LOW",
+          "suggestion": "Adicionar seção 'Returns' mesmo para None."
         }
       ]
     },
@@ -14384,17 +14497,17 @@
       "detections": [
         {
           "line_content": "    l = sorted(items)",
-          "violation_description": "Variável com nome ambíguo e não descritivo.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
+          "violation_description": "Uso de variável de uma letra 'l' proibido.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
-          "suggestion": "Use nomes descritivos como 'sorted_items'."
+          "suggestion": "Renomear para nome descritivo, ex: 'sorted_items'."
         },
         {
           "line_content": "    O = items[-1]",
-          "violation_description": "Variável com nome ambíguo e não descritivo.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 2. Nomenclatura",
+          "violation_description": "Uso de variável de uma letra 'O' proibido.",
+          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "MEDIUM",
-          "suggestion": "Use nomes descritivos como 'last_item'."
+          "suggestion": "Renomear para nome descritivo, ex: 'last_item'."
         }
       ]
     },
@@ -14646,7 +14759,7 @@
           "violation_description": "Uso de 'I' como variável de uma letra.",
           "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
-          "suggestion": "Renomear para 'i' ou remover se desnecessário."
+          "suggestion": "Renomear para 'indice' ou remover se desnecessário."
         }
       ]
     },
@@ -14900,21 +15013,21 @@
         {
           "line_content": "    l = []",
           "violation_description": "Uso de variável de uma letra 'l' proibido.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
+          "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
           "suggestion": "Renomear para nome descritivo, ex: 'result'."
         },
         {
           "line_content": "    O = None",
           "violation_description": "Uso de variável de uma letra 'O' proibido.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
+          "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
           "suggestion": "Renomear para nome descritivo, ex: 'placeholder'."
         },
         {
           "line_content": "    I = 10",
           "violation_description": "Uso de variável de uma letra 'I' proibido.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
+          "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
           "severity": "HIGH",
           "suggestion": "Renomear para nome descritivo, ex: 'limit'."
         }
@@ -15376,8 +15489,8 @@
           "regra": "secao-2",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -15601,7 +15714,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "def _remove_old(path: Path) -> None:",
+          "violation_description": "Uso de Path sem importação da biblioteca padrão.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 6.1 Ordem de Importações (isort/ruff)",
+          "severity": "HIGH",
+          "suggestion": "Adicionar 'from pathlib import Path' no início do arquivo."
+        }
+      ]
     },
     {
       "pr_id": "PR-051",
@@ -16621,8 +16742,8 @@
           "regra": "secao-2",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -16637,15 +16758,7 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": [
-        {
-          "line_content": "class OutboxFullError(Exception):",
-          "violation_description": "Exceção não segue a hierarquia de domínio definida.",
-          "norm_reference": "coding_standards.md | Seção: 4.2 Hierarquia de Exceções",
-          "severity": "HIGH",
-          "suggestion": "Herde de BaseAppError ou subclasse apropriada."
-        }
-      ]
+      "detections": []
     },
     {
       "pr_id": "PR-055",
@@ -16987,12 +17100,20 @@
           "regra": "secao-2",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "zone = \"I\"",
+          "violation_description": "Uso de 'I' maiúsculo como valor de atributo confuso.",
+          "norm_reference": "guia_python_pep8.md | Seção: 2.1 Regras de Nomenclatura Restritas",
+          "severity": "MEDIUM",
+          "suggestion": "Evite usar 'I' maiúsculo; use string descritiva ou enum."
+        }
+      ]
     },
     {
       "pr_id": "PR-056",
@@ -17081,8 +17202,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -17268,9 +17389,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-056",
@@ -17297,11 +17418,11 @@
       ],
       "detections": [
         {
-          "line_content": "def read_orders(paths: list[Path]) -> list[Order]:",
-          "violation_description": "Uso de Path e Order sem importação no topo do arquivo.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 3. Importações",
-          "severity": "HIGH",
-          "suggestion": "Adicionar importações de Path e Order no topo do arquivo."
+          "line_content": "        except Exception:",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Remover bloco ou adicionar logger.exception()."
         }
       ]
     },
@@ -17599,7 +17720,7 @@
         {
           "line_content": "    except Exception:",
           "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
-          "norm_reference": "coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
           "severity": "CRITICAL",
           "suggestion": "Logar com logger.exception() ou re-raise com contexto."
         }
@@ -17637,8 +17758,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -17670,8 +17791,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -17857,9 +17978,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-058",
@@ -17919,11 +18040,18 @@
       ],
       "detections": [
         {
-          "line_content": "def import_users(path: Path, repository: UserRepository) -> None:",
-          "violation_description": "Uso de Path sem importação no topo do arquivo.",
-          "norm_reference": "docs\\style_guides\\guia_python_pep8.md | Seção: 3. Importações",
+          "line_content": "        except Exception:",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Logar com logger.exception() ou re-raise com contexto."
+        },
+        {
+          "line_content": "import csv",
+          "violation_description": "Falta importação de Path usada na assinatura da função.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 6.1 Ordem de Importações (isort/ruff)",
           "severity": "HIGH",
-          "suggestion": "Adicionar 'from pathlib import Path' no topo do arquivo."
+          "suggestion": "Adicionar 'from pathlib import Path' no grupo de stdlib."
         }
       ]
     },
@@ -18201,9 +18329,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-059",
@@ -18217,7 +18345,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception:",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Adicionar logger.exception() ou re-raise com contexto."
+        }
+      ]
     },
     {
       "pr_id": "PR-060",
@@ -18449,7 +18585,7 @@
           "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
           "severity": "CRITICAL",
-          "suggestion": "Use logger.exception() ou re-lance com contexto."
+          "suggestion": "Logar com logger.exception() ou re-raise com contexto."
         }
       ]
     },
@@ -18713,10 +18849,10 @@
       "detections": [
         {
           "line_content": "    except Exception:",
-          "violation_description": "Captura de Exception genérica sem logging ou re-raise.",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
           "severity": "CRITICAL",
-          "suggestion": "Logar com logger.exception() ou re-raise com contexto."
+          "suggestion": "Use exceção específica e logue com logger.exception()."
         }
       ]
     },
@@ -18992,7 +19128,7 @@
         {
           "line_content": "    except Exception:",
           "violation_description": "Captura genérica de Exception sem re-raise ou logging.",
-          "norm_reference": "coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
           "severity": "CRITICAL",
           "suggestion": "Remover captura genérica ou logar/re-raise com contexto."
         }
@@ -19280,10 +19416,10 @@
       "detections": [
         {
           "line_content": "    except Exception:",
-          "violation_description": "Bloco except vazio sem tratamento ou log.",
-          "norm_reference": "coding_standards.md | Seção: 4. Tratamento de Exceções",
-          "severity": "HIGH",
-          "suggestion": "Adicionar log ou re-raise da exceção."
+          "violation_description": "Captura genérica de Exception sem re-raise ou logging.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Logar com logger.exception ou re-raise a exceção."
         }
       ]
     },
@@ -19330,8 +19466,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -19341,8 +19477,8 @@
           "regra": null,
           "sub_regra": null,
           "hard_negative": false,
-          "signaled": true,
-          "cell": "FP",
+          "signaled": false,
+          "cell": "TN",
           "cites_correct_norm": null
         },
         {
@@ -19561,9 +19697,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-064",
@@ -19579,18 +19715,11 @@
       ],
       "detections": [
         {
-          "line_content": "def purge_sessions(store: SessionStore, session_ids: list[str]) -> None:",
-          "violation_description": "Linha excede o limite estrito de 79 caracteres.",
-          "norm_reference": "guia_python_pep8.md | Seção: 1.1 Tamanho Máximo de Linha",
-          "severity": "MEDIUM",
-          "suggestion": "Quebrar a assinatura da função em múltiplas linhas."
-        },
-        {
-          "line_content": "    \"\"\"Remove as sessões e compacta o armazenamento.",
-          "violation_description": "Docstring excede o limite de 72 caracteres para texto.",
-          "norm_reference": "guia_python_pep8.md | Seção: 1.1 Tamanho Máximo de Linha",
-          "severity": "LOW",
-          "suggestion": "Quebrar a linha da docstring para respeitar o limite."
+          "line_content": "    except Exception:",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Logar com logger.exception() ou re-raise com contexto."
         }
       ]
     },
@@ -19879,9 +20008,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-065",
@@ -19895,7 +20024,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception:",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Adicionar logger.exception() ou re-raise a exceção."
+        }
+      ]
     },
     {
       "pr_id": "PR-066",
@@ -20168,10 +20305,10 @@
       "detections": [
         {
           "line_content": "        except Exception:",
-          "violation_description": "Captura genérica de Exception sem re-raise ou logging.",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
           "severity": "CRITICAL",
-          "suggestion": "Remover captura genérica ou adicionar logging/re-raise."
+          "suggestion": "Logar com logger.exception() ou re-raise com contexto."
         }
       ]
     },
@@ -20438,9 +20575,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-067",
@@ -20454,7 +20591,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception:",
+          "violation_description": "Captura de Exception genérica sem re-raise ou logging.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Logar com logger.exception ou re-raise a exceção."
+        }
+      ]
     },
     {
       "pr_id": "PR-068",
@@ -20771,10 +20916,10 @@
       "detections": [
         {
           "line_content": "    except Exception:",
-          "violation_description": "Captura genérica de Exception sem re-raise ou logging.",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
           "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
           "severity": "CRITICAL",
-          "suggestion": "Remover bloco try/except ou logar/re-raise a exceção."
+          "suggestion": "Logar com logger.exception() ou re-lançar com contexto."
         }
       ]
     },
@@ -21041,9 +21186,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_generica",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-069",
@@ -21057,7 +21202,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception:",
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Adicionar logger.exception() ou re-raise com contexto."
+        }
+      ]
     },
     {
       "pr_id": "PR-070",
@@ -21313,7 +21466,7 @@
           "hard_negative": false,
           "signaled": true,
           "cell": "TP",
-          "cites_correct_norm": false
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-070",
@@ -21341,10 +21494,10 @@
       "detections": [
         {
           "line_content": "    except Exception:",
-          "violation_description": "Captura genérica de exceção viola princípios de Clean Code e rastreabilidade.",
-          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 1. Princípios Gerais",
-          "severity": "HIGH",
-          "suggestion": "Capture exceções específicas ou registre o erro."
+          "violation_description": "Captura genérica de Exception sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "CRITICAL",
+          "suggestion": "Logar com logger.exception() ou re-raise com contexto."
         }
       ]
     },
@@ -22057,9 +22210,9 @@
           "regra": "coding-4.1",
           "sub_regra": "captura_silenciosa",
           "hard_negative": false,
-          "signaled": false,
-          "cell": "FN",
-          "cites_correct_norm": null
+          "signaled": true,
+          "cell": "TP",
+          "cites_correct_norm": true
         },
         {
           "pr_id": "PR-073",
@@ -22073,7 +22226,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except OSError:",
+          "violation_description": "Captura de exceção sem logging ou re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Adicionar logger.exception() ou re-raise com contexto."
+        }
+      ]
     },
     {
       "pr_id": "PR-074",
@@ -22327,8 +22488,8 @@
           "regra": "coding-4.1",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -22398,7 +22559,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception as exc:",
+          "violation_description": "Captura de Exception genérica sem re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Re-lançar a exceção ou capturar exceções específicas."
+        }
+      ]
     },
     {
       "pr_id": "PR-075",
@@ -22652,8 +22821,8 @@
           "regra": "coding-4.1",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -22723,7 +22892,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception as exc:",
+          "violation_description": "Captura de Exception genérica sem exceção específica.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Capturar exceções específicas (ex: PaymentError) em vez de Exception."
+        }
+      ]
     },
     {
       "pr_id": "PR-076",
@@ -23638,8 +23815,8 @@
           "regra": "coding-4.1",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -23654,7 +23831,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception as exc:",
+          "violation_description": "Captura de Exception genérica sem exceção específica.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Capture uma exceção específica (ex: CacheError) em vez de Exception."
+        }
+      ]
     },
     {
       "pr_id": "PR-079",
@@ -23930,8 +24115,8 @@
           "regra": "coding-4.1",
           "sub_regra": null,
           "hard_negative": true,
-          "signaled": false,
-          "cell": "TN",
+          "signaled": true,
+          "cell": "FP",
           "cites_correct_norm": null
         },
         {
@@ -23946,7 +24131,15 @@
           "cites_correct_norm": null
         }
       ],
-      "detections": []
+      "detections": [
+        {
+          "line_content": "    except Exception as exc:",
+          "violation_description": "Captura de Exception genérica sem re-raise.",
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Re-lançar a exceção ou capturar tipo específico."
+        }
+      ]
     },
     {
       "pr_id": "PR-080",
@@ -24242,9 +24435,9 @@
         {
           "line_content": "    except Exception as exc:",
           "violation_description": "Captura de Exception genérica sem exceção customizada específica.",
-          "norm_reference": "coding_standards.md | Seção: 4.1 Regras Obrigatórias",
-          "severity": "MEDIUM",
-          "suggestion": "Capture exceções específicas do cliente CRM em vez de Exception."
+          "norm_reference": "docs\\style_guides\\coding_standards.md | Seção: 4.1 Regras Obrigatórias",
+          "severity": "HIGH",
+          "suggestion": "Capture exceções específicas ou defina CrmCommitError."
         }
       ]
     }

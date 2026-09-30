@@ -45,7 +45,7 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Os resultados de detecção desta seção foram medidos no dataset anterior, de 30 PRs e só a Seção 5, e serão refeitos na rodada oficial de D-008. Os de recuperação já foram refeitos no dataset atual (75 PRs, três regras).
+> Todos os resultados desta seção são do dataset atual (75 PRs, três regras, D-008). Relatório completo em `docs/RELATORIO-RESULTADOS.md`.
 >
 > A avaliação de detecção já reporta as métricas **por regra** e o recall **por sub-regra** (`per_rule` e `per_sub_rule_recall` em `results.json`). O recorte de uma regra são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a regra alguma e só entram na matriz global, então a precisão por regra não é comparável à global.
 
@@ -70,32 +70,35 @@ Três leituras mudaram em relação à medição no dataset antigo (só Seção 
 - Com o BM25 ativo, o modelo em inglês supera o multilíngue (0.89 contra 0.84). O ganho do multilíngue não se sustenta no dataset atual.
 - O `recall@k` mede cada linha isolada. Ele não passa pela união por arquivo e pelo corte em 8 chunks do `Retriever`, e por isso não viu o defeito corrigido em `fb05820` (D-008).
 
-### Detecção (3 repetições, temperatura 0.0)
+### Detecção (1 repetição, temperatura 0.0)
 
-| Métrica | Média | Desvio-padrão | Meta mínima | Situação |
-|---|---|---|---|---|
-| Precisão | 0.6522 | 0.0 | 0.70 | não atingida |
-| Recall | 1.0000 | 0.0 | 0.65 | atingida |
-| F1-Score | 0.7895 | 0.0 | 0.67 | atingida |
+| Métrica | Valor | Meta mínima | Situação |
+|---|---|---|---|
+| Precisão | 0.8722 | 0.70 | atingida |
+| Recall | 0.8788 | 0.65 | atingida |
+| F1-Score | 0.8755 | 0.67 | atingida |
 
-Metas de `RAG-Reviewer_Planejamento.md`, seção 15.3.
+Metas de `RAG-Reviewer_Planejamento.md`, seção 15.3. Uma repetição, conforme D-005.
 
-Matriz de confusão por linha (300 linhas):
+Matriz de confusão por linha (2.025 linhas):
 
 | | Previsto positivo | Previsto negativo |
 |---|---|---|
-| **Real positivo** | TP = 60 | FN = 0 |
-| **Real negativo** | FP = 32 | TN = 208 |
+| **Real positivo** | TP = 116 | FN = 16 |
+| **Real negativo** | FP = 17 | TN = 1876 |
 
-Matriz por PR (30 PRs, 22 com violação e 8 de controle): TP = 22, FP = 8, FN = 0, TN = 0.
+Por regra: Seção 5 com F1 1.0, Seção 2 com F1 0.96, cs 4.1 com F1 0.65. Recall de `captura_silenciosa` (`except` de exceção específica com `pass`) em 0.13: 14 dos 16 FNs.
 
-Taxa de alucinação 0.0 (nenhuma detecção aponta uma linha que não existe no diff). Precisão da referência normativa 1.0 (todo verdadeiro positivo cita a Seção 5). Resultado completo em `evaluation/results.json`.
+Matriz por PR (75 PRs, 54 com violação e 21 de controle): TP = 54, FP = 11, FN = 0, TN = 10.
+
+Taxa de alucinação 0.0 (nenhuma detecção aponta uma linha que não existe no diff). Precisão da referência normativa 0.94. Resultado completo em `evaluation/results.json`.
 
 ### Limitações
 
 - O dataset é sintético e escrito pelo autor, o que ameaça a validade externa (D-004).
 - Com o BM25 ativo, o modelo de embedding em inglês entrega `recall@5` maior que o multilíngue no dataset atual, então o ganho do modelo multilíngue não se sustenta nesse recorte.
-- A Precisão fica abaixo da meta mínima. Os 8 PRs de controle foram todos sinalizados no nível de PR.
+- O modelo quase não detecta `except` de exceção específica com corpo vazio (2 de 16). Provável influência do exemplo da cs 4.1, que mostra "captura específica" como o jeito correto.
+- No nível de PR, 11 dos 21 PRs de controle seriam bloqueados, a maioria por FPs em normas fora do piloto (cs 1.1).
 - Quatro de cada cinco chunks recuperados não carregam a norma correta (`context_precision@5` = 0.19 em L4).
 
 ---

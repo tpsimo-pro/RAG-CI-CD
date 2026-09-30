@@ -777,6 +777,23 @@ ADR-004 citam os números antigos).
   tipo de retorno, prefixo booleano, linhas em branco) somem ou viram casos
   isolados. O que sobrar é erro do modelo e vai para a discussão.
 
+### Resultado (2026-09-29)
+
+Rodada oficial com o retriever corrigido: Precisão 0,8722, Recall 0,8788,
+F1 0,8755 (TP 116, FP 17, FN 16, TN 1.876). As três metas foram atingidas;
+na rodada de `b2eddf4` o recall ficava abaixo da meta. Relatório completo
+em `docs/RELATORIO-RESULTADOS.md`.
+
+- Seção 5: F1 1,0. Seção 2: F1 0,96. cs 4.1: F1 0,65.
+- `captura_silenciosa` concentra 14 dos 16 FNs (recall 0,13). A norma
+  chega ao LLM em todos esses PRs; a perda é do modelo. Causa provável: o
+  exemplo da cs 4.1 mostra a "captura específica" como o jeito correto.
+- Critério de sucesso atendido: dos 17 FPs, nenhum é linha em branco ou
+  de docstring. Os FPs fora do piloto viraram casos isolados (8 citam a
+  cs 1.1, 2 a cs 6.1, 1 a cs 5.1); 7 são negativos difíceis, 5 deles
+  `except Exception as exc:` que loga ou re-lança.
+- Gate por PR: TP 54, FN 0, FP 11, TN 10.
+
 ### Riscos
 
 - **Recall por diluição do retrieval.** As linhas de docstring também são
