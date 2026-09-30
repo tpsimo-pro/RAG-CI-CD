@@ -34,7 +34,7 @@ Avaliação (para cada PR do dataset)
   linhas adicionadas do arquivo
     -> por linha: embedding denso + BM25
     -> busca híbrida no Qdrant com fusão RRF (top-5 por linha)
-    -> união por arquivo, deduplicação, ordenação por score, corte em 8 chunks
+    -> união por arquivo (chunk repetido fica com o maior score), ordenação, corte em 8 chunks
     -> LLM: uma chamada por arquivo, com o diff e as normas recuperadas
     -> detecções (linha, norma citada)
     -> comparação com o gabarito, linha a linha

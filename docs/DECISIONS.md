@@ -720,6 +720,32 @@ chegando ao LLM e continuam sendo linhas avaliadas (D-001). Um diff real
 tem linhas em branco, então a mudança é de robustez do sistema, não um
 ajuste ao dataset.
 
+### Correção na união do retriever (2026-09-29, `fb05820`)
+
+A primeira rodada oficial sobre o dataset conforme (`b2eddf4`) deu
+Precisão 0,7944, Recall 0,6439 e F1 0,7113 (TP 85, FP 22, FN 47, TN 1.871),
+abaixo da meta de recall. Os FNs se concentravam em `captura_silenciosa`
+(1 de 16) e `booleano` (12 de 26). A causa estava no retriever, não no
+modelo.
+
+Isolada, cada linha violadora recupera a própria norma em 1º lugar (score
+1,0). A união por arquivo, porém, guardava o chunk repetido com o score
+da **primeira** linha que o trouxe, não com o maior. Com as docstrings e
+anotações de D-008, as linhas anteriores à violação passaram a trazer a
+Seção 5 e a cs 4.1 em posições baixas (0,33 no PR-002, 0,36 no PR-056), e
+o corte em 8 chunks as eliminava. É o risco de diluição previsto abaixo,
+agravado por um defeito: a regra de deduplicação estava errada para
+qualquer diff, não só para este dataset.
+
+A correção mantém o maior score de cada chunk entre as linhas. PRs
+violadores com todas as normas necessárias no contexto entregue ao LLM:
+25 de 54 antes, 47 de 54 depois. Os 7 que ainda perdem a norma são de
+nomenclatura (PR-031 a 035, 037, 038), a regra com maior recall.
+
+O `recall@k` da ablação (L0 a L4) não enxergava o defeito: ele mede cada
+linha isolada, antes da união e do corte. A rodada de `b2eddf4` fica como
+o "antes"; a rodada oficial de D-008 passa a ser a do sistema corrigido.
+
 ### Medição
 
 - A rodada oficial é uma só: sistema atual contra o dataset conforme.
