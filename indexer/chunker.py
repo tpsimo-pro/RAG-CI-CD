@@ -1,12 +1,14 @@
 """
 chunker.py — Divisão de documentos em chunks para indexação RAG.
 
-Implementa a estratégia de janela deslizante com sobreposição, respeitando
-fronteiras naturais do texto: parágrafos > frases > palavras.
+Respeita as fronteiras naturais do texto: itens de lista de topo (uma norma e
+seus exemplos) > parágrafos > frases > palavras. Blocos de código cercados
+nunca são divididos.
 
-Parâmetros padrão recomendados pelo planejamento:
-  - chunk_size:    512 tokens (~400 palavras) — balanceia contexto e precisão
-  - chunk_overlap: 64 tokens  (~50 palavras)  — evita quebras de regras entre chunks
+Parâmetros padrão:
+  - chunk_size:    512 palavras — balanceia contexto e precisão
+  - chunk_overlap: 0 — sem sobreposição, para que nenhum trecho do corpus
+                   apareça em dois chunks; é uma opção, não o padrão
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from indexer.document_loader import Document
+from indexer.document_loader import Document, _fenced_spans
 
 
 @dataclass
@@ -53,7 +55,7 @@ class RecursiveChunker:
     Essa estratégia evita cortes no meio de regras ou frases importantes.
 
     Uso:
-        chunker = RecursiveChunker(chunk_size=512, chunk_overlap=64)
+        chunker = RecursiveChunker(chunk_size=512)
         chunks = chunker.split(documents)
     """
 
@@ -66,7 +68,7 @@ class RecursiveChunker:
     def __init__(
         self,
         chunk_size: int = 512,
-        chunk_overlap: int = 64,
+        chunk_overlap: int = 0,
         length_function=None,
     ) -> None:
         """
@@ -124,6 +126,18 @@ class RecursiveChunker:
             stripped = text.strip()
             return [stripped] if stripped else []
 
+        itens = self._split_items(text)
+        if len(itens) > 1:
+            # Cada item de lista de topo (uma norma e seus exemplos) é uma
+            # unidade; só o item maior que chunk_size é subdividido.
+            pecas: list[str] = []
+            for item in itens:
+                if self._len(item) > self.chunk_size:
+                    pecas.extend(self._split_text(item))
+                else:
+                    pecas.append(item)
+            return self._pack(pecas)
+
         segmentos = self._protect_fences(text)
         if any(is_fence for _, is_fence in segmentos):
             # Há ao menos um bloco cercado completo: trata cada bloco cercado
@@ -138,7 +152,7 @@ class RecursiveChunker:
                     resultado.append(seg.strip())
                 else:
                     resultado.extend(self._split_text(seg))
-            return [r for r in resultado if r]
+            return self._pack([r for r in resultado if r])
 
         # Nenhum bloco cercado completo (sem cercas, ou só marca(s) órfã(s)):
         # segue a divisão normal por separador.
@@ -149,6 +163,50 @@ class RecursiveChunker:
 
         # Fallback: divide por caractere (texto sem separadores naturais)
         return self._hard_split(text)
+
+    def _split_items(self, text: str) -> list[str]:
+        """
+        Separa o texto nos itens de lista de topo ("- " na coluna 0).
+
+        Linhas dentro de blocos cercados nunca iniciam um item. O trecho
+        antes do primeiro item (título e introdução) é o primeiro elemento.
+        Sem nenhum item de lista, devolve o texto inteiro como único elemento.
+        """
+        spans = _fenced_spans(text)
+        inicios = [
+            m.start()
+            for m in re.finditer(r"^- ", text, re.MULTILINE)
+            if not any(ini <= m.start() < fim for ini, fim in spans)
+        ]
+        if not inicios:
+            return [text]
+
+        limites = [0, *inicios, len(text)]
+        itens = [text[a:b].strip() for a, b in zip(limites, limites[1:])]
+        return [item for item in itens if item]
+
+    def _pack(self, pecas: list[str]) -> list[str]:
+        """
+        Junta peças consecutivas até chunk_size, sem sobreposição.
+
+        Uma peça nunca é dividida aqui: uma cerca ou um item maior que
+        chunk_size permanece inteiro em um chunk próprio.
+        """
+        chunks: list[str] = []
+        atual: list[str] = []
+        tamanho = 0
+
+        for peca in pecas:
+            n = self._len(peca)
+            if atual and tamanho + n > self.chunk_size:
+                chunks.append("\n\n".join(atual))
+                atual, tamanho = [], 0
+            atual.append(peca)
+            tamanho += n
+
+        if atual:
+            chunks.append("\n\n".join(atual))
+        return chunks
 
     def _protect_fences(self, text: str) -> list[tuple[str, bool]]:
         """

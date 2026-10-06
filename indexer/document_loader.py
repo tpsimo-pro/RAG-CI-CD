@@ -151,15 +151,16 @@ class DocumentLoader:
         """
         Extrai seções de Markdown usando cabeçalhos como separadores.
 
-        Cada seção (##, ###) se torna um Document separado, preservando
-        o título da seção como metadado. O conteúdo anterior ao primeiro
+        Cada seção (# a ####) se torna um Document separado, preservando
+        o título da seção como metadado. Seção sem corpo (só o título, por
+        exemplo um capítulo que apenas agrupa subseções) é omitida. O conteúdo anterior ao primeiro
         cabeçalho é tratado como seção introdutória.
         """
         raw = path.read_text(encoding="utf-8", errors="replace")
 
-        # Divide por cabeçalhos de nível 1, 2 ou 3
+        # Divide por cabeçalhos de nível 1 a 4
         # Regex: captura o cabeçalho e seu conteúdo até o próximo cabeçalho
-        pattern = re.compile(r"^(#{1,3})\s+(.+)$", re.MULTILINE)
+        pattern = re.compile(r"^(#{1,4})\s+(.+)$", re.MULTILINE)
         spans = _fenced_spans(raw)
         matches = [
             m
@@ -195,12 +196,11 @@ class DocumentLoader:
             end = matches[i + 1].start() if i + 1 < len(matches) else len(raw)
             body = raw[start:end].strip()
 
-            # Inclui o título no texto para contexto semântico
-            full_text = f"{section_title}\n\n{body}"
-            text = self._clean_text(full_text)
-
-            if len(text.strip()) < 10:
+            if not self._clean_text(body):
                 continue
+
+            # Inclui o título no texto para contexto semântico
+            text = self._clean_text(f"{section_title}\n\n{body}")
 
             docs.append(
                 Document(
@@ -214,11 +214,28 @@ class DocumentLoader:
 
     @staticmethod
     def _clean_text(text: str) -> str:
-        """Normaliza espaços e remove separadores visuais do texto carregado."""
+        """
+        Normaliza espaços e remove separadores visuais do texto carregado.
+
+        Blocos de código cercados ficam intactos: a indentação e o
+        alinhamento dentro deles são o conteúdo que a norma mostra como
+        certo ou errado.
+        """
+        partes: list[str] = []
+        cursor = 0
+        for inicio, fim in _fenced_spans(text):
+            partes.append(DocumentLoader._clean_prose(text[cursor:inicio]))
+            partes.append(text[inicio:fim])
+            cursor = fim
+        partes.append(DocumentLoader._clean_prose(text[cursor:]))
+        return "".join(partes).strip()
+
+    @staticmethod
+    def _clean_prose(text: str) -> str:
+        """Normaliza um trecho de prosa (fora de blocos cercados)."""
         # Remove quebras de linha excessivas
         text = re.sub(r"\n{3,}", "\n\n", text)
         # Remove espaços extras
         text = re.sub(r"[ \t]+", " ", text)
         # Remove linhas que só têm hífens/underscore (separadores visuais)
-        text = re.sub(r"^[-_=]{3,}\s*$", "", text, flags=re.MULTILINE)
-        return text.strip()
+        return re.sub(r"^[-_=]{3,}\s*$", "", text, flags=re.MULTILINE)

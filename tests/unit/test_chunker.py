@@ -256,3 +256,89 @@ def test_bloco_cercado_com_linha_em_branco_interna_nao_e_partido():
         )
     # O bloco cercado inteiro deve estar junto em um único chunk.
     assert any("# Correto" in c.text and "# Incorreto" in c.text for c in chunks)
+
+
+# ── Testes: itens com exemplos ficam juntos (corpus PEP 8) ───────────────────
+
+
+def _item(n: int) -> str:
+    return (
+        f"- Regra {n} diz para fazer a coisa certa em vez da errada sempre:\n"
+        "\n"
+        "  ```python\n"
+        "  # Correct:\n"
+        f"  x{n} = 1\n"
+        "  ```\n"
+        "\n"
+        "  ```python\n"
+        "  # Wrong:\n"
+        f"  x{n}=1\n"
+        "  ```\n"
+    )
+
+
+def test_itens_de_lista_com_exemplos_nao_deixam_cerca_orfa():
+    texto = "\n".join(_item(n) for n in range(12))
+    chunker = RecursiveChunker(chunk_size=60, chunk_overlap=0)
+
+    chunks = chunker.split([make_doc(texto)])
+
+    assert 1 < len(chunks) < 12
+    for c in chunks:
+        assert c.text.startswith("- Regra")
+        regras = c.text.count("- Regra")
+        assert c.text.count("# Correct:") == regras
+        assert c.text.count("# Wrong:") == regras
+
+
+def test_sem_sobreposicao_nenhum_trecho_se_repete_entre_chunks():
+    texto = "\n".join(_item(n) for n in range(12))
+    chunker = RecursiveChunker(chunk_size=60, chunk_overlap=0)
+
+    chunks = chunker.split([make_doc(texto)])
+
+    linhas = [ln for c in chunks for ln in c.text.splitlines() if "Regra" in ln]
+    assert len(linhas) == len(set(linhas)) == 12
+
+
+# ── Testes: corpus real (PEP 8) sem redundancia ──────────────────────────────
+
+
+def _shingles_repetidos(textos: list[str], n: int = 12) -> set[str]:
+    """Janelas de n palavras que aparecem em mais de um texto."""
+    vistos: dict[str, set[int]] = {}
+    for i, texto in enumerate(textos):
+        palavras = texto.split()
+        for j in range(len(palavras) - n + 1):
+            vistos.setdefault(" ".join(palavras[j : j + n]), set()).add(i)
+    return {s for s, onde in vistos.items() if len(onde) > 1}
+
+
+class TestCorpusRealSemRedundancia:
+    @pytest.fixture(scope="class")
+    def secoes_e_chunks(self):
+        from pathlib import Path
+
+        from indexer.document_loader import DocumentLoader
+
+        corpus = Path(__file__).parent.parent.parent / "docs" / "style_guides"
+        secoes = DocumentLoader().load_directory(corpus)
+        return secoes, RecursiveChunker().split(secoes)
+
+    def test_nenhum_chunk_duplicado(self, secoes_e_chunks):
+        _, chunks = secoes_e_chunks
+        textos = [c.text for c in chunks]
+        assert len(textos) == len(set(textos))
+
+    def test_chunking_nao_repete_trecho_do_proprio_corpus(self, secoes_e_chunks):
+        # A PEP 8 repete alguns exemplos entre secoes; isso e da fonte.
+        # O chunking nao pode acrescentar repeticao alguma.
+        secoes, chunks = secoes_e_chunks
+        da_fonte = _shingles_repetidos([s.text for s in secoes])
+        dos_chunks = _shingles_repetidos([c.text for c in chunks])
+        assert dos_chunks <= da_fonte
+
+    def test_nenhuma_cerca_fica_sozinha_em_um_chunk(self, secoes_e_chunks):
+        _, chunks = secoes_e_chunks
+        orfaos = [c.section for c in chunks if c.text.lstrip().startswith("```")]
+        assert orfaos == []

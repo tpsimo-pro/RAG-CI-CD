@@ -46,7 +46,7 @@ def run_indexing(
     collection_name: str | None = None,
     recreate: bool = False,
     chunk_size: int = 512,
-    chunk_overlap: int = 64,
+    chunk_overlap: int = 0,
 ) -> dict:
     """
     Executa o pipeline completo de indexação.
@@ -218,8 +218,8 @@ Exemplos:
     parser.add_argument(
         "--chunk-overlap",
         type=int,
-        default=64,
-        help="Sobreposição entre chunks em palavras (padrão: 64)",
+        default=0,
+        help="Sobreposição entre chunks em palavras (padrão: 0)",
     )
     return parser
 
