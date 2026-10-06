@@ -60,21 +60,12 @@ def test_excecao_derivada_de_exception_nao_carrega_a_norma():
     assert NORM_EXCECAO not in norm_keys_of_chunk(texto)
 
 
-def test_gold_mapeia_as_sub_regras_de_excecao(tmp_path):
+def test_gold_mapeia_a_sub_regra_do_except_nu(tmp_path):
     dataset = [
         {
             "pr_id": "PR-900",
             "added_lines": [
-                {
-                    "line": "except:",
-                    "viola": True,
-                    "sub_regra": "except_nu_silencioso",
-                },
-                {
-                    "line": "except:",
-                    "viola": True,
-                    "sub_regra": "except_nu_retorno",
-                },
+                {"line": "except:", "viola": True, "sub_regra": "except_nu"},
                 {"line": "    pass", "viola": False, "sub_regra": None},
             ],
         }
@@ -84,7 +75,7 @@ def test_gold_mapeia_as_sub_regras_de_excecao(tmp_path):
 
     gold = build_gold(path)
 
-    assert [g.norm_key for g in gold] == [NORM_EXCECAO, NORM_EXCECAO]
+    assert [g.norm_key for g in gold] == [NORM_EXCECAO]
 
 
 @pytest.mark.parametrize(

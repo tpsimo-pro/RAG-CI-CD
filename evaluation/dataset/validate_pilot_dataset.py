@@ -1,7 +1,7 @@
-"""Validador do dataset do piloto (Secao 5 - Comparacoes).
+"""Validador do dataset do piloto (PEP 8: comparacoes, nomes e except nu).
 
 Confere as contagens exigidas por D-004 e as invariantes de schema
-descritas na tarefa. Nao depende de nada em evaluation/metrics.py ou
+descritas na tarefa (SCHEMA.md). Nao depende de nada em evaluation/metrics.py ou
 evaluation/run_evaluation.py (fora do escopo deste especialista).
 
 Uso:
@@ -54,9 +54,9 @@ _SIGLA = re.compile(r"[A-Z]{2,}")
 FORBIDDEN_NAME = re.compile(r"^\s*(?:for\s+)?(?:l|O|I)\s*(?:=(?!=)|\bin\b)")
 
 SUB_REGRAS = {
-    "secao-5": {"booleano", "nulo"},
-    "secao-2": {"nome_funcao", "nome_classe", "nome_proibido"},
-    "coding-4.1": {"captura_generica", "captura_silenciosa"},
+    "pep8-recomendacoes": {"booleano", "nulo"},
+    "pep8-nomes": {"nome_funcao", "nome_classe", "nome_proibido"},
+    "pep8-excecoes": {"except_nu"},
 }
 
 
@@ -91,9 +91,11 @@ HARD_NEGATIVE_CATALOG_SECAO2 = {
     "string com l = 1": re.compile(r"[\"'][^\"']*\b[lOI]\s*=\s*1[\"']"),
 }
 
-# Emenda 2 de D-002: coding_standards.md 4.1. O rotulo depende do corpo do
+# D-009: PEP 8, Programming Recommendations. O `except:` nu so e tolerado se
+# o handler registra o traceback ou relanca com `raise`; `except Exception:`
+# e a forma que a PEP 8 recomenda e nunca viola. O rotulo depende do corpo do
 # bloco, entao a checagem e feita sobre a AST do PR inteiro, nao por linha.
-REGRA_EXCECAO = "coding-4.1"
+REGRA_EXCECAO = "pep8-excecoes"
 
 
 def _is_logger_exception(stmt: ast.stmt) -> bool:
@@ -109,11 +111,15 @@ def _is_logger_exception(stmt: ast.stmt) -> bool:
 
 def except_labels(code: str) -> tuple[dict[int, str | None], list[str]]:
     """
-    Rotulo de cada linha `except` pelo criterio da emenda 2 de D-002.
+    Rotulo de cada linha `except` pelo criterio da PEP 8 (D-009).
 
     Retorna (rotulos, erros): rotulos mapeia o indice 0-based da linha
     `except` para a sub_regra violada, ou None se o bloco nao viola; erros
-    lista os blocos fora do escopo da emenda, que nao recebem rotulo.
+    lista os blocos fora do escopo, que nao recebem rotulo.
+
+    O `except:` nu viola quando o corpo e so `pass`/`continue`, e nao viola
+    quando o handler registra o traceback ou relanca. Um `except` com tipo
+    nunca viola; seu corpo so precisa ser uma das mesmas formas.
     """
     labels: dict[int, str | None] = {}
     errors: list[str] = []
@@ -121,35 +127,23 @@ def except_labels(code: str) -> tuple[dict[int, str | None], list[str]]:
         if not isinstance(node, ast.ExceptHandler):
             continue
         idx = node.lineno - 1
-        tipo = node.type
-        if isinstance(tipo, ast.Name) and tipo.id == "Exception":
-            sub = "captura_generica"
-        elif isinstance(tipo, ast.Attribute) or (
-            isinstance(tipo, ast.Name) and tipo.id != "BaseException"
-        ):
-            sub = "captura_silenciosa"
-        else:
-            errors.append(f"linha {idx}: except sem tipo, tupla ou BaseException")
-            continue
         body = node.body
         if any(isinstance(n, ast.Try) for stmt in body for n in ast.walk(stmt)):
             errors.append(f"linha {idx}: try aninhado no except")
             continue
-        logs = any(_is_logger_exception(stmt) for stmt in body)
-        raises = [stmt for stmt in body if isinstance(stmt, ast.Raise)]
-        # O guia pede re-raise "com contexto adicional": raise sem `from`
-        # deixa o rotulo discutivel, em qualquer tipo de except.
-        if raises and not logs and all(r.cause is None for r in raises):
-            errors.append(f"linha {idx}: raise sem from")
-            continue
-        if logs or raises:
-            labels[idx] = None
-        elif (
+        registra_ou_relanca = any(
+            _is_logger_exception(stmt) or isinstance(stmt, ast.Raise)
+            for stmt in body
+        )
+        silencioso = (
             len(body) == 1
             and isinstance(body[0], (ast.Pass, ast.Continue))
             and body[0].lineno == node.lineno + 1
-        ):
-            labels[idx] = sub
+        )
+        if registra_ou_relanca:
+            labels[idx] = None
+        elif silencioso:
+            labels[idx] = "except_nu" if node.type is None else None
         else:
             errors.append(f"linha {idx}: corpo do except fora do escopo")
     return labels, errors
@@ -178,12 +172,15 @@ def block_duplicates(
     return errors
 
 
-# Catalogo minimo da emenda 2. Os padroes de bloco casam a linha `except`
+# Catalogo minimo de D-009. Os padroes de bloco casam a linha `except`
 # (hard_negative) e a linha logo abaixo dela, o inicio do corpo.
+_EXC_NU = re.compile(r"^\s*except\s*:")
 _EXC_GENERICA = re.compile(r"^\s*except Exception\b")
 _EXC_ESPECIFICA = re.compile(r"^\s*except (?!Exception\b|BaseException\b)[\w.]+")
 _LOG_EXC = re.compile(r"^\s*logger\.exception\(")
 _RAISE_FROM = re.compile(r"^\s*raise\s+\S.*\sfrom\s+\w+\s*$")
+_RAISE_PURO = re.compile(r"^\s*raise\s*$")
+_PASS_OU_CONTINUE = re.compile(r"^\s*(?:pass|continue)\s*$")
 _PASS_TEXTO = r"except Exception:\s*pass"
 
 HARD_NEGATIVE_CATALOG_EXCECAO = {
@@ -191,6 +188,13 @@ HARD_NEGATIVE_CATALOG_EXCECAO = {
     "except Exception + raise ... from": (_EXC_GENERICA, _RAISE_FROM),
     "except especifica + raise ... from": (_EXC_ESPECIFICA, _RAISE_FROM),
     "except especifica + logger.exception": (_EXC_ESPECIFICA, _LOG_EXC),
+    "except Exception + pass (PEP 8 recomenda)": (
+        _EXC_GENERICA,
+        _PASS_OU_CONTINUE,
+    ),
+    "except especifica + pass/continue": (_EXC_ESPECIFICA, _PASS_OU_CONTINUE),
+    "except nu + logger.exception (tolerado)": (_EXC_NU, _LOG_EXC),
+    "except nu + raise (tolerado)": (_EXC_NU, _RAISE_PURO),
     "comentario com except Exception: pass": (
         re.compile(r"^\s*#.*" + _PASS_TEXTO),
         None,
@@ -379,13 +383,13 @@ def main() -> int:
         except SyntaxError as exc:
             fail(errors, f"{pr_id}: added_lines nao formam Python valido: {exc}")
 
-        # --- linhas nao ultrapassam 79 colunas (Secao 1.1 do guia) ---
+        # --- linhas nao ultrapassam 79 colunas (PEP 8, Maximum Line Length) ---
         for i, e in enumerate(added_lines):
             if len(e["line"]) > 79:
                 fail(
                     errors,
                     f"{pr_id}[{i}]: linha com {len(e['line'])} caracteres "
-                    f"(> 79), ruido de outra regra do guia.",
+                    f"(> 79), ruido de outra regra da PEP 8.",
                 )
 
     # --- Contagens globais (D-004) ----------------------------------------
@@ -407,23 +411,22 @@ def main() -> int:
     n_chars = sum(len(x["line"]) + 1 for x in all_lines)
     if n_chars > 90_000:
         fail(errors, f"Texto do dataset com {n_chars} caracteres (> 90000, D-008).")
-    check_eq(errors, "Linhas positivas (violam)", len(positives), 132)
+    check_eq(errors, "Linhas positivas (violam)", len(positives), 118)
     for sub, expected in (
         ("booleano", 26),
         ("nulo", 26),
         ("nome_funcao", 16),
         ("nome_classe", 16),
         ("nome_proibido", 16),
-        ("captura_generica", 16),
-        ("captura_silenciosa", 16),
+        ("except_nu", 18),
     ):
         check_eq(errors, f"Positivas - {sub}", len(by_sub[sub]), expected)
-    check_eq(errors, "Negativos dificeis", len(hard_negatives), 132)
+    check_eq(errors, "Negativos dificeis", len(hard_negatives), 146)
     check_eq(
         errors,
-        "Negativos dificeis - coding-4.1",
+        "Negativos dificeis - pep8-excecoes",
         sum(1 for x in hard_negatives if x["regra"] == REGRA_EXCECAO),
-        32,
+        46,
     )
 
     # --- Cobertura do catalogo minimo de negativos dificeis ---------------
@@ -441,7 +444,7 @@ def main() -> int:
             fail(
                 errors,
                 f"Catalogo de negativos dificeis sem cobertura: {name!r} "
-                f"nao aparece em nenhum hard_negative da regra coding-4.1.",
+                f"nao aparece em nenhum hard_negative da regra pep8-excecoes.",
             )
 
     print_report(errors)

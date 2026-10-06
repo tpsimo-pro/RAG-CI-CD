@@ -449,11 +449,11 @@ class TestPerRule:
 
     def test_fp_logo_abaixo_de_except_violador_e_erro_de_localizacao(self):
         results = [
-            _line_result("PR-1", "FN", regra="pep8-excecoes", sub_regra="except_nu_silencioso"),
+            _line_result("PR-1", "FN", regra="pep8-excecoes", sub_regra="except_nu"),
             _line_result("PR-1", "FP"),  # o `pass` do bloco violador
             _line_result("PR-1", "TN", viola=False, regra="pep8-excecoes"),  # except correto
             _line_result("PR-1", "FP"),  # corpo de bloco que nao viola
-            _line_result("PR-2", "FN", regra="pep8-excecoes", sub_regra="except_nu_retorno"),
+            _line_result("PR-2", "FN", regra="pep8-excecoes", sub_regra="except_nu"),
             _line_result("PR-3", "FP"),  # primeira linha de outro PR
             _line_result("PR-3", "TP", regra="pep8-recomendacoes", sub_regra="nulo"),
             _line_result("PR-3", "FP"),  # abaixo de positiva de outra regra
