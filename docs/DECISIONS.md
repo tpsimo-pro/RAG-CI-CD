@@ -824,6 +824,100 @@ em `docs/RELATORIO-RESULTADOS.md`.
 
 ---
 
+## D-009 — Corpus: a PEP 8 completa como fonte única
+
+**Data:** 2026-10-06
+**Status:** Aceita
+**Spec:** `docs/superpowers/specs/2026-10-06-corpus-pep8-design.md`
+
+### Contexto
+
+A orientação do TCC é que o RAG-Reviewer tenha como base de análise e
+comparação a PEP 8, completa e sem redundância. O corpus de D-007 eram três
+guias internos (`guia_python_pep8.md`, `coding_standards.md`,
+`architecture_patterns.md`): a PEP 8 estava resumida em 5 seções, e a
+nomenclatura e os imports apareciam em dois guias, de modo que o mesmo trecho
+era recuperado duas vezes.
+
+### Decisão
+
+1. O corpus indexado é só `docs/style_guides/pep-0008.md`: o texto oficial em
+   inglês, sem tradução, convertido do reST de `python/peps`
+   (`peps/pep-0008.rst`, commit `5514795ade79a5bf6f3c08c562b02689d0a9feb2`;
+   a PEP está em domínio público) por `scripts/pep8_rst_to_md.py`. Os três
+   guias saem do índice. A PEP 8 inteira vira 40 seções e 43 chunks.
+2. Sem redundância: o corpus tem uma fonte; o chunker não usa sobreposição
+   (`chunk_overlap` padrão 0) e há teste de que o chunking não repete trecho
+   algum do corpus. Cada norma do piloto está em exatamente um chunk.
+3. As seis normas do piloto passam a ser enunciados da PEP 8
+   (`norm_map.py`), e o código "conforme" do dataset cumpre só a PEP 8
+   (`conformity.py`: ruff `E,W,N,I,F403`, 79 colunas, 72 em comentário).
+   Docstring, anotações, prefixo booleano e limite de parâmetros eram
+   exigências dos guias antigos e deixam de valer.
+4. O texto continua em inglês e o prompt em português. A decisão sobre o
+   modelo de embedding segue aberta.
+
+### Achado: duas regras do piloto não eram da PEP 8
+
+A PEP 8 manda usar `except Exception:` para capturar erros de programa e só
+restringe o `except:` nu (equivalente a `except BaseException:`), tolerado em
+dois casos: o handler registra o traceback ou faz limpeza e relança com
+`raise`. Logo `captura_generica` (`except Exception:` com `pass`) e
+`captura_silenciosa` (exceção específica com `pass`) **não violam** a PEP 8;
+log e re-raise vinham do `coding_standards.md` 4.1.
+
+A regra de exceções passa a ser o `except:` nu (`regra` `pep8-excecoes`,
+`sub_regra` `except_nu`). As formas antigas viram negativos difíceis, e o
+`except:` com `logger.exception` ou `raise` também (os dois casos tolerados).
+Um `except:` nu só pode ser o último handler de um `try` e o texto não pode se
+repetir no PR (D-003), então há no máximo um por PR: das 32 positivas antigas
+ficaram 18 (uma por PR violador, nos mesmos 18 PRs) e 14 viraram negativos
+difíceis com tipo.
+
+Demais renomeações de `regra`: `secao-5` -> `pep8-recomendacoes`, `secao-2` ->
+`pep8-nomes`. Dataset: 75 PRs, 54 violadores, 21 de controle; 118 linhas
+positivas (antes 132) e 146 negativos difíceis (antes 132).
+
+### Mudanças no pipeline que a PEP 8 exigiu
+
+- `_clean_text` do carregador colapsava espaços dentro dos blocos de código,
+  apagando a indentação e o alinhamento que a PEP 8 mostra como certo e
+  errado. Blocos cercados passam a ficar intactos.
+- O carregador separava só cabeçalhos até o nível 3; a PEP 8 usa o nível 4
+  (Names to Avoid, Class Names, Function and Variable Names). Seção só com
+  título deixa de virar chunk.
+- Em seção grande com cercas, cada cerca e cada trecho de prosa viravam
+  chunks soltos (a seção Programming Recommendations dava 33, a maioria de 1 a
+  9 palavras, com o exemplo separado da regra). O chunker passa a dividir em
+  itens de lista de topo (uma norma e seus exemplos) e a empacotar até
+  `chunk_size`.
+- `chunk_size` 512 foi mantido: com busca híbrida por linha, o recall@5 foi de
+  0,74 (512), 0,68 (256), 0,67 (128) e 0,49 (64).
+
+### Consequências
+
+- **Os resultados não são comparáveis um a um com os de D-008.** Muda o
+  corpus (e com ele o que o retrieval pode achar), mudam duas regras e muda a
+  fonte da citação (`norm_reference` passa a citar seções da PEP 8). O
+  relatório compara os números, mas diz isso.
+- Reverte a parte de D-007 que fixava os três guias como palheiro; a lógica de
+  D-007 (corpus completo, não estreitado) vale: a PEP 8 tem 43 chunks, contra
+  52 antes.
+- Os resultados de D-008 (coleção `style_guide_chunks`, 52 pontos) continuam
+  no Qdrant. A coleção da PEP 8 é `pep8_chunks`.
+
+### Alternativas rejeitadas
+
+- **PEP 8 completa mais os guias (corpus B).** Menos disruptivo, mas deixa o
+  piloto menos "PEP 8 pura" e mantém a nomenclatura em duas fontes.
+- **Tradução da PEP 8 para português.** Não há versão oficial, uma tradução
+  própria pode desviar do texto, e reabriria a escolha do modelo de embedding
+  (o MiniLM em inglês superou o multilíngue na ablação de D-008).
+- **Manter `captura_generica` e `captura_silenciosa`.** Seriam rótulos que a
+  PEP 8 contradiz: o gabarito exigiria do sistema o oposto do que o corpus diz.
+
+---
+
 ## Pendências (decisões ainda não tomadas)
 
 - **P-004 — Remoção da avaliação humana do planejamento.** Retirar §15.4

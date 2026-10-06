@@ -39,8 +39,9 @@ rejeitada por ora em D-001.
   metodologia.
 - Incluir **matriz de confusão entre regras**: mede o caso em que o sistema
   detecta a violação mas cita a norma errada, invisível na matriz binária.
-- Reindexar `coding_standards.md` e `architecture_patterns.md`, hoje fora do
-  escopo do piloto.
+- Reintroduzir normas além da PEP 8 (os guias internos `coding_standards.md` e
+  `architecture_patterns.md` saíram do repositório em D-009; estão no
+  histórico do git, antes de `339e75a`).
 
 ---
 

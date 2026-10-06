@@ -45,19 +45,24 @@ A PEP 8 manda "mencionar excecoes especificas sempre que possivel em vez de um
 
 A PEP 8 so restringe o `except:` nu (equivale a `except BaseException:`),
 tolerado em dois casos: o handler registra o traceback, ou faz limpeza e relanca
-com `raise`. Decisao: manter o total de 32 linhas positivas e 18 PRs, trocando
-a norma por essa:
+com `raise`. Decisao: a norma passa a ser essa, com uma unica sub_regra.
 
 | sub_regra antiga | sub_regra nova | linha positiva |
 |---|---|---|
-| `captura_generica` | `except_nu_silencioso` | `except:` com corpo so `pass`/`continue` |
-| `captura_silenciosa` | `except_nu_retorno` | `except:` cujo corpo devolve ou atribui um valor sem registrar nem relancar |
+| `captura_generica`, `captura_silenciosa` | `except_nu` | `except:` com corpo so `pass`/`continue` |
 
 `regra` `coding-4.1` passa a `pep8-excecoes`. As formas antigas viram negativos
 dificeis legitimos (`except Exception:`, `except ValueError:` com `pass`), e o
 `except:` com `logger.exception` ou `raise` tambem, pelos dois casos
 tolerados. Mapa das demais `regra`: `secao-5` -> `pep8-recomendacoes`,
 `secao-2` -> `pep8-nomes`.
+
+Ajuste feito na execucao: um `except:` nu so pode ser o ultimo handler de um
+`try` e o texto repetido no PR viola D-003 (rotulo indistinguivel), entao ha
+no maximo um por PR. Das 32 positivas antigas ficaram 18, uma em cada um dos
+mesmos 18 PRs violadores; as outras 14 viraram negativos dificeis com tipo.
+Totais do dataset: 118 positivas e 146 negativos dificeis; 75 PRs, 54
+violadores e 21 de controle.
 
 ## Mudancas
 
@@ -77,9 +82,10 @@ O corpus antigo nao exercitava tres limites do pipeline:
   `chunk_size`, mantendo cada cerca atomica.
 - Sem redundancia: `chunk_overlap` padrao do pipeline passa de 64 para 0.
 
-Teste novo: nenhum par de chunks compartilha texto (sem duplicata exata nem
-trecho repetido) e nenhum chunk, exceto o ultimo de uma secao, e menor que 20
-palavras.
+Testes novos sobre o corpus real: nenhum chunk duplicado, o chunking nao
+acrescenta trecho repetido algum (a PEP 8 repete um exemplo entre secoes; isso e
+da fonte) e nenhuma cerca de codigo fica sozinha em um chunk. Alem disso, o
+chunker agrupa por item de lista de topo, nao so por cerca.
 
 ### 2. Mapa de normas
 
@@ -107,7 +113,7 @@ As frases exatas sao conferidas contra `pep-0008.md` por teste.
   `coding_standards` (prefixo booleano, ate 4 parametros, sem parametro
   booleano, nomes genericos). Mantidas as que a PEP 8 sustenta: `l`/`O`/`I`,
   nome de uma letra, nome de modulo.
-- As 18 PRs de captura sao reescritas conforme a tabela acima; as demais so
+- As 18 PRs de captura sao reescritas conforme o achado acima; as demais so
   mudam os rotulos `regra`. PRs que falharem na conformidade sao corrigidas.
 
 ### 4. Prompts
@@ -131,7 +137,8 @@ PEP 8; a citacao passa a ser a secao da PEP 8.
    salvo marcacao.
 2. `pytest` passa; `ruff check` sem erros nas regras ja configuradas.
 3. Teste de redundancia passa sobre o corpus real.
-4. `validate_pilot_dataset.py` passa: 75 PRs, 54 violadores, 21 controles.
+4. `validate_pilot_dataset.py` passa: 75 PRs, 54 violadores, 21 controles,
+   118 positivas, 146 negativos dificeis.
 5. Indexacao no Qdrant e ablacao L0 a L4 executam; avaliacao oficial gera
    P, R, F1 e matriz de confusao no dataset novo.
 6. `docs/` reflete o corpus novo, sem referencias aos tres guias removidos.

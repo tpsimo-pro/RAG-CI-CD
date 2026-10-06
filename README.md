@@ -10,10 +10,10 @@ Validação ponta a ponta de um pipeline RAG que detecta violações de três re
 
 | Item | Definição |
 |---|---|
-| Regras | Seção 5 do `guia_python_pep8.md`, comparações: proibido `== True`, `== False`, `== None` e `!= None`, obrigatório `is` / `is not` com `None`. E um recorte da Seção 2, nomenclatura: funções em `snake_case`, classes em `PascalCase`, e `l`, `O`, `I` proibidos como nome de uma letra (D-002 e sua emenda) |
+| Regras | Três regras da PEP 8 (D-002, D-009): comparações (`== True`, `== False`, `== None` e `!= None` são proibidos; use `is` / `is not` com `None`), nomenclatura (funções em `snake_case`, classes em `CapWords`, `l`, `O` e `I` proibidos como nome) e `except:` nu (só é tolerado se o handler registra o traceback ou relança com `raise`) |
 | Unidade de avaliação | A linha adicionada (D-001) |
-| Corpus indexado | Os três guias de `docs/style_guides/`: 52 seções, 52 chunks (D-007) |
-| Dataset | 75 PRs sintéticos, 2025 linhas adicionadas, com código conforme o corpus inteiro fora a violação rotulada (D-008). 132 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 16 por sub-regra de exceção) e 1893 negativas, das quais 132 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
+| Corpus indexado | A PEP 8 completa, em inglês, em `docs/style_guides/pep-0008.md`: 40 seções, 43 chunks (D-009) |
+| Dataset | 75 PRs sintéticos, 2025 linhas adicionadas, com código conforme a PEP 8 fora a violação rotulada (D-008, D-009). 118 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 18 de `except:` nu) e 1907 negativas, das quais 146 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
 | LLM | `qwen/qwen3.8-27b` via Groq, temperatura 0.0 (D-005, D-006) |
 | Embedding | `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensões) mais BM25 esparso (ADR-002, ADR-004) |
 | Banco de vetores | Qdrant (ADR-001) |
@@ -25,8 +25,8 @@ Validação ponta a ponta de um pipeline RAG que detecta violações de três re
 ```
 Indexação (offline)
   docs/style_guides/*.md
-    -> document_loader   cabeçalhos viram seções; blocos de código cercados são atômicos
-    -> chunker
+    -> document_loader   cabeçalhos (níveis 1 a 4) viram seções; blocos de código cercados ficam intactos
+    -> chunker           itens de lista com seus exemplos, sem sobreposição
     -> embedding denso + vetor esparso BM25
     -> Qdrant
 
@@ -153,7 +153,7 @@ make docker-qdrant
 
 ```bash
 make index-recreate
-# esperado: 52 seções e 52 chunks
+# esperado: 40 seções e 43 chunks
 ```
 
 A coleção guarda o nome do modelo de embedding. Trocar `EMBEDDING_MODEL` exige reindexar, senão a busca falha em vez de devolver resultado errado.
@@ -217,13 +217,14 @@ RAG-CI-CD/
 |   |-- metrics.py            Matriz de confusão, Precisão, Recall, F1
 |   |-- run_evaluation.py     Avaliação de detecção
 |   `-- results.json          Resultado oficial
+|-- scripts/                  Conversão do reST da PEP 8 em Markdown
 |-- tests/unit/               Testes unitários
 |-- docs/
-|   |-- style_guides/         Corpus indexado
+|   |-- style_guides/         Corpus indexado: pep-0008.md
 |   |-- adr/                  ADR-001 a ADR-004
 |   |-- agent-reports/        Relatórios da refação e da ablação
 |   |-- superpowers/          Spec e plano da refação da camada de RAG
-|   |-- DECISIONS.md          Decisões D-001 a D-007
+|   |-- DECISIONS.md          Decisões D-001 a D-009
 |   `-- TODO-FUTURO.md        Backlog
 |-- .github/workflows/
 |   `-- keep_alive.yml        Consulta periódica ao Qdrant Cloud

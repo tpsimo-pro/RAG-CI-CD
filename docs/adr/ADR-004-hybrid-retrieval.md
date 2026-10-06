@@ -3,6 +3,7 @@
 **Status:** Aceito
 **Data:** 2026-09-03 — Task 9/10 da refação da camada de RAG
 **Autor:** Thiago P. Simões
+**Nota (D-009, 2026-10-06):** os números deste ADR foram medidos no corpus de três guias internos. O corpus passou a ser a PEP 8 em inglês; a comparação entre os modelos foi refeita em `docs/RELATORIO-RESULTADOS.md` (seção D-009).
 **Contexto:** RAG-Reviewer — TCC, Universidade do Estado do Amazonas (UEA)
 
 ---

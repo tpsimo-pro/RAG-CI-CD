@@ -1,6 +1,6 @@
 # evaluation/retrieval/ablation.py
 """
-ablation.py — Consolida os resultados das configurações L0..L4.
+ablation.py — Consolida os resultados das configurações L1, L3 e L4 (PEP 8).
 
 Lê os `results_<label>.json` produzidos por `run_retrieval_eval` e monta a
 tabela de ablação: o valor de cada métrica por configuração e o ganho
@@ -18,7 +18,7 @@ from rich.table import Table
 console = Console(highlight=False)
 
 _AQUI = Path(__file__).parent
-_ORDEM = ["L0", "L1", "L2", "L3", "L4"]
+_ORDEM = ["pep8_L1", "pep8_L3", "pep8_L4"]
 _METRICAS = ["recall_at_1", "recall_at_3", "recall_at_5", "context_precision_at_5"]
 
 
