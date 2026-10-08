@@ -27,7 +27,7 @@ reavaliado**: falta a **rodada 2**.
 | Dataset corrigido (docstrings, `import_ordem`, negativos, ambiguidade) | `9adc83a` |
 | SCHEMA v2, D-010 com a revisão dos rótulos | `cad91fe` |
 | Cobertura do contexto entregue ao LLM e teste de chunks menores | `2eaa103` |
-| Relatório da rodada 1, README, STATUS | não commitado |
+| Relatório da rodada 1, README, STATUS | `365016e` |
 
 ## Falta
 
