@@ -918,6 +918,142 @@ positivas (antes 132) e 146 negativos difíceis (antes 132).
 
 ---
 
+## D-010 — Dataset realista: 25 PRs, vários arquivos e 23 normas da PEP 8
+
+**Data:** 2026-10-08
+**Status:** Aceita
+**Spec:** `docs/superpowers/specs/2026-10-08-dataset-realista-design.md`
+
+### Contexto
+
+O dataset de D-008/D-009 tinha 75 PRs de um arquivo novo cada e 6 normas.
+O objetivo agora é que o resultado local seja um ensaio do que o workflow do
+GitHub (`main-completa`) vai produzir num PR real: o Action coleta o diff pela
+API, o retriever consulta por linha adicionada, o LLM recebe um arquivo por
+chamada e o publisher comenta por linha. Num PR real há vários arquivos,
+a maioria modificada, e violações de várias normas misturadas.
+
+Cobrir "toda a PEP 8" não cabe: várias regras não se rotulam num diff isolado
+("seja consistente", "use bom senso"), e com cerca de 30 a 40 regras
+verificáveis em 25 PRs sobra 1 a 2 PRs por regra, sem poder estatístico por
+regra.
+
+### Decisão
+
+1. **Formato realista, em vez de uma norma por PR.** 25 PRs (20 violadores,
+   5 limpos), 35 arquivos (21 novos, 14 modificados com `patch` de hunks,
+   contexto e remoções), cada PR violador com 2 a 5 normas misturadas. A
+   chamada ao LLM é por arquivo, então a cota diária da Groq (200 mil tokens,
+   cerca de 3.700 por chamada) comporta cerca de 54 arquivos; 35 cabem com
+   folga.
+2. **23 normas da PEP 8 em 6 famílias**, num catálogo único
+   (`evaluation/dataset/norms.py`): id, família, códigos do ruff, frase âncora
+   do texto da PEP 8, padrões de negativo difícil. O validador, a conformidade,
+   o gabarito de recuperação e a citação derivam dele. A família é o campo
+   `regra` e a norma é o `sub_regra` (nomes mantidos para não mexer em
+   `metrics.py`): `per_rule` recorta por família e `per_sub_rule_recall` vira a
+   tabela de cobertura por norma. Ficaram de fora duas normas que não estão no
+   texto da PEP 8 (`not x in y` e espaço depois da vírgula).
+3. **O ruff como oráculo do rótulo.** Todo achado numa linha adicionada precisa
+   casar com a norma rotulada nela, e toda positiva precisa disparar a própria
+   norma. Achados em linhas de contexto de arquivos modificados (código
+   pré-existente) são ignorados. Constantes em MAIÚSCULAS, que o ruff só pega em
+   `mixedCase`, têm checagem AST.
+4. **Normas de vizinhança só em arquivos novos.** `linhas_em_branco`,
+   `import_topo` e `import_ordem` dependem de linhas que o LLM não vê num arquivo
+   modificado, porque o workflow entrega só as `added_lines`.
+5. **Fora do escopo desta rodada:** portar o workflow de `main-completa`, medir
+   a `suggestion` (aplicar a correção e rodar o ruff) e a `severity`, a linha de
+   base sem recuperação e a decisão do modelo de embedding.
+
+### Consequências
+
+- Os resultados **não são comparáveis** com os de D-009: mudam o dataset, as
+  normas e o gabarito. Com cerca de 4 positivas por norma, a cobertura por norma
+  é indicação, não estatística; o número que vale é o agregado (P, R, F1 sobre 98
+  linhas positivas).
+- O dataset de D-008/D-009 (75 PRs) sai da árvore e fica no histórico do git.
+- O `norm_map.py` e o `gold.py` passam a usar o id da norma como chave
+  (23 chaves); o gabarito de recuperação ganha o `filename`.
+- O checkpoint da avaliação sobe para o schema 4 (PRs de vários arquivos).
+
+### Alternativas rejeitadas
+
+- **Manter 75 PRs de um arquivo.** Não ensaia o fluxo real e custa 75 chamadas,
+  mais que a cota de um dia.
+- **Uma norma por PR, com 4 a 5 PRs por norma.** Melhor estatística por regra,
+  mas distante de um PR real, que mistura normas.
+- **Trocar parte das normas mecânicas por regras de interpretação** (nomes
+  descritivos, conteúdo de comentário). Reforçaria o argumento "RAG contra
+  linter", mas o rótulo deixaria de ser automático e passaria a depender de
+  julgamento.
+
+### Revisão após a primeira rodada (2026-10-08)
+
+A primeira avaliação oficial do dataset (`evaluation/results_realista.json`,
+mantido no repositório como registro) deu P 0,8021, R 0,7857, F1 0,7938
+(TP 77, FP 19, FN 21, TN 679, 796 linhas; gate por PR TP 19, FP 5, FN 1,
+TN 0). Os 40 erros por linha foram investigados um a um contra o texto da
+PEP 8 e contra o contexto que o retriever entregou a cada arquivo. O resultado:
+
+| Origem | FPs | FNs |
+|---|---|---|
+| Erro de rótulo do dataset | 11 | 4 |
+| Norma ausente do contexto (recuperação) | 0 | 15 |
+| Falha do modelo | 6 | 2 |
+| Acusação dupla benigna (def e corpo que usa `this`) | 2 | 0 |
+
+Os 15 erros de rótulo foram corrigidos, e a decisão de cada um está abaixo.
+Como os erros só foram achados depois de ver o resultado, há risco de correção
+seletiva. Para mitigar: (a) toda correção cita o texto da PEP 8, (b) os rótulos
+de **todas** as 23 normas foram auditados contra o texto, inclusive os que
+favoreciam o modelo (a auditoria achou um erro a mais, que não aparecia nos
+resultados), (c) a primeira rodada continua registrada, e o relatório mostra as
+duas lado a lado.
+
+1. **Docstring pública (8 FPs).** A PEP 8 manda: "Write docstrings for all
+   public modules, functions, classes, and methods". O código das PRs novas não
+   tinha, o modelo acusou (certo) e o gabarito dizia "não viola". Decisão:
+   cobrar docstring no oráculo (`docstring_findings` em `conformity.py`; público
+   é o nome sem `_` inicial, mais `__init__`, como na PEP 257; funções aninhadas
+   e membros de classe não pública ficam de fora) e escrever as 108 docstrings
+   de uma linha que faltavam. Não vira a 24ª norma: quase toda função seria
+   positiva e o dataset perderia o equilíbrio. O ruff com `E,W,N,I` não cobra
+   isso; o oráculo passa a ter essa checagem.
+2. **`if x is True:` como negativo difícil (1 FP).** A PEP 8 lista
+   `if greeting is True:` como **Wrong**. O rótulo estava errado; o negativo foi
+   trocado por `if x:` e o padrão saiu do catálogo.
+3. **Literal global em minúsculas (`retry_limit = 3`, 2 FPs, mais `retries = 3`).**
+   A PEP 8 diz que constantes são "geralmente" em MAIÚSCULAS, mas não diz se um
+   literal global é uma constante. O texto não decide o rótulo. Decisão
+   (autor): tratar como **ambiguidade**. As 3 linhas ganham `ambiguo: true`,
+   saem da matriz de confusão e são reportadas à parte (total e quantas o modelo
+   sinalizou). Para o workflow real fica registrado como requisito: nesse tipo de
+   caso o modelo deve dizer que pode haver ambiguidade, em vez de afirmar a
+   violação (ver `docs/TODO-FUTURO.md`). Isso torna o conjunto de negativos
+   difíceis de constante menos adversarial; fica declarado.
+4. **`import_ordem` como ordem alfabética (4 FNs).** A PEP 8 só exige **grupos**
+   (biblioteca padrão, terceiros, locais) e linha em branco entre eles; não exige
+   ordem alfabética. A norma passa a ser grupo fora de ordem (terceiros antes da
+   biblioteca padrão, que o ruff também acusa como I001), e os 4 positivos foram
+   reescritos.
+5. **`type(first) is type(second)` como negativo difícil (achado na auditoria).**
+   A PEP 8 lista `if type(obj) is type(1):` como **Wrong**. Trocado por
+   `isinstance(first, type(second))`.
+
+Resultado dos ajustes no dataset: 908 linhas adicionadas, 98 positivas, 74
+negativos difíceis, 3 ambíguas, as mesmas 25 PRs e 35 arquivos.
+
+Fora do dataset, sem alteração e como limitação registrada: (a) 6 FPs e 2 FNs
+são falhas do modelo (aceita `except Exception:` e o `except:` tolerado como
+violação, não conta colunas de forma confiável); (b) 15 FNs são falta da norma no
+contexto de 8 chunks. Aumentar o corte de 8 chunks foi descartado porque
+estoura a cota diária da Groq. Um teste sem LLM de chunks menores (256 e 128
+palavras) mede se a norma chega mais ao contexto sem gastar mais tokens; é
+exploratório, porque ajusta o sistema no mesmo dataset em que depois se avalia.
+
+---
+
 ## Pendências (decisões ainda não tomadas)
 
 - **P-004 — Remoção da avaliação humana do planejamento.** Retirar §15.4

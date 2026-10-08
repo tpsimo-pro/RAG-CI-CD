@@ -41,6 +41,7 @@ como no `DiffCollector` do workflow.
 | `regra` | string ou null | A família da norma, em toda positiva e em todo negativo difícil (a norma que ele imita). `null` em negativo comum |
 | `sub_regra` | string ou null | O id da norma se `viola` é true, senão `null` |
 | `hard_negative` | bool | `true` só se `viola` é false e a linha imita uma violação |
+| `ambiguo` | bool, opcional | `true` quando o texto da PEP 8 não decide o rótulo (por exemplo, um literal global em minúsculas, que pode ou não ser uma constante). Exige `viola: false`, `hard_negative: false` e `regra` válida. A linha sai da matriz de confusão e é reportada à parte |
 
 Uma linha viola no máximo uma norma. Um texto não pode ser positivo e negativo ao
 mesmo tempo dentro do mesmo arquivo (D-003 agrupa linhas de texto igual).
@@ -63,7 +64,9 @@ Os ids, os códigos do ruff, as frases âncora do texto da PEP 8 e os padrões d
 negativo difícil de cada norma estão em `norms.py`, fonte única do validador, da
 conformidade, do gabarito de recuperação e da citação. `linhas_em_branco`,
 `import_topo` e `import_ordem` dependem da vizinhança e só aparecem em arquivos
-`added`.
+`added`. `import_ordem` é grupo fora de ordem (terceiros antes da biblioteca
+padrão), não ordem alfabética: a PEP 8 só exige os grupos e a linha em branco
+entre eles.
 
 ## Invariantes (o validador falha se quebradas)
 
@@ -84,6 +87,14 @@ conformidade, do gabarito de recuperação e da citação. `linhas_em_branco`,
    `def`/`class`.
 5. Norma de vizinhança só em arquivo novo.
 6. Cada PR violador mistura de 2 a 5 normas distintas.
+7. **Docstring pública** (PEP 8, Documentation Strings): todo módulo, classe,
+   função e método público (nome sem `_` inicial, mais `__init__`) das linhas
+   adicionadas tem docstring. Funções aninhadas e membros de classe não pública
+   ficam de fora. O ruff com `E,W,N,I` não cobra isso; a checagem está em
+   `conformity.docstring_findings`. Sem isso, o modelo acusa (certo) uma
+   violação que o gabarito não rotulou.
+8. Um mesmo texto não é positivo e negativo ao mesmo tempo no mesmo arquivo
+   (D-003).
 
 ## Composição
 
@@ -92,9 +103,10 @@ conformidade, do gabarito de recuperação e da citação. `linhas_em_branco`,
 | PRs | 25 (20 violadores, 5 limpos) |
 | Arquivos | 35 (21 novos, 14 modificados) |
 | PRs por nº de arquivos | 16 com 1, 8 com 2, 1 com 3 |
-| Linhas adicionadas | 796 |
+| Linhas adicionadas | 908 |
 | Positivas | 98, no mínimo 4 por norma, cada norma em pelo menos 2 PRs |
-| Negativos difíceis | 77, no mínimo 2 por norma |
+| Negativos difíceis | 74, no mínimo 2 por norma |
+| Ambíguas | 3 (`retry_limit`, `default_name`, `retries`: literais globais em minúsculas) |
 
 Catálogo do `except`, cada padrão em pelo menos um par (linha `except`, linha
 seguinte): `except Exception` + `logger.exception(...)` · `except Exception` +
@@ -109,6 +121,8 @@ seguinte): `except Exception` + `logger.exception(...)` · `except Exception` +
 - **Matriz por linha, Precisão, Recall, F1:** o rótulo é `viola`. A detecção
   numa linha conta pelo rótulo da linha, seja qual for a norma citada (D-003). A
   classificação roda por arquivo e os resultados somam sob o `pr_id`.
+- **Linhas ambíguas:** ficam fora de TP, FP, FN e TN. O resultado traz o total
+  e quantas o modelo sinalizou (`published.ambiguous`).
 - **Gate por PR:** o PR bloqueia se ao menos uma linha de algum arquivo for
   sinalizada.
 - **Por família e por norma:** `per_rule` recorta por família (positivas mais

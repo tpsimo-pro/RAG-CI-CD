@@ -54,3 +54,15 @@ externa.
   repositórios open source em Python.
 - Rotulação **independente** (não feita pelo autor do sistema), para reduzir
   viés de construção do gabarito.
+
+---
+
+## F-009 — Workflow: sinalizar ambiguidade da norma
+
+Em D-010 três linhas do dataset ficaram como ambíguas (literal global em
+minúsculas, como `retry_limit = 3`): o texto da PEP 8 não diz se é uma
+constante, então não há rótulo certo. No workflow real o revisor não deve
+afirmar a violação nesses casos. A resposta do LLM precisa de um campo (ou um
+texto na `violation_description`) que diga que pode haver ambiguidade, e o
+comentário publicado no PR deve trazer isso ao desenvolvedor. A avaliação já
+reporta quantas linhas ambíguas o modelo sinalizou (`published.ambiguous`).
