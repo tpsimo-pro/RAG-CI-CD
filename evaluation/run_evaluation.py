@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
 import sys
 import time
@@ -237,7 +238,24 @@ _CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
 # `LineResult` ganhou `regra` e trocou `cites_section_5` por
 # `cites_correct_norm` (emenda de D-002): um checkpoint da versão 1 não
 # reconstrói um `LineResult` atual e é descartado em vez de quebrar a execução.
-_CHECKPOINT_SCHEMA = 2
+# Subiu para 3 quando cada PR passou a guardar as detecções brutas do LLM.
+_CHECKPOINT_SCHEMA = 3
+
+# O caminho do dataset não basta como chave: a linha de base das Seções 5 e 2
+# roda num checkout antigo, com o mesmo caminho, outro conteúdo e outro prompt
+# (emenda 2 de D-002). Retomar um checkpoint desses misturaria as medições.
+_PROMPT_FILES = (
+    _PROJECT_ROOT / "rag_reviewer" / "prompts" / "system_prompt.txt",
+    _PROJECT_ROOT / "rag_reviewer" / "prompts" / "review_template.txt",
+)
+
+
+def _config_fingerprint(dataset_path: Path) -> str:
+    """sha256 do conteúdo do dataset e dos prompts."""
+    digest = hashlib.sha256()
+    for path in (dataset_path, *_PROMPT_FILES):
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
 
 
 def _line_result_to_dict(r: LineResult) -> dict:
@@ -251,7 +269,8 @@ def _line_result_from_dict(d: dict) -> LineResult:
 def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
     """
     Carrega o checkpoint se existir e for compatível com esta execução
-    (mesmo dataset e número de repetições). Checkpoint de uma configuração
+    (mesmo dataset, mesmo conteúdo de dataset e prompts, mesmo número de
+    repetições). Checkpoint de uma configuração
     diferente é ignorado — nunca aplicado por engano a outra.
     """
     if not _CHECKPOINT_PATH.exists():
@@ -264,6 +283,7 @@ def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
         data.get("dataset_path") != str(dataset_path)
         or data.get("repeticoes") != repeticoes
         or data.get("schema") != _CHECKPOINT_SCHEMA
+        or data.get("fingerprint") != _config_fingerprint(dataset_path)
     ):
         return {}
     return data.get("completed_prs", {})
@@ -275,6 +295,7 @@ def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -
         "schema": _CHECKPOINT_SCHEMA,
         "dataset_path": str(dataset_path),
         "repeticoes": repeticoes,
+        "fingerprint": _config_fingerprint(dataset_path),
         "completed_prs": completed_prs,
     }
     tmp = _CHECKPOINT_PATH.with_suffix(".json.tmp")
@@ -285,7 +306,9 @@ def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -
 # ── Execução ──────────────────────────────────────────────────────────────────
 
 
-def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvaluation, str]:
+def run_evaluation(
+    dataset_path: Path, repeticoes: int
+) -> tuple[AggregatedEvaluation, str, list[list[dict]]]:
     """
     Executa o RAG-Reviewer real contra todos os PRs do dataset, `repeticoes`
     vezes cada (D-005), e agrega o resultado.
@@ -314,6 +337,7 @@ def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvalu
     per_repetition_lines: list[list[LineResult]] = [[] for _ in range(repeticoes)]
     per_repetition_detections = [0] * repeticoes
     per_repetition_hallucinations = [0] * repeticoes
+    per_repetition_details: list[list[dict]] = [[] for _ in range(repeticoes)]
 
     completed_prs = _load_checkpoint(dataset_path, repeticoes)
     if completed_prs:
@@ -347,6 +371,7 @@ def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvalu
                         "line_results": [_line_result_to_dict(r) for r in line_results],
                         "total_detections": total_det,
                         "hallucinated_detections": hallucinated,
+                        "detections": [dataclasses.asdict(d) for d in detections],
                     }
                 )
                 _log_pr_repetition(rep, line_results)
@@ -360,6 +385,13 @@ def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvalu
             )
             per_repetition_detections[rep] += rep_data["total_detections"]
             per_repetition_hallucinations[rep] += rep_data["hallucinated_detections"]
+            per_repetition_details[rep].append(
+                {
+                    "pr_id": pr_id,
+                    "line_results": rep_data["line_results"],
+                    "detections": rep_data["detections"],
+                }
+            )
 
     _CHECKPOINT_PATH.unlink(missing_ok=True)  # execução completa — checkpoint não serve mais
 
@@ -372,7 +404,7 @@ def run_evaluation(dataset_path: Path, repeticoes: int) -> tuple[AggregatedEvalu
         )
         for i in range(repeticoes)
     ]
-    return AggregatedEvaluation(repetitions=repetitions), llm.model
+    return AggregatedEvaluation(repetitions=repetitions), llm.model, per_repetition_details
 
 
 def _log_pr_repetition(rep_index: int, line_results: list[LineResult]) -> None:
@@ -421,6 +453,10 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
         f"  Taxa de alucinação de localização: {published.hallucination_rate:.4f} "
         f"({published.hallucinated_detections}/{published.total_detections} detecções)"
     )
+    console.print(
+        f"  FPs no corpo de except violador (erro de localização): "
+        f"{published.misplaced_block_fps()}"
+    )
     norm_prec = published.norm_reference_precision
     norm_prec_str = f"{norm_prec:.4f}" if norm_prec is not None else "N/A (nenhum TP nesta execução)"
     console.print(f"  Precisão de referência normativa (entre os TPs): {norm_prec_str}\n")
@@ -444,6 +480,7 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
 _ROTULO_REGRA = {
     "secao-5": "Seção 5 — comparações",
     "secao-2": "Seção 2 — nomenclatura",
+    "coding-4.1": "coding_standards 4.1 — exceções",
 }
 
 
@@ -515,6 +552,7 @@ def _save_results(
     repeticoes: int,
     model: str,
     output_path: Path,
+    details: list[list[dict]],
 ) -> None:
     """Salva o conjunto completo de métricas em JSON para análise posterior."""
     published = agg.median_f1_repetition
@@ -543,6 +581,7 @@ def _save_results(
                 ),
                 "total_detections": r.total_detections,
                 "hallucinated_detections": r.hallucinated_detections,
+                "misplaced_block_fps": r.misplaced_block_fps(),
                 "per_rule": {regra: rm.as_dict() for regra, rm in r.per_rule().items()},
                 "per_sub_rule_recall": r.per_sub_rule_recall(),
             }
@@ -578,6 +617,7 @@ def _save_results(
                 ),
             },
             "hallucination_rate": round(published.hallucination_rate, 4),
+            "misplaced_block_fps": published.misplaced_block_fps(),
             "norm_reference_precision": (
                 round(published.norm_reference_precision, 4)
                 if published.norm_reference_precision is not None
@@ -594,6 +634,9 @@ def _save_results(
             }
             for g in published.pr_gate_results()
         ],
+        # Linhas e detecções brutas de cada PR na repetição publicada: é o que
+        # permite diagnosticar FP e FN, que as contagens agregadas escondem.
+        "per_pr_detail": details[published.repetition_index],
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(output, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -648,7 +691,7 @@ def main() -> None:
         sys.exit(1)
 
     try:
-        aggregated, model = run_evaluation(args.dataset, args.repeticoes)
+        aggregated, model, details = run_evaluation(args.dataset, args.repeticoes)
     except Exception as exc:  # noqa: BLE001 — erro fatal, sem fallback para mocks
         # show_locals=False: locals de LLMClient/VectorStore podem conter
         # segredos (API keys) — nunca imprimir isso, mesmo em erro.
@@ -661,7 +704,7 @@ def main() -> None:
         sys.exit(1)
 
     _print_summary(aggregated)
-    _save_results(aggregated, args.dataset, args.repeticoes, model, args.output)
+    _save_results(aggregated, args.dataset, args.repeticoes, model, args.output, details)
 
 
 if __name__ == "__main__":

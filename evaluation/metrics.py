@@ -55,12 +55,22 @@ _SECTION_2_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# Tratamento de exceções (emenda 2 de D-002). A norma só existe no
+# `coding_standards.md` 4.1; o `guia_python_pep8.md` não tem 4.1, e a
+# Seção 4 dele (espaços em branco) não pode contar como citação correta.
+_SECTION_4_1_PATTERN = re.compile(
+    r"(?<![\d.])4\.1(?!\d)|tratamento\s+de\s+exce[çc][õo]es|exception\s+handling",
+    re.IGNORECASE,
+)
+
 REGRA_SECAO_5 = "secao-5"
 REGRA_SECAO_2 = "secao-2"
+REGRA_EXCECAO = "coding-4.1"
 
 _NORM_PATTERN_POR_REGRA = {
     REGRA_SECAO_5: _SECTION_5_PATTERN,
     REGRA_SECAO_2: _SECTION_2_PATTERN,
+    REGRA_EXCECAO: _SECTION_4_1_PATTERN,
 }
 
 
@@ -483,6 +493,26 @@ class RepetitionResult:
             }
             for sub, lines in sorted(by_sub.items())
         }
+
+    def misplaced_block_fps(self) -> int:
+        """
+        FPs na linha logo abaixo de um `except` violador do mesmo PR.
+
+        Emenda 2 de D-002: o rótulo da regra de exceções fica na linha
+        `except`, e o corpo de um bloco violador é uma linha só, logo
+        abaixo. Um FP ali quase sempre é o modelo que viu a violação e
+        apontou o `pass` em vez do `except` — erro de localização, não de
+        detecção. D-003 continua contando FP e FN; este número só separa
+        o caso na discussão.
+        """
+        return sum(
+            1
+            for prev, cur in zip(self.line_results, self.line_results[1:])
+            if cur.cell == "FP"
+            and prev.pr_id == cur.pr_id
+            and prev.expected_viola
+            and prev.regra == REGRA_EXCECAO
+        )
 
     # ── Agregação a nível de PR (gate de CI/CD) ─────────────────────────
 

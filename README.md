@@ -1,6 +1,6 @@
 # RAG-Reviewer - Projeto Piloto
 
-Validação ponta a ponta de um pipeline RAG que detecta violações de duas regras de estilo nas linhas adicionadas de Pull Requests. O desempenho é medido com matriz de confusão completa, Precisão, Recall e F1-Score.
+Validação ponta a ponta de um pipeline RAG que detecta violações de três regras de estilo nas linhas adicionadas de Pull Requests. O desempenho é medido com matriz de confusão completa, Precisão, Recall e F1-Score.
 
 **Instituição:** Universidade do Estado do Amazonas (UEA) - TCC-2
 
@@ -13,7 +13,7 @@ Validação ponta a ponta de um pipeline RAG que detecta violações de duas reg
 | Regras | Seção 5 do `guia_python_pep8.md`, comparações: proibido `== True`, `== False`, `== None` e `!= None`, obrigatório `is` / `is not` com `None`. E um recorte da Seção 2, nomenclatura: funções em `snake_case`, classes em `PascalCase`, e `l`, `O`, `I` proibidos como nome de uma letra (D-002 e sua emenda) |
 | Unidade de avaliação | A linha adicionada (D-001) |
 | Corpus indexado | Os três guias de `docs/style_guides/`: 52 seções, 52 chunks (D-007) |
-| Dataset | 50 PRs sintéticos, 474 linhas adicionadas. 100 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura) e 374 negativas, das quais 100 são negativos difíceis. 36 PRs com violação e 14 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
+| Dataset | 75 PRs sintéticos, 2025 linhas adicionadas, com código conforme o corpus inteiro fora a violação rotulada (D-008). 132 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 16 por sub-regra de exceção) e 1893 negativas, das quais 132 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
 | LLM | `qwen/qwen3.8-27b` via Groq, temperatura 0.0 (D-005, D-006) |
 | Embedding | `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensões) mais BM25 esparso (ADR-002, ADR-004) |
 | Banco de vetores | Qdrant (ADR-001) |
@@ -34,7 +34,7 @@ Avaliação (para cada PR do dataset)
   linhas adicionadas do arquivo
     -> por linha: embedding denso + BM25
     -> busca híbrida no Qdrant com fusão RRF (top-5 por linha)
-    -> união por arquivo, deduplicação, ordenação por score, corte em 8 chunks
+    -> união por arquivo (chunk repetido fica com o maior score), ordenação, corte em 8 chunks
     -> LLM: uma chamada por arquivo, com o diff e as normas recuperadas
     -> detecções (linha, norma citada)
     -> comparação com o gabarito, linha a linha
@@ -45,51 +45,61 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Os resultados desta seção foram medidos no dataset anterior, de 30 PRs e só a Seção 5. O dataset atual tem 50 PRs e duas regras, e as medições precisam ser refeitas. Em uma verificação de retrieval no dataset novo (recall@5 por regra, hybrid por linha), a Seção 5 manteve 1.0, enquanto a nomenclatura ficou em 0.0 para funções, 1.0 para classes e 0.69 para `l`/`O`/`I`.
+> Todos os resultados desta seção são do dataset atual (75 PRs, três regras, D-008). Relatório completo em `docs/RELATORIO-RESULTADOS.md`.
 >
 > A avaliação de detecção já reporta as métricas **por regra** e o recall **por sub-regra** (`per_rule` e `per_sub_rule_recall` em `results.json`). O recorte de uma regra são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a regra alguma e só entram na matriz global, então a precisão por regra não é comparável à global.
 
 ### Recuperação (sem LLM)
 
-`recall@k` é a fração das 60 linhas positivas cuja norma correta aparece entre os k primeiros chunks. `context_precision@5` é a fração dos chunks entregues ao LLM que carregam a norma correta.
+`recall@k` é a fração das 132 linhas positivas cuja norma correta aparece entre os k primeiros chunks recuperados **para aquela linha**. `context_precision@5` é a fração dos chunks recuperados que carregam a norma correta. Todas as configurações foram medidas sobre o mesmo corpus; L0 a L2 em coleções temporárias com o modelo em inglês, L0 com o loader e o chunker de `1e21350`.
 
 | Config | recall@1 | recall@3 | recall@5 | context_precision@5 |
 |---|---|---|---|---|
-| L0 - linha de base: consulta por arquivo, MiniLM em inglês, só denso | 0.0833 | 0.1500 | 0.1500 | 0.1000 |
-| L1 - loader e chunker que respeitam blocos cercados | 0.0833 | 0.1500 | 0.2167 | 0.1133 |
-| L2 - consulta por linha | 0.0667 | 0.0667 | 0.0667 | 0.0667 |
-| L3 - modelo multilíngue | 0.5333 | 0.6833 | 0.7500 | 0.2053 |
-| L4 - busca híbrida denso + BM25 com RRF | 0.8333 | 1.0000 | 1.0000 | 0.2000 |
+| L0 - linha de base: consulta por arquivo, MiniLM em inglês, só denso | 0.2273 | 0.5985 | 0.6364 | 0.1828 |
+| L1 - loader e chunker que respeitam blocos cercados | 0.3864 | 0.6515 | 0.7045 | 0.2250 |
+| L2 - consulta por linha | 0.1136 | 0.1591 | 0.1591 | 0.1114 |
+| L3 - modelo multilíngue | 0.4697 | 0.6136 | 0.6742 | 0.2199 |
+| L4 - busca híbrida denso + BM25 com RRF | 0.6667 | 0.8182 | 0.8409 | 0.1894 |
+| L4 com o MiniLM em inglês | 0.6212 | 0.8712 | 0.8939 | 0.2182 |
 
-Critério do plano: `recall@5 >= 0.95`, atingido em L4. Detalhes em `docs/agent-reports/2026-09-01-ablacao-retrieval.md`.
+Critério do plano: `recall@5 >= 0.95`, não atingido. Em L4, a Seção 5 e a cs 4.1 têm recall@5 de 1.0 (84 de 84 linhas) e os nomes de classe também (16 de 16). As falhas são todas de nomenclatura: 0 de 16 para nomes de função (`def CalculateTax(...)` traz docstrings, tipo de retorno e funções booleanas, nunca a tabela de convenções) e 11 de 16 para `l`/`O`/`I`. Uma violação de nome não tem texto em comum com a norma que a proíbe.
 
-### Detecção (3 repetições, temperatura 0.0)
+Três leituras mudaram em relação à medição no dataset antigo (só Seção 5, 60 linhas; ver `docs/agent-reports/2026-09-01-ablacao-retrieval.md`):
 
-| Métrica | Média | Desvio-padrão | Meta mínima | Situação |
-|---|---|---|---|---|
-| Precisão | 0.6522 | 0.0 | 0.70 | não atingida |
-| Recall | 1.0000 | 0.0 | 0.65 | atingida |
-| F1-Score | 0.7895 | 0.0 | 0.67 | atingida |
+- A consulta por arquivo (L0, L1) deixou de ser a pior. Com o código de D-008, cada arquivo passou a ser uma consulta rica; a consulta por linha só compensa com o modelo multilíngue e o BM25.
+- Com o BM25 ativo, o modelo em inglês supera o multilíngue (0.89 contra 0.84). O ganho do multilíngue não se sustenta no dataset atual.
+- O `recall@k` mede cada linha isolada. Ele não passa pela união por arquivo e pelo corte em 8 chunks do `Retriever`, e por isso não viu o defeito corrigido em `fb05820` (D-008).
 
-Metas de `RAG-Reviewer_Planejamento.md`, seção 15.3.
+### Detecção (1 repetição, temperatura 0.0)
 
-Matriz de confusão por linha (300 linhas):
+| Métrica | Valor | Meta mínima | Situação |
+|---|---|---|---|
+| Precisão | 0.8722 | 0.70 | atingida |
+| Recall | 0.8788 | 0.65 | atingida |
+| F1-Score | 0.8755 | 0.67 | atingida |
+
+Metas de `RAG-Reviewer_Planejamento.md`, seção 15.3. Uma repetição, conforme D-005.
+
+Matriz de confusão por linha (2.025 linhas):
 
 | | Previsto positivo | Previsto negativo |
 |---|---|---|
-| **Real positivo** | TP = 60 | FN = 0 |
-| **Real negativo** | FP = 32 | TN = 208 |
+| **Real positivo** | TP = 116 | FN = 16 |
+| **Real negativo** | FP = 17 | TN = 1876 |
 
-Matriz por PR (30 PRs, 22 com violação e 8 de controle): TP = 22, FP = 8, FN = 0, TN = 0.
+Por regra: Seção 5 com F1 1.0, Seção 2 com F1 0.96, cs 4.1 com F1 0.65. Recall de `captura_silenciosa` (`except` de exceção específica com `pass`) em 0.13: 14 dos 16 FNs.
 
-Taxa de alucinação 0.0 (nenhuma detecção aponta uma linha que não existe no diff). Precisão da referência normativa 1.0 (todo verdadeiro positivo cita a Seção 5). Resultado completo em `evaluation/results.json`.
+Matriz por PR (75 PRs, 54 com violação e 21 de controle): TP = 54, FP = 11, FN = 0, TN = 10.
+
+Taxa de alucinação 0.0 (nenhuma detecção aponta uma linha que não existe no diff). Precisão da referência normativa 0.94. Resultado completo em `evaluation/results.json`.
 
 ### Limitações
 
 - O dataset é sintético e escrito pelo autor, o que ameaça a validade externa (D-004).
-- Todas as violações do gabarito são lexicais. Com o BM25 ativo, o modelo de embedding em inglês entrega o mesmo `recall@5`, então o ganho do modelo multilíngue não está isolado nesse recorte.
-- A Precisão fica abaixo da meta mínima. Os 8 PRs de controle foram todos sinalizados no nível de PR.
-- Quatro de cada cinco chunks entregues ao LLM não carregam a norma correta (`context_precision@5` = 0.20).
+- Com o BM25 ativo, o modelo de embedding em inglês entrega `recall@5` maior que o multilíngue no dataset atual, então o ganho do modelo multilíngue não se sustenta nesse recorte.
+- O modelo quase não detecta `except` de exceção específica com corpo vazio (2 de 16). Provável influência do exemplo da cs 4.1, que mostra "captura específica" como o jeito correto.
+- No nível de PR, 11 dos 21 PRs de controle seriam bloqueados, a maioria por FPs em normas fora do piloto (cs 1.1).
+- Quatro de cada cinco chunks recuperados não carregam a norma correta (`context_precision@5` = 0.19 em L4).
 
 ---
 

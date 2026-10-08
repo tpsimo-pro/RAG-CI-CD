@@ -17,6 +17,7 @@ from evaluation.metrics import (
     RepetitionResult,
     _SECTION_5_PATTERN,
     check_targets,
+    cites_norm_of,
     classify_lines,
     confusion_counts,
     normalize_line,
@@ -437,6 +438,21 @@ class TestPerRule:
         }
         assert por_sub["nome_classe"]["recall"] == 1.0
 
+    def test_fp_logo_abaixo_de_except_violador_e_erro_de_localizacao(self):
+        results = [
+            _line_result("PR-1", "FN", regra="coding-4.1", sub_regra="captura_generica"),
+            _line_result("PR-1", "FP"),  # o `pass` do bloco violador
+            _line_result("PR-1", "TN", viola=False, regra="coding-4.1"),  # except correto
+            _line_result("PR-1", "FP"),  # corpo de bloco que nao viola
+            _line_result("PR-2", "FN", regra="coding-4.1", sub_regra="captura_silenciosa"),
+            _line_result("PR-3", "FP"),  # primeira linha de outro PR
+            _line_result("PR-3", "TP", regra="secao-5", sub_regra="nulo"),
+            _line_result("PR-3", "FP"),  # abaixo de positiva de outra regra
+        ]
+        rep = RepetitionResult(repetition_index=0, line_results=results)
+
+        assert rep.misplaced_block_fps() == 1
+
     def test_norm_reference_precision_por_regra_usa_a_norma_da_regra(self):
         gold = [
             GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5"),
@@ -604,3 +620,19 @@ class TestCheckTargets:
             "f1": False,
             "all": False,
         }
+
+
+@pytest.mark.parametrize(
+    ("ref", "esperado"),
+    [
+        ("coding_standards.md | Seção: 4.1 Regras Obrigatórias", True),
+        ("coding_standards.md, 4.1", True),
+        ("coding_standards.md — Seção 4 Tratamento de Exceções", True),
+        ("guia_python_pep8.md | Seção: 4. Uso de Espaços em Branco", False),
+        ("guia_python_pep8.md | Seção: 5. Práticas", False),
+        ("coding_standards.md | Seção: 14.1", False),
+        ("", False),
+    ],
+)
+def test_cites_norm_of_regra_de_excecao(ref, esperado):
+    assert cites_norm_of("coding-4.1", ref) is esperado

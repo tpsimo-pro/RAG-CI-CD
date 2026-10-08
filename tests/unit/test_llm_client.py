@@ -148,6 +148,18 @@ class TestLLMClientPrompts:
         )
         assert path.exists(), f"review_template.txt não encontrado em {path}"
 
+    def test_review_template_pede_a_linha_que_abre_o_bloco(self):
+        path = (
+            Path(__file__).parent.parent.parent
+            / "rag_reviewer"
+            / "prompts"
+            / "review_template.txt"
+        )
+        template = path.read_text(encoding="utf-8")
+        assert "linha que abre o bloco" in template
+        # As chaves literais do schema continuam escapadas.
+        template.format(filename="f.py", added_lines="x", retrieved_chunks="y")
+
     def test_load_prompt_raises_when_file_missing(self):
         with pytest.raises(FileNotFoundError, match="nonexistent.txt"):
             LLMClient._load_prompt("nonexistent.txt")

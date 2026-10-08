@@ -6,12 +6,11 @@
     "embedding_model": "all-MiniLM-L6-v2",
     "top_k": 5,
     "score_threshold": 0.35,
-    "collection": "style_guide_chunks"
+    "collection": "abl_tmp_minilm_l1"
   },
-  "n_gold_lines": 60,
-  "recall_at_1": 0.8,
-  "recall_at_3": 1.0,
-  "recall_at_5": 1.0,
-  "mrr": 0.9,
-  "context_precision_at_5": 0.2
+  "n_gold_lines": 132,
+  "recall_at_1": 0.6212,
+  "recall_at_3": 0.8712,
+  "recall_at_5": 0.8939,
+  "context_precision_at_5": 0.2182
 }

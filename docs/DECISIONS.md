@@ -226,6 +226,152 @@ esse motivo.
   sub-regras novas.
 - O corpus indexado não muda (D-007): a Seção 2 já está entre os 52 chunks.
 
+### Emenda 2 (2026-09-25): terceira regra, `coding_standards.md` §4.1
+
+> **Nova parte do estudo.** Esta emenda não amplia as regras anteriores:
+> abre uma etapa nova do piloto, a primeira regra que **não se decide
+> olhando uma linha isolada**. As Seções 5 e 2 continuam valendo como estão,
+> e seus resultados devem ser medidos e reportados antes desta parte ser
+> implementada, para que a regra nova não contamine a linha de base.
+
+**Status da emenda:** Aceita e implementada em
+`evaluation/dataset/pilot_dataset.json`. Medições pendentes.
+
+O piloto passa de duas para **três regras**, somando um recorte objetivo do
+**`coding_standards.md` §4.1 - Tratamento de Exceções**:
+
+> Proibido capturar `Exception` genérica sem re-raise ou logging. Toda
+> exceção capturada deve ser logada com `logger.exception()` ou re-lançada
+> com contexto adicional.
+
+#### Motivação
+
+As Seções 5 e 2 se decidem pela linha, e um linter também as detecta
+(pycodestyle E711/E712/E741, pep8-naming N801/N802). Isso deixa em aberto a
+pergunta "o que o RAG com LLM faz que o `ruff` não faz?". A §4.1 responde a
+essa pergunta sem abrir mão da rotulação objetiva:
+
+1. **Exige contexto de várias linhas.** A linha `except Exception:` viola ou
+   não conforme o corpo do bloco. O modelo precisa ler o bloco, não só
+   reconhecer um padrão.
+2. **Negativos difíceis naturais.** A linha `except` é idêntica nos casos
+   correto e incorreto; só o corpo muda. A matriz não fica degenerada (a
+   objeção que derrubou a Seção 3.2).
+3. **Testa o retrieval entre guias.** A norma existe só no
+   `coding_standards.md`, enquanto a Seção 5 existe só no
+   `guia_python_pep8.md`. É o primeiro caso em que citar o guia errado é
+   necessariamente erro, o que dá peso à precisão de referência normativa e
+   ao palheiro de D-007.
+4. **Relevância prática.** Engolir exceção em silêncio é defeito de
+   manutenção, não só de estilo.
+
+#### Sub-regras no escopo
+
+A linha rotulada é sempre a do `except`. O corpo do bloco decide o rótulo.
+
+| `sub_regra` | Norma | Viola | Não viola |
+|---|---|---|---|
+| `captura_generica` | 4.1 - `Exception` genérica sem re-raise ou log | `except Exception:` / `except Exception as exc:` com corpo só `pass` ou `continue` | `except Exception as exc:` com `logger.exception(...)` ou `raise AppError(...) from exc` |
+| `captura_silenciosa` | 4.1 - toda exceção capturada é logada ou re-lançada | `except ValueError:` (ou outra exceção específica) com corpo só `pass` ou `continue` | `except ValueError as exc:` com `raise AppError(...) from exc` ou `logger.exception(...)` |
+
+Critério do gabarito: o bloco **não viola** se contém, no primeiro nível de
+indentação do corpo, um `raise ... from` ou uma chamada
+`logger.exception(...)`. Caso contrário, viola.
+
+#### Fora do escopo, de propósito
+
+- **`logger.error`, `logger.warning`, `print`.** O guia exige
+  `logger.exception`, mas acusar `logger.error` é rótulo discutível.
+  Nenhuma linha do dataset usa esses chamados dentro de um `except`.
+- **Corpo com valor de fallback** (`return None`, `x = default`). Viola a
+  letra do guia, mas é idioma Python comum; o rótulo seria contestável.
+  Os corpos violadores do dataset são apenas `pass` ou `continue`.
+- **`raise` ou log condicional** (`if ...: raise`) e `try` aninhado dentro do
+  `except`: a decisão deixa de ser local ao bloco.
+- **`except:` sem tipo e `except BaseException`**: o guia fala em
+  `Exception`; a extensão para captura sem tipo não está escrita.
+- **Tupla de exceções** (`except (ValueError, Exception):`).
+- **§4.2 (hierarquia de exceções)** e **§4.1, terceiro item** (exceções
+  customizadas para erro de negócio): exigem contexto de projeto.
+- **Re-raise sem `from`**, em qualquer `except` (`except Exception: raise`,
+  `except ValueError: raise` ou `raise AppError(...)` sem `from`). O segundo
+  item do guia vale para toda exceção capturada e pede "re-lançada com
+  contexto adicional"; `raise` puro não acrescenta contexto, e o rótulo
+  "não viola" seria discutível. Um linter também acusa o `raise` puro logo
+  após a captura (pylint W0706), o que tornaria o FP defensável.
+  (Revisão da branch, 2026-09-25: a primeira versão aceitava `raise` puro em
+  `except Exception`; seis negativos difíceis foram reescritos com
+  `raise ... from exc`.)
+
+#### Consequências para a unidade de avaliação
+
+- **D-001 se mantém.** A violação é de bloco, mas o rótulo fica numa linha
+  só, a do `except`. As linhas do corpo (`pass`, `continue`, `raise`,
+  `logger.exception(...)`) são negativas.
+- **Risco de localização.** O LLM pode apontar a linha `pass` em vez da linha
+  `except`. Por D-003 isso conta como FP na linha `pass` e FN na linha
+  `except`. A regra de atribuição **não** é afrouxada para esta regra; em vez
+  disso, o prompt passa a pedir explicitamente a linha do `except`, e o
+  diagnóstico de FP separa os que caíram no corpo de um bloco violador
+  ("viu, mas localizou errado") dos demais.
+- **Linhas repetidas no mesmo PR.** `classify_lines` agrupa linhas de texto
+  idêntico, então sinalizar uma sinaliza todas. Dentro de um PR, cada linha
+  `except` precisa ter texto único (variar a exceção ou o nome após `as`),
+  e nenhum PR pode ter uma linha `except` violadora textualmente igual a uma
+  correta.
+- **Forma do corpo violador.** O corpo de um bloco violador é um único
+  `pass` ou `continue`, na linha logo abaixo do `except`, e seu texto não se
+  repete em outra linha do PR. É isso que permite ao diagnóstico de
+  localização achar a linha do corpo pela posição.
+- **Nomes dos PRs novos** evitam as regras vizinhas do `coding_standards.md`:
+  2.2 (nomes genéricos como `data`, `info`, `result`, `obj`, `temp` e
+  abreviações como `cnt`) e 2.3 (função que retorna booleano sem `is_`,
+  `has_`, `can_`, `should_`).
+
+#### Composição implementada
+
+- **25 PRs novos** (PR-056 a PR-080), dos quais **7 de controle**, espelhando
+  a Seção 2.
+- **Positivas:** 16 por sub-regra, 32 no total. Menos que as 48 da Seção 2
+  porque cada bloco ocupa ao menos 4 linhas e o limite de 15 linhas por PR
+  (D-004) precisa ser mantido. Vários `except` sob o mesmo `try` ajudam a
+  caber.
+- **Linhas:** 287 nos PRs novos; o dataset passa a 75 PRs e 761 linhas
+  (54 PRs com violação, 21 de controle, 132 positivas, 132 negativos
+  difíceis).
+- **Negativos difíceis:** 32, tantos quanto as positivas. Catálogo
+  mínimo, cada padrão em ao menos uma linha:
+  `except Exception as exc:` + `logger.exception(...)` ·
+  `except Exception as exc:` + `raise AppError(...) from exc` ·
+  `except ValueError as exc:` + `raise AppError(...) from exc` ·
+  `except KeyError:` + `logger.exception(...)` ·
+  comentário com `except Exception: pass` ·
+  string com `except Exception: pass`.
+- Os números por regra estão em `evaluation/dataset/SCHEMA.md`.
+
+#### Implementação
+
+- Dataset: PR-056 a PR-080 com `regra: "coding-4.1"` e as duas sub-regras.
+  As linhas de todas as regras continuam sem construção proibida das
+  outras duas.
+- `validate_pilot_dataset.py`: `except_labels` rotula cada `except` pelo
+  critério do gabarito sobre a AST do PR e rejeita o que está fora do
+  escopo; `block_duplicates` impõe o texto único por PR;
+  `HARD_NEGATIVE_CATALOG_EXCECAO` confere o catálogo por par de linhas.
+- `norm_map.py` e `gold.py`: chave `NORM_EXCECAO`, só com chunks do
+  `coding_standards.md` §4.1.
+- `metrics.py`: `cites_norm_of` reconhece a §4.1 (`_SECTION_4_1_PATTERN`);
+  `RepetitionResult.misplaced_block_fps` conta os FPs no corpo de bloco
+  violador, exibido e salvo por `run_evaluation.py`.
+- `review_template.txt`: instrução para reportar a linha que abre o bloco.
+- O dataset atual não precisa de reclassificação: nenhuma das 474 linhas
+  contém `except` (verificado em 2026-09-25).
+- O corpus indexado não muda (D-007): o `coding_standards.md` já está
+  indexado.
+- Os resultados publicados continuam sendo do dataset anterior. A linha de
+  base das Seções 5 e 2 é medida na árvore de `0237b3d`, antes do prompt
+  novo.
+
 ---
 
 ## D-003 — Atribuição detecção→linha: coincidência exata após normalização
@@ -477,6 +623,204 @@ sinal para detectar. O sistema degeneraria em "um LLM com um prompt bom", e o
 - O chunker estrutural torna-se ainda mais necessário: o corpus completo só é
   um bom palheiro se os chunks forem íntegros. Chunks-lixo como `"Correto"` e
   `"Incorreto"` transformam distratores legítimos em ruído que vence por acidente.
+
+---
+
+## D-008 — Código do dataset conforme o corpus inteiro
+
+**Data:** 2026-09-26
+**Status:** Aceita
+
+### Contexto
+
+A primeira rodada no dataset de três regras (75 PRs, 761 linhas) deu
+TP 114, FP 61, FN 18, TN 567: precisão 0.648, abaixo da meta de 0.70. O
+detalhe por PR (`per_pr_detail`) mostrou que **53 dos 61 FPs não são erros
+do modelo**: são violações reais de outras normas do corpus que o código do
+dataset comete e o gabarito não rotula. O código dos PRs não tinha docstring
+(`coding_standards.md` 5.1, 25 FPs), tipo de retorno (3.3, 13 FPs), linhas
+em branco entre definições (`guia_python_pep8.md` 1.3, 6 FPs), além de
+funções que o modelo tomou por booleanas sem prefixo (2.3, 6 FPs). O mesmo
+efeito bloqueou 20 dos 21 PRs de controle no gate por PR.
+
+O rótulo "não viola" de D-001 é relativo às regras do piloto, mas o sistema
+recebe o corpus inteiro (D-007) e a instrução de apontar qualquer violação.
+A tarefa medida e a tarefa executada divergiam, e a diferença aparecia como
+FP.
+
+### Decisão
+
+O gabarito e a métrica **não mudam**. Muda o **código** dos 75 PRs: toda
+linha passa a cumprir todas as normas do corpus aplicáveis a um trecho de
+código isolado, exceto a violação que o seu rótulo declara. Assim o rótulo
+"não viola" fica verdadeiro para o corpus inteiro, não só para o piloto.
+
+**Normas garantidas pelo validador** (`validate_pilot_dataset.py`):
+
+| Norma | Checagem |
+|---|---|
+| pep8 1.1 (79 caracteres; 72 em docstring e comentário) | ruff E501, W505 |
+| pep8 1.2, 1.3, 4 (indentação, linhas em branco, espaços) | ruff E, W (com `--preview`, para E30x) |
+| pep8 2, 2.1 (nomes; exceção com sufixo `Error`) | ruff N; nome de uma letra só `i`, `j` e `_`; `l`, `O` e `I` nunca lidos fora da linha positiva que os atribui |
+| pep8 3, cs 6 (imports agrupados e ordenados, sem `*`) | ruff I, F403 |
+| cs 2.2 (nomes genéricos e abreviações) | lista proibida: `data`, `info`, `temp`, `obj`, `result`, `cnt`, `mx`, `err`, `val` |
+| cs 2.3 (prefixo booleano) | prefixo `is_`/`has_`/`can_`/`should_` se e somente se o retorno anotado é `bool` |
+| cs 3.1, 3.2 (até 30 linhas; até 4 parâmetros; sem parâmetro booleano) | AST |
+| cs 3.3 (tipo de retorno) | ruff ANN001, ANN201, ANN202, ANN204: toda função com parâmetros e retorno anotados |
+| cs 5.1 (docstring Google Style em módulo, classe e função) | ruff D (convenção `google`, `__init__` inclusive; só D105, métodos mágicos, fica de fora); `Args:` se há parâmetro, `Returns:` se o retorno não é `None`, `Raises:` se há `raise` |
+| cs 7.1 (segredos e URLs fixas) | nenhum literal com `://`, `sk-` ou `password` |
+| Nomes de módulo | atribuição de módulo só em `UPPER_SNAKE_CASE` ou `logger` |
+
+Os achados que correspondem às regras do piloto só são aceitos na linha
+positiva da própria regra: E712 (`booleano`), E711 (`nulo`), N802
+(`nome_funcao`), N801 (`nome_classe`), e E741, N806, nome de uma letra e
+nome de módulo (`nome_proibido`, que é a mesma violação vista por quatro
+checagens). Qualquer outro achado, em qualquer linha, reprova o PR. A linha positiva cumpre
+o resto: `def CalculateTax(amount: float) -> float:` viola só a
+nomenclatura.
+
+**Diretriz de escrita, sem checagem:** responsabilidade única (cs 1.1),
+comentários que explicam o porquê (cs 5.2), camadas e N+1
+(`architecture_patterns.md`).
+
+**Fora do escopo, residual declarado:**
+- cs 4.2 (hierarquia de exceções por domínio). O catálogo de negativos
+  difíceis da Seção 2 exige `class XError(Exception):`, e um PR isolado não
+  tem hierarquia de domínio a seguir. Um FP citando 4.2 é discutido no texto.
+- `assert` "em produção". Não é norma do corpus; se o modelo acusar, é FP.
+- cs 8, 9, 7.2 e `architecture_patterns.md` 2 e 3: não se aplicam a um
+  trecho de código.
+
+**Rótulos:** as 132 positivas e os 132 negativos difíceis mantêm o rótulo.
+O texto delas pode mudar só para cumprir as demais normas (anotações de
+tipo, indentação). Linhas novas (docstrings, imports, linhas em branco) são
+negativos comuns. Em 11 PRs da Seção 5 o `return` rotulado foi movido para
+o fim da função, porque o código antigo tinha instruções inalcançáveis
+depois dele; o conjunto de rótulos de cada PR é o mesmo. As positivas
+`nome_funcao` não retornam `bool`, para não violarem também a cs 2.3.
+
+### Emenda a D-004
+
+- Cada PR tem **de 6 a 60 linhas** (antes, 6 a 15). Docstrings Google Style
+  não cabem em 15, e um PR com quatro funções documentadas passa de 40.
+  (O plano previa 40; subiu na reescrita, porque o custo de tokens é
+  governado pelo teto de caracteres, não pelo número de linhas.)
+- O texto do dataset inteiro tem no máximo **90.000 caracteres** (hoje,
+  23.441). Resultado da reescrita: 2.025 linhas e 49.829 caracteres, de 18
+  a 52 linhas por PR. São ~8 mil tokens a mais por rodada, dentro da cota
+  diária de 200 mil do Groq (D-006). Uma rodada por dia; o checkpoint
+  retoma se a cota acabar.
+
+### Mudança no retriever
+
+Linhas em branco (ou só com espaços) deixam de ser **consultas** de
+recuperação: não carregam conteúdo normativo, geram vetor esparso vazio e
+um vetor denso arbitrário que só polui a união dos chunks. Continuam
+chegando ao LLM e continuam sendo linhas avaliadas (D-001). Um diff real
+tem linhas em branco, então a mudança é de robustez do sistema, não um
+ajuste ao dataset.
+
+### Correção na união do retriever (2026-09-29, `fb05820`)
+
+A primeira rodada oficial sobre o dataset conforme (`b2eddf4`) deu
+Precisão 0,7944, Recall 0,6439 e F1 0,7113 (TP 85, FP 22, FN 47, TN 1.871),
+abaixo da meta de recall. Os FNs se concentravam em `captura_silenciosa`
+(1 de 16) e `booleano` (12 de 26). A causa estava no retriever, não no
+modelo.
+
+Isolada, cada linha violadora recupera a própria norma em 1º lugar (score
+1,0). A união por arquivo, porém, guardava o chunk repetido com o score
+da **primeira** linha que o trouxe, não com o maior. Com as docstrings e
+anotações de D-008, as linhas anteriores à violação passaram a trazer a
+Seção 5 e a cs 4.1 em posições baixas (0,33 no PR-002, 0,36 no PR-056), e
+o corte em 8 chunks as eliminava. É o risco de diluição previsto abaixo,
+agravado por um defeito: a regra de deduplicação estava errada para
+qualquer diff, não só para este dataset.
+
+A correção mantém o maior score de cada chunk entre as linhas. PRs
+violadores com todas as normas necessárias no contexto entregue ao LLM:
+25 de 54 antes, 47 de 54 depois. Os 7 que ainda perdem a norma são de
+nomenclatura (PR-031 a 035, 037, 038), a regra com maior recall.
+
+O `recall@k` da ablação (L0 a L4) não enxergava o defeito: ele mede cada
+linha isolada, antes da união e do corte. A rodada de `b2eddf4` fica como
+o "antes"; a rodada oficial de D-008 passa a ser a do sistema corrigido.
+
+### Ablação de recuperação refeita (2026-09-29)
+
+`results_L0` a `results_L4` foram refeitos no dataset atual (132 linhas
+positivas, antes 60 só da Seção 5), cumprindo a pendência da Emenda de
+D-002. L0 a L2 e `L4_sem_multilingue` foram medidos em coleções
+temporárias do Qdrant com o modelo em inglês (L0 com o loader e o chunker
+de `1e21350`), apagadas depois; a coleção de produção não mudou.
+
+recall@5: L0 0,64 · L1 0,70 · L2 0,16 · L3 0,67 · L4 0,84 ·
+L4 com o modelo em inglês 0,89. O critério (>= 0,95) deixa de ser
+atingido. Em L4 a Seção 5, a cs 4.1 e os nomes de classe ficam em 1,0; as
+falhas são nomes de função (0 de 16) e `l`/`O`/`I` (11 de 16), violações
+sem texto em comum com a norma. Duas conclusões da ablação antiga não se
+mantêm: a consulta por arquivo deixou de ser a pior configuração, e o
+modelo multilíngue não supera o inglês com o BM25 ativo (ADR-002 e
+ADR-004 citam os números antigos).
+
+### Medição
+
+- A rodada oficial é uma só: sistema atual contra o dataset conforme.
+  `evaluation/results.json` é sobrescrito; `results_dev.json` e
+  `results_dev_3regras.json` são removidos (o "antes" fica no histórico do
+  git, commit anterior a esta decisão).
+- **A linha de base das Seções 5 e 2 em `0237b3d` (Emenda 2 de D-002) é
+  abandonada.** Com o código do dataset reescrito, aquela árvore mede outro
+  material. A instrução do prompt sobre a linha que abre o bloco passa a ser
+  parte do sistema avaliado.
+- Critério de sucesso: os FPs que citam normas fora do piloto (docstring,
+  tipo de retorno, prefixo booleano, linhas em branco) somem ou viram casos
+  isolados. O que sobrar é erro do modelo e vai para a discussão.
+
+### Resultado (2026-09-29)
+
+Rodada oficial com o retriever corrigido: Precisão 0,8722, Recall 0,8788,
+F1 0,8755 (TP 116, FP 17, FN 16, TN 1.876). As três metas foram atingidas;
+na rodada de `b2eddf4` o recall ficava abaixo da meta. Relatório completo
+em `docs/RELATORIO-RESULTADOS.md`.
+
+- Seção 5: F1 1,0. Seção 2: F1 0,96. cs 4.1: F1 0,65.
+- `captura_silenciosa` concentra 14 dos 16 FNs (recall 0,13). A norma
+  chega ao LLM em todos esses PRs; a perda é do modelo. Causa provável: o
+  exemplo da cs 4.1 mostra a "captura específica" como o jeito correto.
+- Critério de sucesso atendido: dos 17 FPs, nenhum é linha em branco ou
+  de docstring. Os FPs fora do piloto viraram casos isolados (8 citam a
+  cs 1.1, 2 a cs 6.1, 1 a cs 5.1); 7 são negativos difíceis, 5 deles
+  `except Exception as exc:` que loga ou re-lança.
+- Gate por PR: TP 54, FN 0, FP 11, TN 10.
+
+### Riscos
+
+- **Recall por diluição do retrieval.** As linhas de docstring também são
+  consultas e podem levar o chunk da cs 5.1 a ocupar uma das 8 vagas que
+  antes eram da Seção 5 ou da cs 4.1. É um efeito real (código de verdade
+  tem docstring) e será reportado se aparecer.
+- **Texto repetido multiplica FP.** D-003 agrupa linhas de texto igual:
+  sinalizar uma sinaliza todas. O dataset novo tem até 17 linhas em branco
+  por PR e linhas de docstring repetidas (`"""`, `Args:`, `Returns:`).
+  Uma detecção com `line_content` vazio, que antes era alucinação, agora
+  marca todas as linhas em branco do PR como FP. A regra de atribuição não
+  muda (a métrica fica como está); a análise da rodada reporta à parte os
+  FPs em linha em branco ou de docstring.
+- A acurácia sobe artificialmente com o N maior (a proporção de positivas
+  cai de 17% para ~7%). Precisão, recall e F1 não usam TN e continuam
+  comparáveis.
+
+### Alternativas rejeitadas
+
+- **Estender o gabarito às normas objetivas (cs 5.1, 3.3, pep8 1.3).** As
+  positivas passariam de 132 para mais de 250, sem negativos difíceis para
+  as regras novas; o desenho do piloto (poucas regras, rótulo indiscutível)
+  deixaria de valer, e parte dos rótulos seria discutível (cs 2.3 sem tipo
+  anotado, cs 1.1).
+- **Reportar uma "precisão no escopo" que desconta os FPs fora do piloto.**
+  Mudaria a métrica depois de ver o resultado.
+- **Restringir o prompt às regras do piloto.** Contradiz D-007.
 
 ---
 

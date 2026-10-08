@@ -191,7 +191,10 @@ class Retriever:
         """
         self._ensure_model_guard()
 
-        linhas = file_diff.added_lines
+        # D-008: linha em branco nao carrega conteudo normativo; como consulta
+        # so gera vetor esparso vazio e ruido na uniao. O LLM continua
+        # recebendo o arquivo inteiro (file_diff.added_lines).
+        linhas = [linha for linha in file_diff.added_lines if linha.strip()]
 
         console.log(
             f"[dim]Retriever:[/dim] buscando normas para "
@@ -221,16 +224,18 @@ class Retriever:
                 score_threshold=self._score_threshold,
             )
 
-        vistos: set[tuple[str, str]] = set()
-        unidos: list[dict] = []
+        # Um chunk repetido entre linhas fica com o MAIOR score: manter o da
+        # primeira linha fazia a norma que vem em 1o para a linha violadora
+        # herdar o score baixo de uma linha anterior e cair no corte abaixo.
+        melhores: dict[tuple[str, str], dict] = {}
 
         for resultados in resultados_por_linha:
             for chunk in resultados:
                 chave = (chunk["source"], chunk["section"])
-                if chave in vistos:
-                    continue
-                vistos.add(chave)
-                unidos.append(chunk)
+                if chave not in melhores or chunk["score"] > melhores[chave]["score"]:
+                    melhores[chave] = chunk
+
+        unidos = list(melhores.values())
 
         if not unidos:
             console.log(

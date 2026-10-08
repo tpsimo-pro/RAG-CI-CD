@@ -11,6 +11,9 @@
 
 ## Tarefa
 Analise as linhas adicionadas e identifique violações às normas acima.
+Quando a violação depender de um bloco de várias linhas, use em
+"line_content" a linha que abre o bloco (por exemplo, a linha "except ...:"),
+não as linhas do corpo.
 
 Responda em JSON com o seguinte schema:
 {{
