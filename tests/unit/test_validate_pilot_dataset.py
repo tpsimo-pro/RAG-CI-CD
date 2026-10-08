@@ -276,7 +276,7 @@ def _validar(arquivo):
 def _corpo_limpo():
     return [_linha(t) for t in [
         '"""Modulo de exemplo."""', "", "", "def total(items):",
-        "    value = 0", "    for item in items:", "        value += item",
+        '    """Soma os itens."""', "    value = 0", "    for item in items:", "        value += item",
         "    return value",
     ]]
 
@@ -288,28 +288,28 @@ class TestValidarArquivo:
 
     def test_violacao_rotulada_passa(self):
         e = _corpo_limpo()
-        e[4] = _linha("    value = 0 if value == None else 1", "nulo", "pep8-recomendacoes")
-        e[4]["line"] = "    if value == None:"
-        e[5:5] = [_linha("        pass")]
+        e[5] = _linha("    value = 0 if value == None else 1", "nulo", "pep8-recomendacoes")
+        e[5]["line"] = "    if value == None:"
+        e[6:6] = [_linha("        pass")]
         positivas, erros = _validar(_arquivo_novo(e))
         assert positivas == {"nulo"}, erros
         assert [x for x in erros if "oraculo" in x] == []
 
     def test_violacao_sem_rotulo_e_erro_do_oraculo(self):
         e = _corpo_limpo()
-        e[4] = _linha("    value=0")
+        e[5] = _linha("    value=0")
         _, erros = _validar(_arquivo_novo(e))
         assert any("E225" in x and "oraculo" in x for x in erros)
 
     def test_rotulo_positivo_que_nao_dispara_e_erro(self):
         e = _corpo_limpo()
-        e[4] = _linha("    value = 0", "nulo", "pep8-recomendacoes")
+        e[5] = _linha("    value = 0", "nulo", "pep8-recomendacoes")
         _, erros = _validar(_arquivo_novo(e))
         assert any("nenhum oraculo a detecta" in x for x in erros)
 
     def test_regra_incoerente_com_a_norma_e_erro(self):
         e = _corpo_limpo()
-        e[4] = _linha("    if value == None:", "nulo", "pep8-nomes")
+        e[5] = _linha("    if value == None:", "nulo", "pep8-nomes")
         _, erros = _validar(_arquivo_novo(e))
         assert any("regra/sub_regra do catalogo" in x for x in erros)
 
@@ -390,8 +390,8 @@ class TestArquivoModificado:
 
 def test_texto_igual_positivo_e_negativo_no_arquivo_e_erro():
     e = _corpo_limpo()
-    e[4] = _linha("    if value == None:", "nulo", "pep8-recomendacoes")
-    e[5:5] = [
+    e[5] = _linha("    if value == None:", "nulo", "pep8-recomendacoes")
+    e[6:6] = [
         _linha("        pass"),
         _linha("    if value == None:"),
         _linha("        pass"),
@@ -404,3 +404,41 @@ def test_dataset_real_passa_no_validador(capsys):
     from evaluation.dataset.validate_pilot_dataset import main
 
     assert main() == 0, capsys.readouterr().out
+
+
+# ── linhas ambiguas ──────────────────────────────────────────────────────────
+
+
+def _corpo_com_global(extras):
+    e = _corpo_limpo()
+    e[1:1] = [{**_linha("retry_limit = 3", regra="pep8-nomes"), **extras}]
+    return e
+
+
+def test_linha_ambigua_valida_passa_e_nao_conta_como_negativo():
+    e = _corpo_com_global({"ambiguo": True})
+    erros: list[str] = []
+    stats = Estatisticas()
+    validar_arquivo("PR-900", _arquivo_novo(e), erros, stats)
+    assert erros == []
+    assert stats.linhas_ambiguas == 1
+
+
+def test_linha_ambigua_exige_regra_e_nao_pode_ser_dificil():
+    e = _corpo_com_global({"ambiguo": True, "hard_negative": True})
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("linha ambigua exige regra valida" in x for x in erros)
+
+
+def test_linha_ambigua_sem_regra_e_erro():
+    e = _corpo_com_global({"ambiguo": True, "regra": None})
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("linha ambigua exige regra valida" in x for x in erros)
+
+
+def test_linha_positiva_nao_pode_ser_ambigua():
+    e = _corpo_limpo()
+    e[5] = {**_linha("    if value == None:", "nulo", "pep8-recomendacoes"), "ambiguo": True}
+    e[6:6] = [_linha("        pass")]
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("positiva nao pode ser ambigua" in x for x in erros)

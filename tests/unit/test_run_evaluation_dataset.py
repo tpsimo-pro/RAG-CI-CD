@@ -76,3 +76,44 @@ def test_file_diff_usa_o_status_e_conta_remocoes_do_patch():
     assert (novo.status, novo.deletions, novo.added_lines) == ("added", 0, ["x=1", "y = 2"])
     assert (mod.status, mod.deletions, mod.additions) == ("modified", 1, 1)
     assert mod.filename == "app/b.py"
+
+
+# ── linhas ambiguas ──────────────────────────────────────────────────────────
+
+from evaluation.metrics import LineResult  # noqa: E402
+from evaluation.run_evaluation import _resumo_ambiguas, _separar_ambiguas  # noqa: E402
+
+
+def _lr(line, signaled, cell):
+    return LineResult(
+        pr_id="PR-1", line=line, expected_viola=False, regra="pep8-nomes",
+        sub_regra=None, hard_negative=False, signaled=signaled, cell=cell,
+        cites_correct_norm=None,
+    )
+
+
+def test_separa_as_linhas_ambiguas_da_matriz():
+    arquivo = {
+        "added_lines": [
+            {"line": "a = 1", "viola": False},
+            {"line": "retry_limit = 3", "viola": False, "ambiguo": True},
+            {"line": "b = 2", "viola": False, "ambiguo": False},
+        ]
+    }
+    resultados = [_lr("a = 1", False, "TN"), _lr("retry_limit = 3", True, "FP"), _lr("b = 2", False, "TN")]
+
+    validas, ambiguas = _separar_ambiguas(resultados, arquivo)
+
+    assert [r.line for r in validas] == ["a = 1", "b = 2"]
+    assert ambiguas == [{"line": "retry_limit = 3", "regra": "pep8-nomes", "signaled": True}]
+
+
+def test_resumo_conta_total_e_sinalizadas():
+    detalhes = [
+        {"pr_id": "PR-1", "ambiguous_lines": [{"line": "x", "signaled": True}, {"line": "y", "signaled": False}]},
+        {"pr_id": "PR-2", "ambiguous_lines": []},
+        {"pr_id": "PR-3"},
+    ]
+    resumo = _resumo_ambiguas(detalhes)
+    assert (resumo["total"], resumo["signaled"]) == (2, 1)
+    assert resumo["lines"][0]["pr_id"] == "PR-1"

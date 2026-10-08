@@ -115,21 +115,55 @@ def ast_findings(code: str) -> list[tuple[int, str]]:
     return out
 
 
+def docstring_findings(code: str) -> list[tuple[int, str]]:
+    """Modulo, classe, funcao e metodo publicos sem docstring.
+
+    PEP 8, Documentation Strings: "Write docstrings for all public modules,
+    functions, classes, and methods". Publico e o nome sem `_` inicial, mais
+    o `__init__` (PEP 257). Funcoes aninhadas e membros de classe nao publica
+    ficam de fora. O ruff com `E,W,N,I` nao cobra isso.
+    """
+    tree = ast.parse(code)
+    out: list[tuple[int, str]] = []
+    if ast.get_docstring(tree) is None:
+        out.append((0, "docstring_publico"))
+
+    def visita(corpo: list[ast.stmt], publico_o_dono: bool) -> None:
+        for no in corpo:
+            if not isinstance(no, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                continue
+            publico = publico_o_dono and (
+                not no.name.startswith("_") or no.name == "__init__"
+            )
+            if publico and ast.get_docstring(no) is None:
+                out.append((no.lineno - 1, "docstring_publico"))
+            if isinstance(no, ast.ClassDef):
+                visita(no.body, publico)
+
+    visita(tree.body, True)
+    return out
+
+
 def conformity_errors(
     lines: list[str],
     sub_regras: list[str | None],
     alvo: set[int] | None = None,
+    docstrings: bool = False,
 ) -> list[str]:
     """Achados que nao sao a propria violacao rotulada na linha.
 
     `lines` e o arquivo inteiro e `sub_regras` a norma de cada linha (None se
     nao rotulada). `alvo` limita a checagem as linhas adicionadas (indices
     0-based); achados em linhas de contexto sao codigo pre-existente.
+    `docstrings` liga a cobranca de docstring em definicoes publicas.
     """
     code = "\n".join(lines)
     tolerated = tolerated_bare_excepts(code)
     errors: list[str] = []
-    for idx, tag in ruff_findings(code) + ast_findings(code):
+    achados = ruff_findings(code) + ast_findings(code)
+    if docstrings:
+        achados += docstring_findings(code)
+    for idx, tag in achados:
         if alvo is not None and idx not in alvo:
             continue
         if tag == "E722" and idx in tolerated:

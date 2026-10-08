@@ -6,7 +6,7 @@
       {
         "filename": "app/permissions.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Regras de acesso ao painel administrativo.\"\"\"\n+\n+from dataclasses import dataclass\n+\n+\n+@dataclass\n+class Account:\n+    owner_id: int\n+    active: bool\n+    suspended_at: str | None\n+\n+\n+def can_open_dashboard(user, account):\n+    if user.is_admin == True:\n+        return True\n+    if account.suspended_at != None:\n+        return False\n+    if account.active:\n+        return user.id == account.owner_id\n+    return False\n+\n+\n+def NotifyOwner(account, message):\n+    if account.suspended_at is None:\n+        return None\n+    return message.format(owner=account.owner_id)",
+        "patch": "@@ -0,0 +1,29 @@\n+\"\"\"Regras de acesso ao painel administrativo.\"\"\"\n+\n+from dataclasses import dataclass\n+\n+\n+@dataclass\n+class Account:\n+    \"\"\"Conta do cliente.\"\"\"\n+    owner_id: int\n+    active: bool\n+    suspended_at: str | None\n+\n+\n+def can_open_dashboard(user, account):\n+    \"\"\"Indica se o usuario pode abrir o painel.\"\"\"\n+    if user.is_admin == True:\n+        return True\n+    if account.suspended_at != None:\n+        return False\n+    if account.active:\n+        return user.id == account.owner_id\n+    return False\n+\n+\n+def NotifyOwner(account, message):\n+    \"\"\"Avisa o dono da conta.\"\"\"\n+    if account.suspended_at is None:\n+        return None\n+    return message.format(owner=account.owner_id)",
         "added_lines": [
           {
             "line": "\"\"\"Regras de acesso ao painel administrativo.\"\"\"",
@@ -58,6 +58,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Conta do cliente.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    owner_id: int",
             "viola": false,
             "regra": null,
@@ -94,6 +101,13 @@
           },
           {
             "line": "def can_open_dashboard(user, account):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Indica se o usuario pode abrir o painel.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -170,6 +184,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Avisa o dono da conta.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    if account.suspended_at is None:",
             "viola": false,
             "regra": "pep8-recomendacoes",
@@ -201,7 +222,7 @@
       {
         "filename": "app/payments/charge.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,32 @@\n+\"\"\"Cliente de cobranca com retentativa.\"\"\"\n+\n+import logging\n+import time\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+class PaymentFailure(Exception):\n+    \"\"\"Falha ao cobrar o cliente.\"\"\"\n+\n+\n+class GatewayTimeout(Exception):\n+    \"\"\"O gateway nao respondeu a tempo.\"\"\"\n+\n+\n+class ChargeError(PaymentFailure):\n+    \"\"\"Cobranca recusada de forma definitiva.\"\"\"\n+\n+\n+def charge(gateway, order, attempts=3):\n+    for attempt in range(attempts):\n+        delay = attempt * 2 # espera antes de tentar de novo\n+        time.sleep(delay)\n+        try:\n+            return gateway.charge(order.total)\n+        except GatewayTimeout:\n+            continue\n+        except:\n+            pass\n+    logger.info(\"cobranca esgotada\")  # sem mais tentativas\n+    raise ChargeError(order.id)",
+        "patch": "@@ -0,0 +1,33 @@\n+\"\"\"Cliente de cobranca com retentativa.\"\"\"\n+\n+import logging\n+import time\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+class PaymentFailure(Exception):\n+    \"\"\"Falha ao cobrar o cliente.\"\"\"\n+\n+\n+class GatewayTimeout(Exception):\n+    \"\"\"O gateway nao respondeu a tempo.\"\"\"\n+\n+\n+class ChargeError(PaymentFailure):\n+    \"\"\"Cobranca recusada de forma definitiva.\"\"\"\n+\n+\n+def charge(gateway, order, attempts=3):\n+    \"\"\"Cobra o pedido com retentativa.\"\"\"\n+    for attempt in range(attempts):\n+        delay = attempt * 2 # espera antes de tentar de novo\n+        time.sleep(delay)\n+        try:\n+            return gateway.charge(order.total)\n+        except GatewayTimeout:\n+            continue\n+        except:\n+            pass\n+    logger.info(\"cobranca esgotada\")  # sem mais tentativas\n+    raise ChargeError(order.id)",
         "added_lines": [
           {
             "line": "\"\"\"Cliente de cobranca com retentativa.\"\"\"",
@@ -351,6 +372,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Cobra o pedido com retentativa.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    for attempt in range(attempts):",
             "viola": false,
             "regra": null,
@@ -438,7 +466,7 @@
       {
         "filename": "app/cart/models.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Modelos do carrinho de compras.\"\"\"\n+\n+\n+class cart_item:\n+    \"\"\"Item do carrinho.\"\"\"\n+\n+    def __init__(self, sku, price, quantity):\n+        self.sku = sku\n+        self.price = price\n+        self.quantity = quantity\n+\n+    def subtotal(this):\n+        return this.price * this.quantity\n+\n+    @classmethod\n+    def from_row(klass, row):\n+        return klass(row[\"sku\"], row[\"price\"], row[\"quantity\"])\n+\n+\n+class CartSummary:\n+    \"\"\"Resumo exibido no checkout.\"\"\"\n+\n+    def __init__(self, items):\n+        self.items = items\n+\n+    def count(self):\n+        return sum(item.quantity for item in self.items)",
+        "patch": "@@ -0,0 +1,32 @@\n+\"\"\"Modelos do carrinho de compras.\"\"\"\n+\n+\n+class cart_item:\n+    \"\"\"Item do carrinho.\"\"\"\n+\n+    def __init__(self, sku, price, quantity):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.sku = sku\n+        self.price = price\n+        self.quantity = quantity\n+\n+    def subtotal(this):\n+        \"\"\"Calcula o subtotal do item.\"\"\"\n+        return this.price * this.quantity\n+\n+    @classmethod\n+    def from_row(klass, row):\n+        \"\"\"Cria o item a partir de uma linha.\"\"\"\n+        return klass(row[\"sku\"], row[\"price\"], row[\"quantity\"])\n+\n+\n+class CartSummary:\n+    \"\"\"Resumo exibido no checkout.\"\"\"\n+\n+    def __init__(self, items):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.items = items\n+\n+    def count(self):\n+        \"\"\"Conta as unidades do resumo.\"\"\"\n+        return sum(item.quantity for item in self.items)",
         "added_lines": [
           {
             "line": "\"\"\"Modelos do carrinho de compras.\"\"\"",
@@ -490,6 +518,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        self.sku = sku",
             "viola": false,
             "regra": null,
@@ -525,6 +560,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Calcula o subtotal do item.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        return this.price * this.quantity",
             "viola": false,
             "regra": null,
@@ -550,6 +592,13 @@
             "viola": true,
             "regra": "pep8-nomes",
             "sub_regra": "self_cls",
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Cria o item a partir de uma linha.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
             "hard_negative": false
           },
           {
@@ -602,6 +651,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        self.items = items",
             "viola": false,
             "regra": null,
@@ -623,6 +679,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Conta as unidades do resumo.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        return sum(item.quantity for item in self.items)",
             "viola": false,
             "regra": null,
@@ -634,11 +697,18 @@
       {
         "filename": "app/cart/totals.py",
         "status": "modified",
-        "patch": "@@ -4,7 +4,13 @@\n \n \n-def cart_total(items):\n+def apply_tax(amount):\n+    return round(amount * (1 + TAX_RATE), 2)\n+\n+\n+def cart_total(items, coupon=None):\n     total = 0\n     for item in items:\n         total += item.subtotal()\n-    return total\n+    discount=coupon.rate * total if coupon else 0\n+    label = \"Total do carrinho com desconto aplicado e impostos incluidos ao cliente\"\n+    return apply_tax(total - discount), label",
-        "source_after": "\"\"\"Calculo de totais do carrinho.\"\"\"\n\nTAX_RATE = 0.12\n\n\ndef apply_tax(amount):\n    return round(amount * (1 + TAX_RATE), 2)\n\n\ndef cart_total(items, coupon=None):\n    total = 0\n    for item in items:\n        total += item.subtotal()\n    discount=coupon.rate * total if coupon else 0\n    label = \"Total do carrinho com desconto aplicado e impostos incluidos ao cliente\"\n    return apply_tax(total - discount), label",
+        "patch": "@@ -4,7 +4,15 @@\n \n \n-def cart_total(items):\n+def apply_tax(amount):\n+    \"\"\"Aplica o imposto ao valor.\"\"\"\n+    return round(amount * (1 + TAX_RATE), 2)\n+\n+\n+def cart_total(items, coupon=None):\n+    \"\"\"Calcula o total do carrinho.\"\"\"\n     total = 0\n     for item in items:\n         total += item.subtotal()\n-    return total\n+    discount=coupon.rate * total if coupon else 0\n+    label = \"Total do carrinho com desconto aplicado e impostos incluidos ao cliente\"\n+    return apply_tax(total - discount), label",
+        "source_after": "\"\"\"Calculo de totais do carrinho.\"\"\"\n\nTAX_RATE = 0.12\n\n\ndef apply_tax(amount):\n    \"\"\"Aplica o imposto ao valor.\"\"\"\n    return round(amount * (1 + TAX_RATE), 2)\n\n\ndef cart_total(items, coupon=None):\n    \"\"\"Calcula o total do carrinho.\"\"\"\n    total = 0\n    for item in items:\n        total += item.subtotal()\n    discount=coupon.rate * total if coupon else 0\n    label = \"Total do carrinho com desconto aplicado e impostos incluidos ao cliente\"\n    return apply_tax(total - discount), label",
         "added_lines": [
           {
             "line": "def apply_tax(amount):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Aplica o imposto ao valor.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -667,6 +737,13 @@
           },
           {
             "line": "def cart_total(items, coupon=None):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Calcula o total do carrinho.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -704,7 +781,7 @@
       {
         "filename": "app/reports/export.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Exportacao de relatorios para CSV.\"\"\"\n+\n+import os, sys\n+import io, re\n+from csv import *\n+\n+EXPORT_DIR = \"exports\"\n+\n+import json\n+\n+\n+def export_rows(rows, name):\n+    path = os.path.join(EXPORT_DIR, name)\n+    with open(path, \"w\") as handle:\n+        writer = DictWriter(handle, fieldnames=rows[0].keys())\n+        writer.writeheader()\n+        writer.writerows(rows)\n+    return path\n+\n+def write_manifest(path, rows):\n+    manifest = {\"path\": path, \"rows\": len(rows)}\n+    sys.stdout.write(json.dumps(manifest))",
+        "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Exportacao de relatorios para CSV.\"\"\"\n+\n+import os, sys\n+import io, re\n+from csv import *\n+\n+EXPORT_DIR = \"exports\"\n+\n+import json\n+\n+\n+def export_rows(rows, name):\n+    \"\"\"Exporta as linhas para CSV.\"\"\"\n+    path = os.path.join(EXPORT_DIR, name)\n+    with open(path, \"w\") as handle:\n+        writer = DictWriter(handle, fieldnames=rows[0].keys())\n+        writer.writeheader()\n+        writer.writerows(rows)\n+    return path\n+\n+def write_manifest(path, rows):\n+    \"\"\"Escreve o manifesto da exportacao.\"\"\"\n+    manifest = {\"path\": path, \"rows\": len(rows)}\n+    sys.stdout.write(json.dumps(manifest))",
         "added_lines": [
           {
             "line": "\"\"\"Exportacao de relatorios para CSV.\"\"\"",
@@ -791,6 +868,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Exporta as linhas para CSV.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    path = os.path.join(EXPORT_DIR, name)",
             "viola": false,
             "regra": null,
@@ -847,6 +931,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Escreve o manifesto da exportacao.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    manifest = {\"path\": path, \"rows\": len(rows)}",
             "viola": false,
             "regra": null,
@@ -871,8 +962,8 @@
       {
         "filename": "app/orders/filters.py",
         "status": "modified",
-        "patch": "@@ -8,2 +8,21 @@\n def sort_orders(orders):\n     return sorted(orders, key=lambda order: order.created_at)\n+\n+\n+def with_owner(orders):\n+    result = []\n+    for order in orders:\n+        if not order.owner is None:\n+            result.append(order)\n+    return result\n+\n+\n+def same_kind(first, second):\n+    return type(first) == type(second)\n+\n+\n+def is_money(value):\n+    return isinstance(value, (int, float))\n+\n+\n+format_total = lambda order: f\"{order.total:.2f}\"",
-        "source_after": "\"\"\"Filtros de pedidos.\"\"\"\n\n\ndef active_orders(orders):\n    return [o for o in orders if o.status == \"active\"]\n\n\ndef sort_orders(orders):\n    return sorted(orders, key=lambda order: order.created_at)\n\n\ndef with_owner(orders):\n    result = []\n    for order in orders:\n        if not order.owner is None:\n            result.append(order)\n    return result\n\n\ndef same_kind(first, second):\n    return type(first) == type(second)\n\n\ndef is_money(value):\n    return isinstance(value, (int, float))\n\n\nformat_total = lambda order: f\"{order.total:.2f}\"",
+        "patch": "@@ -8,2 +8,24 @@\n def sort_orders(orders):\n     return sorted(orders, key=lambda order: order.created_at)\n+\n+\n+def with_owner(orders):\n+    \"\"\"Filtra os pedidos que tem dono.\"\"\"\n+    result = []\n+    for order in orders:\n+        if not order.owner is None:\n+            result.append(order)\n+    return result\n+\n+\n+def same_kind(first, second):\n+    \"\"\"Compara o tipo de dois valores.\"\"\"\n+    return type(first) == type(second)\n+\n+\n+def is_money(value):\n+    \"\"\"Indica se o valor e numerico.\"\"\"\n+    return isinstance(value, (int, float))\n+\n+\n+format_total = lambda order: f\"{order.total:.2f}\"",
+        "source_after": "\"\"\"Filtros de pedidos.\"\"\"\n\n\ndef active_orders(orders):\n    return [o for o in orders if o.status == \"active\"]\n\n\ndef sort_orders(orders):\n    return sorted(orders, key=lambda order: order.created_at)\n\n\ndef with_owner(orders):\n    \"\"\"Filtra os pedidos que tem dono.\"\"\"\n    result = []\n    for order in orders:\n        if not order.owner is None:\n            result.append(order)\n    return result\n\n\ndef same_kind(first, second):\n    \"\"\"Compara o tipo de dois valores.\"\"\"\n    return type(first) == type(second)\n\n\ndef is_money(value):\n    \"\"\"Indica se o valor e numerico.\"\"\"\n    return isinstance(value, (int, float))\n\n\nformat_total = lambda order: f\"{order.total:.2f}\"",
         "added_lines": [
           {
             "line": "",
@@ -890,6 +981,13 @@
           },
           {
             "line": "def with_owner(orders):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Filtra os pedidos que tem dono.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -952,6 +1050,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Compara o tipo de dois valores.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return type(first) == type(second)",
             "viola": true,
             "regra": "pep8-recomendacoes",
@@ -974,6 +1079,13 @@
           },
           {
             "line": "def is_money(value):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Indica se o valor e numerico.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1018,7 +1130,7 @@
       {
         "filename": "app/notify/mailer.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,19 @@\n+\"\"\"Envio de e-mails de notificacao.\"\"\"\n+\n+import smtplib\n+\n+\n+def build_message(subject, body):\n+    headers = {\"Subject\": subject}; text = body.strip()\n+    headers[\"X-Priority\"] = \"1\"\n+    return headers, text\n+\n+\n+def send(server, sender, recipients, subject, body):\n+    headers, text = build_message(subject, body)\n+    server.sendmail( sender, recipients, text )\n+    status = \"ok\"; count = len(recipients)\n+    log = [sender , recipients]\n+    attachments = []\n+    parts = text.split(\";\")\n+    return headers, log, attachments, parts[1:3], status, count",
+        "patch": "@@ -0,0 +1,21 @@\n+\"\"\"Envio de e-mails de notificacao.\"\"\"\n+\n+import smtplib\n+\n+\n+def build_message(subject, body):\n+    \"\"\"Monta os cabecalhos e o texto.\"\"\"\n+    headers = {\"Subject\": subject}; text = body.strip()\n+    headers[\"X-Priority\"] = \"1\"\n+    return headers, text\n+\n+\n+def send(server, sender, recipients, subject, body):\n+    \"\"\"Envia a mensagem aos destinatarios.\"\"\"\n+    headers, text = build_message(subject, body)\n+    server.sendmail( sender, recipients, text )\n+    status = \"ok\"; count = len(recipients)\n+    log = [sender , recipients]\n+    attachments = []\n+    parts = text.split(\";\")\n+    return headers, log, attachments, parts[1:3], status, count",
         "added_lines": [
           {
             "line": "\"\"\"Envio de e-mails de notificacao.\"\"\"",
@@ -1063,6 +1175,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Monta os cabecalhos e o texto.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    headers = {\"Subject\": subject}; text = body.strip()",
             "viola": true,
             "regra": "pep8-recomendacoes",
@@ -1099,6 +1218,13 @@
           },
           {
             "line": "def send(server, sender, recipients, subject, body):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Envia a mensagem aos destinatarios.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1158,8 +1284,8 @@
       {
         "filename": "app/notify/templates.py",
         "status": "modified",
-        "patch": "@@ -2,6 +2,17 @@\n \n WELCOME = \"Bem-vindo, {name}\"\n+FAREWELL = \"Ate logo, {name}\"\n+SUBJECTS = {\"welcome\": \"Ola\", \"farewell\": \"Tchau\"}\n \n \n def welcome(name):\n     return WELCOME.format(name=name)\n+\n+\n+def farewell(name):\n+    text = FAREWELL.format(name=name) #despedida\n+    return text\n+\n+\n+def subject_for(kind):\n+    return SUBJECTS[kind]",
-        "source_after": "\"\"\"Modelos de mensagem.\"\"\"\n\nWELCOME = \"Bem-vindo, {name}\"\nFAREWELL = \"Ate logo, {name}\"\nSUBJECTS = {\"welcome\": \"Ola\", \"farewell\": \"Tchau\"}\n\n\ndef welcome(name):\n    return WELCOME.format(name=name)\n\n\ndef farewell(name):\n    text = FAREWELL.format(name=name) #despedida\n    return text\n\n\ndef subject_for(kind):\n    return SUBJECTS[kind]",
+        "patch": "@@ -2,6 +2,19 @@\n \n WELCOME = \"Bem-vindo, {name}\"\n+FAREWELL = \"Ate logo, {name}\"\n+SUBJECTS = {\"welcome\": \"Ola\", \"farewell\": \"Tchau\"}\n \n \n def welcome(name):\n     return WELCOME.format(name=name)\n+\n+\n+def farewell(name):\n+    \"\"\"Gera a mensagem de despedida.\"\"\"\n+    text = FAREWELL.format(name=name) #despedida\n+    return text\n+\n+\n+def subject_for(kind):\n+    \"\"\"Devolve o assunto do tipo de mensagem.\"\"\"\n+    return SUBJECTS[kind]",
+        "source_after": "\"\"\"Modelos de mensagem.\"\"\"\n\nWELCOME = \"Bem-vindo, {name}\"\nFAREWELL = \"Ate logo, {name}\"\nSUBJECTS = {\"welcome\": \"Ola\", \"farewell\": \"Tchau\"}\n\n\ndef welcome(name):\n    return WELCOME.format(name=name)\n\n\ndef farewell(name):\n    \"\"\"Gera a mensagem de despedida.\"\"\"\n    text = FAREWELL.format(name=name) #despedida\n    return text\n\n\ndef subject_for(kind):\n    \"\"\"Devolve o assunto do tipo de mensagem.\"\"\"\n    return SUBJECTS[kind]",
         "added_lines": [
           {
             "line": "FAREWELL = \"Ate logo, {name}\"",
@@ -1191,6 +1317,13 @@
           },
           {
             "line": "def farewell(name):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Gera a mensagem de despedida.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1232,6 +1365,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Devolve o assunto do tipo de mensagem.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return SUBJECTS[kind]",
             "viola": false,
             "regra": null,
@@ -1249,7 +1389,7 @@
       {
         "filename": "app/api/limits.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Configuracao de limites de uso da API.\"\"\"\n+\n+MaxRequests = 100\n+windowSeconds = 60\n+DEFAULT_BURST = 10\n+retry_limit = 3\n+\n+\n+def remaining(used, limit=MaxRequests):\n+    I = limit - used\n+    return limit - used\n+\n+\n+def is_blocked(client):\n+    if client.blocked == False:\n+        return False\n+    return True\n+\n+\n+def window_ends(start):\n+    O = start\n+    return start + windowSeconds",
+        "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Configuracao de limites de uso da API.\"\"\"\n+\n+MaxRequests = 100\n+windowSeconds = 60\n+DEFAULT_BURST = 10\n+retry_limit = 3\n+\n+\n+def remaining(used, limit=MaxRequests):\n+    \"\"\"Calcula as requisicoes restantes.\"\"\"\n+    I = limit - used\n+    return limit - used\n+\n+\n+def is_blocked(client):\n+    \"\"\"Indica se o cliente esta bloqueado.\"\"\"\n+    if client.blocked == False:\n+        return False\n+    return True\n+\n+\n+def window_ends(start):\n+    \"\"\"Calcula o fim da janela de tempo.\"\"\"\n+    O = start\n+    return start + windowSeconds",
         "added_lines": [
           {
             "line": "\"\"\"Configuracao de limites de uso da API.\"\"\"",
@@ -1291,7 +1431,8 @@
             "viola": false,
             "regra": "pep8-nomes",
             "sub_regra": null,
-            "hard_negative": true
+            "hard_negative": false,
+            "ambiguo": true
           },
           {
             "line": "",
@@ -1309,6 +1450,13 @@
           },
           {
             "line": "def remaining(used, limit=MaxRequests):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Calcula as requisicoes restantes.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1344,6 +1492,13 @@
           },
           {
             "line": "def is_blocked(client):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Indica se o cliente esta bloqueado.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1392,6 +1547,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Calcula o fim da janela de tempo.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    O = start",
             "viola": true,
             "regra": "pep8-nomes",
@@ -1416,7 +1578,7 @@
       {
         "filename": "app/etl/loader.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Carga de arquivos para a base analitica.\"\"\"\n+\n+import sys\n+import csv\n+import os\n+from datetime import date\n+\n+DATE_COLUMN = \"created_at\"\n+\n+\n+def LoadFile(path):\n+    with open(path, newline=\"\") as handle:\n+        return list(csv.DictReader(handle))\n+\n+def parse_row(row):\n+    parsed = dict(row)\n+    parsed[DATE_COLUMN] = date.fromisoformat(row[DATE_COLUMN])\n+    return parsed\n+\n+\n+def load_folder(folder):\n+    rows = []\n+    for name in sorted(os.listdir(folder)):\n+        rows.extend(parse_row(r) for r in LoadFile(os.path.join(folder, name)))\n+    sys.stdout.write(f\"{len(rows)} linhas carregadas\")\n+    return rows",
+        "patch": "@@ -0,0 +1,30 @@\n+\"\"\"Carga de arquivos para a base analitica.\"\"\"\n+\n+import requests\n+import csv\n+import os\n+import sys\n+from datetime import date\n+\n+DATE_COLUMN = \"created_at\"\n+\n+\n+def LoadFile(path):\n+    \"\"\"Le um arquivo CSV.\"\"\"\n+    with open(path, newline=\"\") as handle:\n+        return list(csv.DictReader(handle))\n+\n+def parse_row(row):\n+    \"\"\"Converte os campos da linha.\"\"\"\n+    parsed = dict(row)\n+    parsed[DATE_COLUMN] = date.fromisoformat(row[DATE_COLUMN])\n+    return parsed\n+\n+\n+def load_folder(folder):\n+    \"\"\"Carrega todos os arquivos da pasta.\"\"\"\n+    rows = []\n+    for name in sorted(os.listdir(folder)):\n+        rows.extend(parse_row(r) for r in LoadFile(os.path.join(folder, name)))\n+    sys.stdout.write(f\"{len(rows)} linhas carregadas\")\n+    return rows",
         "added_lines": [
           {
             "line": "\"\"\"Carga de arquivos para a base analitica.\"\"\"",
@@ -1433,7 +1595,7 @@
             "hard_negative": false
           },
           {
-            "line": "import sys",
+            "line": "import requests",
             "viola": true,
             "regra": "pep8-imports",
             "sub_regra": "import_ordem",
@@ -1448,6 +1610,13 @@
           },
           {
             "line": "import os",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "import sys",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1496,6 +1665,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Le um arquivo CSV.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    with open(path, newline=\"\") as handle:",
             "viola": false,
             "regra": null,
@@ -1521,6 +1697,13 @@
             "viola": true,
             "regra": "pep8-layout",
             "sub_regra": "linhas_em_branco",
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Converte os campos da linha.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
             "hard_negative": false
           },
           {
@@ -1566,6 +1749,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Carrega todos os arquivos da pasta.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    rows = []",
             "viola": false,
             "regra": null,
@@ -1605,7 +1795,7 @@
       {
         "filename": "app/etl/saver.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,15 @@\n+\"\"\"Gravacao dos resultados.\"\"\"\n+\n+import json, os\n+from pathlib import Path\n+\n+\n+def save(results, folder):\n+    target = Path(folder) / \"results.json\"\n+    os.makedirs(folder, exist_ok=True)\n+    target.write_text(json.dumps(results))\n+    return target\n+\n+\n+def load(folder):\n+    return json.loads((Path(folder) / \"results.json\").read_text())",
+        "patch": "@@ -0,0 +1,17 @@\n+\"\"\"Gravacao dos resultados.\"\"\"\n+\n+import json, os\n+from pathlib import Path\n+\n+\n+def save(results, folder):\n+    \"\"\"Grava os dados em disco.\"\"\"\n+    target = Path(folder) / \"results.json\"\n+    os.makedirs(folder, exist_ok=True)\n+    target.write_text(json.dumps(results))\n+    return target\n+\n+\n+def load(folder):\n+    \"\"\"Le os resultados da pasta.\"\"\"\n+    return json.loads((Path(folder) / \"results.json\").read_text())",
         "added_lines": [
           {
             "line": "\"\"\"Gravacao dos resultados.\"\"\"",
@@ -1651,6 +1841,13 @@
           },
           {
             "line": "def save(results, folder):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Grava os dados em disco.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1706,6 +1903,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Le os resultados da pasta.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return json.loads((Path(folder) / \"results.json\").read_text())",
             "viola": false,
             "regra": null,
@@ -1723,8 +1927,8 @@
       {
         "filename": "app/config/reader.py",
         "status": "modified",
-        "patch": "@@ -10,2 +10,26 @@\n     with open(path) as handle:\n         return json.load(handle)\n+\n+\n+def load_all(paths):\n+    configs = []\n+    for path in paths:\n+        try:\n+            configs.append(read_config(path))\n+        except ValueError:\n+            continue\n+        except:\n+            pass\n+    return configs\n+\n+\n+def has_section(config, name):\n+    section = config.get(name)\n+    if section == None:\n+        return False\n+    return isinstance(section, dict)\n+\n+\n+def describe(config):\n+    kind = type(config) == dict\n+    return \"configuracao carregada do arquivo local do usuario com sucesso\" if kind else None",
-        "source_after": "\"\"\"Leitura de configuracoes.\"\"\"\n\nimport json\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef read_config(path):\n    with open(path) as handle:\n        return json.load(handle)\n\n\ndef load_all(paths):\n    configs = []\n    for path in paths:\n        try:\n            configs.append(read_config(path))\n        except ValueError:\n            continue\n        except:\n            pass\n    return configs\n\n\ndef has_section(config, name):\n    section = config.get(name)\n    if section == None:\n        return False\n    return isinstance(section, dict)\n\n\ndef describe(config):\n    kind = type(config) == dict\n    return \"configuracao carregada do arquivo local do usuario com sucesso\" if kind else None",
+        "patch": "@@ -10,2 +10,29 @@\n     with open(path) as handle:\n         return json.load(handle)\n+\n+\n+def load_all(paths):\n+    \"\"\"Le a configuracao de varios arquivos.\"\"\"\n+    configs = []\n+    for path in paths:\n+        try:\n+            configs.append(read_config(path))\n+        except ValueError:\n+            continue\n+        except:\n+            pass\n+    return configs\n+\n+\n+def has_section(config, name):\n+    \"\"\"Indica se a configuracao tem a secao.\"\"\"\n+    section = config.get(name)\n+    if section == None:\n+        return False\n+    return isinstance(section, dict)\n+\n+\n+def describe(config):\n+    \"\"\"Descreve a configuracao carregada.\"\"\"\n+    kind = type(config) == dict\n+    return \"configuracao carregada do arquivo local do usuario com sucesso\" if kind else None",
+        "source_after": "\"\"\"Leitura de configuracoes.\"\"\"\n\nimport json\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef read_config(path):\n    with open(path) as handle:\n        return json.load(handle)\n\n\ndef load_all(paths):\n    \"\"\"Le a configuracao de varios arquivos.\"\"\"\n    configs = []\n    for path in paths:\n        try:\n            configs.append(read_config(path))\n        except ValueError:\n            continue\n        except:\n            pass\n    return configs\n\n\ndef has_section(config, name):\n    \"\"\"Indica se a configuracao tem a secao.\"\"\"\n    section = config.get(name)\n    if section == None:\n        return False\n    return isinstance(section, dict)\n\n\ndef describe(config):\n    \"\"\"Descreve a configuracao carregada.\"\"\"\n    kind = type(config) == dict\n    return \"configuracao carregada do arquivo local do usuario com sucesso\" if kind else None",
         "added_lines": [
           {
             "line": "",
@@ -1742,6 +1946,13 @@
           },
           {
             "line": "def load_all(paths):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Le a configuracao de varios arquivos.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -1832,6 +2043,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Indica se a configuracao tem a secao.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    section = config.get(name)",
             "viola": false,
             "regra": null,
@@ -1881,6 +2099,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Descreve a configuracao carregada.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    kind = type(config) == dict",
             "viola": true,
             "regra": "pep8-recomendacoes",
@@ -1905,7 +2130,7 @@
       {
         "filename": "app/warehouse/slots.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,38 @@\n+\"\"\"Excecoes e modelos do dominio de estoque.\"\"\"\n+\n+\n+class StockShortage(Exception):\n+    \"\"\"Estoque insuficiente.\"\"\"\n+\n+\n+class StockError(Exception):\n+    \"\"\"Erro generico de estoque.\"\"\"\n+\n+\n+class warehouse_slot:\n+    \"\"\"Posicao no armazem.\"\"\"\n+\n+    def __init__(self, code, capacity):\n+        self.code = code\n+        self.capacity = capacity\n+\n+    def FreeSpace(self, used):\n+        free=self.capacity - used\n+        return free\n+\n+\n+class SlotLabel:\n+    \"\"\"Etiqueta impressa na prateleira.\"\"\"\n+\n+    def __init__(self, slot):\n+        self.slot = slot\n+\n+    def text(self):\n+        return f\"{self.slot.code}/{self.slot.capacity}\"\n+\n+\n+class slot_report:\n+    \"\"\"Relatorio de ocupacao.\"\"\"\n+\n+    def __init__(self, slots):\n+        self.slots = slots",
+        "patch": "@@ -0,0 +1,43 @@\n+\"\"\"Excecoes e modelos do dominio de estoque.\"\"\"\n+\n+\n+class StockShortage(Exception):\n+    \"\"\"Estoque insuficiente.\"\"\"\n+\n+\n+class StockError(Exception):\n+    \"\"\"Erro generico de estoque.\"\"\"\n+\n+\n+class warehouse_slot:\n+    \"\"\"Posicao no armazem.\"\"\"\n+\n+    def __init__(self, code, capacity):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.code = code\n+        self.capacity = capacity\n+\n+    def FreeSpace(self, used):\n+        \"\"\"Calcula o espaco livre da posicao.\"\"\"\n+        free=self.capacity - used\n+        return free\n+\n+\n+class SlotLabel:\n+    \"\"\"Etiqueta impressa na prateleira.\"\"\"\n+\n+    def __init__(self, slot):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.slot = slot\n+\n+    def text(self):\n+        \"\"\"Devolve o texto da etiqueta.\"\"\"\n+        return f\"{self.slot.code}/{self.slot.capacity}\"\n+\n+\n+class slot_report:\n+    \"\"\"Relatorio de ocupacao.\"\"\"\n+\n+    def __init__(self, slots):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.slots = slots",
         "added_lines": [
           {
             "line": "\"\"\"Excecoes e modelos do dominio de estoque.\"\"\"",
@@ -2013,6 +2238,13 @@
             "hard_negative": true
           },
           {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        self.code = code",
             "viola": false,
             "regra": null,
@@ -2038,6 +2270,13 @@
             "viola": true,
             "regra": "pep8-nomes",
             "sub_regra": "nome_funcao",
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Calcula o espaco livre da posicao.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
             "hard_negative": false
           },
           {
@@ -2097,6 +2336,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        self.slot = slot",
             "viola": false,
             "regra": null,
@@ -2112,6 +2358,13 @@
           },
           {
             "line": "    def text(self):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Devolve o texto da etiqueta.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2167,6 +2420,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        self.slots = slots",
             "viola": false,
             "regra": null,
@@ -2184,8 +2444,8 @@
       {
         "filename": "app/profiles/cache.py",
         "status": "modified",
-        "patch": "@@ -5,5 +5,20 @@\n     def __init__(self):\n         self.items = {}\n+        self.hits = 0 #contador de acertos\n \n     def get(self, key):\n         return self.items.get(key)\n+\n+    def put(this, key, value):\n+        this.items[key] = value\n+\n+    def keys(self):\n+        return sorted( self.items )\n+\n+    @classmethod\n+    def empty(cls):\n+        return cls()\n+\n+    def evict(self, key):\n+        handler = lambda item: self.items.pop(item, None)\n+        return handler(key)",
-        "source_after": "\"\"\"Cache em memoria de perfis.\"\"\"\n\n\nclass ProfileCache:\n    def __init__(self):\n        self.items = {}\n        self.hits = 0 #contador de acertos\n\n    def get(self, key):\n        return self.items.get(key)\n\n    def put(this, key, value):\n        this.items[key] = value\n\n    def keys(self):\n        return sorted( self.items )\n\n    @classmethod\n    def empty(cls):\n        return cls()\n\n    def evict(self, key):\n        handler = lambda item: self.items.pop(item, None)\n        return handler(key)",
+        "patch": "@@ -5,5 +5,24 @@\n     def __init__(self):\n         self.items = {}\n+        self.hits = 0 #contador de acertos\n \n     def get(self, key):\n         return self.items.get(key)\n+\n+    def put(this, key, value):\n+        \"\"\"Guarda um valor no cache.\"\"\"\n+        this.items[key] = value\n+\n+    def keys(self):\n+        \"\"\"Lista as chaves em ordem.\"\"\"\n+        return sorted( self.items )\n+\n+    @classmethod\n+    def empty(cls):\n+        \"\"\"Cria um cache vazio.\"\"\"\n+        return cls()\n+\n+    def evict(self, key):\n+        \"\"\"Remove uma chave do cache.\"\"\"\n+        handler = lambda item: self.items.pop(item, None)\n+        return handler(key)",
+        "source_after": "\"\"\"Cache em memoria de perfis.\"\"\"\n\n\nclass ProfileCache:\n    def __init__(self):\n        self.items = {}\n        self.hits = 0 #contador de acertos\n\n    def get(self, key):\n        return self.items.get(key)\n\n    def put(this, key, value):\n        \"\"\"Guarda um valor no cache.\"\"\"\n        this.items[key] = value\n\n    def keys(self):\n        \"\"\"Lista as chaves em ordem.\"\"\"\n        return sorted( self.items )\n\n    @classmethod\n    def empty(cls):\n        \"\"\"Cria um cache vazio.\"\"\"\n        return cls()\n\n    def evict(self, key):\n        \"\"\"Remove uma chave do cache.\"\"\"\n        handler = lambda item: self.items.pop(item, None)\n        return handler(key)",
         "added_lines": [
           {
             "line": "        self.hits = 0 #contador de acertos",
@@ -2209,6 +2469,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Guarda um valor no cache.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        this.items[key] = value",
             "viola": false,
             "regra": null,
@@ -2224,6 +2491,13 @@
           },
           {
             "line": "    def keys(self):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Lista as chaves em ordem.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2258,6 +2532,13 @@
             "hard_negative": true
           },
           {
+            "line": "        \"\"\"Cria um cache vazio.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        return cls()",
             "viola": false,
             "regra": null,
@@ -2273,6 +2554,13 @@
           },
           {
             "line": "    def evict(self, key):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Remove uma chave do cache.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2303,7 +2591,7 @@
       {
         "filename": "app/reports/dates.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Utilitarios de datas para relatorios.\"\"\"\n+\n+import time\n+import sys\n+from calendar import *\n+from datetime import *\n+\n+DATE_FORMAT = \"%Y-%m-%d\"\n+DefaultTimezone = \"UTC\"\n+lastCheck = 0\n+\n+import json\n+import os\n+import re\n+\n+\n+def month_range(year, month):\n+    first = date(year, month, 1)\n+    last = date(year, month, monthrange(year, month)[1])\n+    return {\"first\" : first, \"last\" : last}\n+\n+\n+def parse(text):\n+    if not re.match(r\"\\d{4}-\\d{2}-\\d{2}\", text):\n+        raise ValueError(text)\n+    print(date , text)\n+    return date.fromisoformat(text)",
+        "patch": "@@ -0,0 +1,30 @@\n+\"\"\"Utilitarios de datas para relatorios.\"\"\"\n+\n+import requests\n+import sys\n+import time\n+from calendar import *\n+from datetime import *\n+\n+DATE_FORMAT = \"%Y-%m-%d\"\n+DefaultTimezone = \"UTC\"\n+lastCheck = 0\n+\n+import json\n+import os\n+import re\n+\n+\n+def month_range(year, month):\n+    \"\"\"Devolve o primeiro e o ultimo dia do mes.\"\"\"\n+    first = date(year, month, 1)\n+    last = date(year, month, monthrange(year, month)[1])\n+    return {\"first\" : first, \"last\" : last}\n+\n+\n+def parse(text):\n+    \"\"\"Converte o texto em data.\"\"\"\n+    if not re.match(r\"\\d{4}-\\d{2}-\\d{2}\", text):\n+        raise ValueError(text)\n+    print(date , text)\n+    return date.fromisoformat(text)",
         "added_lines": [
           {
             "line": "\"\"\"Utilitarios de datas para relatorios.\"\"\"",
@@ -2320,7 +2608,7 @@
             "hard_negative": false
           },
           {
-            "line": "import time",
+            "line": "import requests",
             "viola": true,
             "regra": "pep8-imports",
             "sub_regra": "import_ordem",
@@ -2328,6 +2616,13 @@
           },
           {
             "line": "import sys",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "import time",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2425,6 +2720,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Devolve o primeiro e o ultimo dia do mes.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    first = date(year, month, 1)",
             "viola": false,
             "regra": null,
@@ -2461,6 +2763,13 @@
           },
           {
             "line": "def parse(text):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Converte o texto em data.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2505,7 +2814,7 @@
       {
         "filename": "app/search/query.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Montagem de consultas de busca.\"\"\"\n+\n+MAX_TERMS = 8\n+\n+\n+def build_query(terms, exact):\n+    if exact == True:\n+        terms = [f'\"{t}\"' for t in terms]\n+    query = \" \".join(terms[:MAX_TERMS])\n+    return query\n+\n+\n+def has_results(response):\n+    if not response is None and response.count > 0:\n+        return True\n+    return False\n+\n+\n+def has_filters(request):\n+    if not request.filters is None:\n+        return True\n+    return False",
+        "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Montagem de consultas de busca.\"\"\"\n+\n+MAX_TERMS = 8\n+\n+\n+def build_query(terms, exact):\n+    \"\"\"Monta a consulta de busca.\"\"\"\n+    if exact == True:\n+        terms = [f'\"{t}\"' for t in terms]\n+    query = \" \".join(terms[:MAX_TERMS])\n+    return query\n+\n+\n+def has_results(response):\n+    \"\"\"Indica se a resposta tem resultados.\"\"\"\n+    if not response is None and response.count > 0:\n+        return True\n+    return False\n+\n+\n+def has_filters(request):\n+    \"\"\"Indica se o pedido tem filtros.\"\"\"\n+    if not request.filters is None:\n+        return True\n+    return False",
         "added_lines": [
           {
             "line": "\"\"\"Montagem de consultas de busca.\"\"\"",
@@ -2544,6 +2853,13 @@
           },
           {
             "line": "def build_query(terms, exact):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Monta a consulta de busca.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2599,6 +2915,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Indica se a resposta tem resultados.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    if not response is None and response.count > 0:",
             "viola": true,
             "regra": "pep8-recomendacoes",
@@ -2641,6 +2964,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Indica se o pedido tem filtros.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    if not request.filters is None:",
             "viola": true,
             "regra": "pep8-recomendacoes",
@@ -2666,8 +2996,8 @@
       {
         "filename": "app/search/ranking.py",
         "status": "modified",
-        "patch": "@@ -4,2 +4,12 @@\n def score(hit):\n     return hit.weight * hit.freq\n+\n+\n+def top(hits, size=5):\n+    ranked = sorted(hits, key=score); ranked.reverse()\n+    return ranked[:size]\n+\n+\n+def explain(hit):\n+    total=hit.weight * hit.freq\n+    return f\"Resultado ordenado pelo peso do termo multiplicado pela frequencia: {total}\"",
-        "source_after": "\"\"\"Ranking de resultados.\"\"\"\n\n\ndef score(hit):\n    return hit.weight * hit.freq\n\n\ndef top(hits, size=5):\n    ranked = sorted(hits, key=score); ranked.reverse()\n    return ranked[:size]\n\n\ndef explain(hit):\n    total=hit.weight * hit.freq\n    return f\"Resultado ordenado pelo peso do termo multiplicado pela frequencia: {total}\"",
+        "patch": "@@ -4,2 +4,14 @@\n def score(hit):\n     return hit.weight * hit.freq\n+\n+\n+def top(hits, size=5):\n+    \"\"\"Devolve os melhores resultados.\"\"\"\n+    ranked = sorted(hits, key=score); ranked.reverse()\n+    return ranked[:size]\n+\n+\n+def explain(hit):\n+    \"\"\"Explica a pontuacao do resultado.\"\"\"\n+    total=hit.weight * hit.freq\n+    return f\"Resultado ordenado pelo peso do termo multiplicado pela frequencia: {total}\"",
+        "source_after": "\"\"\"Ranking de resultados.\"\"\"\n\n\ndef score(hit):\n    return hit.weight * hit.freq\n\n\ndef top(hits, size=5):\n    \"\"\"Devolve os melhores resultados.\"\"\"\n    ranked = sorted(hits, key=score); ranked.reverse()\n    return ranked[:size]\n\n\ndef explain(hit):\n    \"\"\"Explica a pontuacao do resultado.\"\"\"\n    total=hit.weight * hit.freq\n    return f\"Resultado ordenado pelo peso do termo multiplicado pela frequencia: {total}\"",
         "added_lines": [
           {
             "line": "",
@@ -2685,6 +3015,13 @@
           },
           {
             "line": "def top(hits, size=5):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Devolve os melhores resultados.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2726,6 +3063,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Explica a pontuacao do resultado.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    total=hit.weight * hit.freq",
             "viola": true,
             "regra": "pep8-espacos",
@@ -2750,8 +3094,8 @@
       {
         "filename": "app/crm/sync.py",
         "status": "modified",
-        "patch": "@@ -8,2 +8,28 @@\n def fetch_contacts(client):\n     return client.list()\n+\n+\n+def sync_contacts(client, store):\n+    synced = 0\n+    for contact in fetch_contacts(client):\n+        try:\n+            store.save(contact)\n+        except Exception:\n+            pass\n+        else:\n+            synced += 1\n+    return synced\n+\n+\n+def FormatContact(contact):\n+    for l in contact.phones:\n+        contact.primary = True\n+    return contact\n+\n+\n+def merge(clients, store):\n+    for client in clients:\n+        try:\n+            sync_contacts(client, store)\n+        except:\n+            continue",
-        "source_after": "\"\"\"Sincronizacao de contatos com o CRM.\"\"\"\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef fetch_contacts(client):\n    return client.list()\n\n\ndef sync_contacts(client, store):\n    synced = 0\n    for contact in fetch_contacts(client):\n        try:\n            store.save(contact)\n        except Exception:\n            pass\n        else:\n            synced += 1\n    return synced\n\n\ndef FormatContact(contact):\n    for l in contact.phones:\n        contact.primary = True\n    return contact\n\n\ndef merge(clients, store):\n    for client in clients:\n        try:\n            sync_contacts(client, store)\n        except:\n            continue",
+        "patch": "@@ -8,2 +8,31 @@\n def fetch_contacts(client):\n     return client.list()\n+\n+\n+def sync_contacts(client, store):\n+    \"\"\"Sincroniza os contatos com o CRM.\"\"\"\n+    synced = 0\n+    for contact in fetch_contacts(client):\n+        try:\n+            store.save(contact)\n+        except Exception:\n+            pass\n+        else:\n+            synced += 1\n+    return synced\n+\n+\n+def FormatContact(contact):\n+    \"\"\"Formata os dados do contato.\"\"\"\n+    for l in contact.phones:\n+        contact.primary = True\n+    return contact\n+\n+\n+def merge(clients, store):\n+    \"\"\"Sincroniza os contatos de varios clientes.\"\"\"\n+    for client in clients:\n+        try:\n+            sync_contacts(client, store)\n+        except:\n+            continue",
+        "source_after": "\"\"\"Sincronizacao de contatos com o CRM.\"\"\"\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef fetch_contacts(client):\n    return client.list()\n\n\ndef sync_contacts(client, store):\n    \"\"\"Sincroniza os contatos com o CRM.\"\"\"\n    synced = 0\n    for contact in fetch_contacts(client):\n        try:\n            store.save(contact)\n        except Exception:\n            pass\n        else:\n            synced += 1\n    return synced\n\n\ndef FormatContact(contact):\n    \"\"\"Formata os dados do contato.\"\"\"\n    for l in contact.phones:\n        contact.primary = True\n    return contact\n\n\ndef merge(clients, store):\n    \"\"\"Sincroniza os contatos de varios clientes.\"\"\"\n    for client in clients:\n        try:\n            sync_contacts(client, store)\n        except:\n            continue",
         "added_lines": [
           {
             "line": "",
@@ -2769,6 +3113,13 @@
           },
           {
             "line": "def sync_contacts(client, store):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Sincroniza os contatos com o CRM.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2859,6 +3210,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Formata os dados do contato.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    for l in contact.phones:",
             "viola": true,
             "regra": "pep8-nomes",
@@ -2895,6 +3253,13 @@
           },
           {
             "line": "def merge(clients, store):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Sincroniza os contatos de varios clientes.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -2946,7 +3311,7 @@
       {
         "filename": "app/billing/invoice.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,23 @@\n+\"\"\"Emissao de faturas.\"\"\"\n+\n+import os\n+import json\n+from decimal import Decimal\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+Currency = \"BRL\"\n+TAX_RATE = Decimal(\"0.07\")\n+\n+\n+class Invoice:\n+    def __init__(self, number, amount):\n+        self.number = number\n+        self.amount = Decimal(amount)\n+\n+    def total(self):\n+        return self.amount * (1 + TAX_RATE)\n+def issue(number, amount):\n+    invoice = Invoice(number, amount)\n+    logger.info(\"fatura %s emitida\", number)\n+    return json.dumps({\"number\": number, \"total\": str(invoice.total())})",
+        "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Emissao de faturas.\"\"\"\n+\n+import requests\n+import json\n+import logging\n+import os\n+from decimal import Decimal\n+\n+logger = logging.getLogger(__name__)\n+Currency = \"BRL\"\n+TAX_RATE = Decimal(\"0.07\")\n+\n+\n+class Invoice:\n+    \"\"\"Fatura emitida ao cliente.\"\"\"\n+    def __init__(self, number, amount):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.number = number\n+        self.amount = Decimal(amount)\n+\n+    def total(self):\n+        \"\"\"Calcula o total com imposto.\"\"\"\n+        return self.amount * (1 + TAX_RATE)\n+def issue(number, amount):\n+    \"\"\"Emite a fatura em JSON.\"\"\"\n+    invoice = Invoice(number, amount)\n+    logger.info(\"fatura %s emitida\", number)\n+    return json.dumps({\"number\": number, \"total\": str(invoice.total())})",
         "added_lines": [
           {
             "line": "\"\"\"Emissao de faturas.\"\"\"",
@@ -2963,7 +3328,7 @@
             "hard_negative": false
           },
           {
-            "line": "import os",
+            "line": "import requests",
             "viola": true,
             "regra": "pep8-imports",
             "sub_regra": "import_ordem",
@@ -2977,14 +3342,21 @@
             "hard_negative": false
           },
           {
-            "line": "from decimal import Decimal",
+            "line": "import logging",
             "viola": false,
             "regra": null,
             "sub_regra": null,
             "hard_negative": false
           },
           {
-            "line": "import logging",
+            "line": "import os",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "from decimal import Decimal",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3040,7 +3412,21 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Fatura emitida ao cliente.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def __init__(self, number, amount):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3075,6 +3461,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Calcula o total com imposto.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        return self.amount * (1 + TAX_RATE)",
             "viola": false,
             "regra": null,
@@ -3086,6 +3479,13 @@
             "viola": true,
             "regra": "pep8-layout",
             "sub_regra": "linhas_em_branco",
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Emite a fatura em JSON.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
             "hard_negative": false
           },
           {
@@ -3114,7 +3514,7 @@
       {
         "filename": "app/billing/receipt.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Recibos de pagamento.\"\"\"\n+\n+import sys\n+import csv\n+import os\n+\n+MAX_LINES = 40\n+pageSize = 10\n+\n+\n+def render(receipt):\n+    lines = [f\"{k}: {v}\" for k, v in receipt.items()] # uma linha por campo\n+    return \"\\n\".join(lines[:MAX_LINES])\n+\n+\n+class Receipt:\n+    def __init__(self, data):\n+        self.data = data\n+def write(receipt, path):\n+    with open(path, \"w\") as handle:\n+        handle.write(render(receipt.data))\n+    return os.path.getsize(path), sys.getsizeof(receipt), csv.excel",
+        "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Recibos de pagamento.\"\"\"\n+\n+import requests\n+import csv\n+import os\n+import sys\n+\n+MAX_LINES = 40\n+pageSize = 10\n+\n+\n+def render(receipt):\n+    \"\"\"Monta o texto de saida.\"\"\"\n+    lines = [f\"{k}: {v}\" for k, v in receipt.items()] # uma linha por campo\n+    return \"\\n\".join(lines[:MAX_LINES])\n+\n+\n+class Receipt:\n+    \"\"\"Recibo de pagamento.\"\"\"\n+    def __init__(self, data):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.data = data\n+def write(receipt, path):\n+    \"\"\"Grava o recibo em arquivo.\"\"\"\n+    with open(path, \"w\") as handle:\n+        handle.write(render(receipt.data))\n+    return os.path.getsize(path), sys.getsizeof(receipt), csv.excel",
         "added_lines": [
           {
             "line": "\"\"\"Recibos de pagamento.\"\"\"",
@@ -3131,7 +3531,7 @@
             "hard_negative": false
           },
           {
-            "line": "import sys",
+            "line": "import requests",
             "viola": true,
             "regra": "pep8-imports",
             "sub_regra": "import_ordem",
@@ -3146,6 +3546,13 @@
           },
           {
             "line": "import os",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "import sys",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3194,6 +3601,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Monta o texto de saida.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    lines = [f\"{k}: {v}\" for k, v in receipt.items()] # uma linha por campo",
             "viola": true,
             "regra": "pep8-comentarios",
@@ -3229,7 +3643,21 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Recibo de pagamento.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def __init__(self, data):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3247,6 +3675,13 @@
             "viola": true,
             "regra": "pep8-layout",
             "sub_regra": "linhas_em_branco",
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Grava o recibo em arquivo.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
             "hard_negative": false
           },
           {
@@ -3275,8 +3710,8 @@
       {
         "filename": "app/billing/totals.py",
         "status": "modified",
-        "patch": "@@ -4,2 +4,12 @@\n def month_total(invoices):\n     return sum(i.total() for i in invoices)\n+\n+\n+def year_total(invoices_by_month):\n+    totals = [month_total(m) for m in invoices_by_month]\n+    return sum(totals) #soma anual\n+\n+\n+def average_total(invoices_by_month):\n+    totals = [month_total(m) for m in invoices_by_month]\n+    return sum(totals) / max(len(totals), 1)",
-        "source_after": "\"\"\"Totais de faturamento.\"\"\"\n\n\ndef month_total(invoices):\n    return sum(i.total() for i in invoices)\n\n\ndef year_total(invoices_by_month):\n    totals = [month_total(m) for m in invoices_by_month]\n    return sum(totals) #soma anual\n\n\ndef average_total(invoices_by_month):\n    totals = [month_total(m) for m in invoices_by_month]\n    return sum(totals) / max(len(totals), 1)",
+        "patch": "@@ -4,2 +4,14 @@\n def month_total(invoices):\n     return sum(i.total() for i in invoices)\n+\n+\n+def year_total(invoices_by_month):\n+    \"\"\"Soma os totais do ano.\"\"\"\n+    totals = [month_total(m) for m in invoices_by_month]\n+    return sum(totals) #soma anual\n+\n+\n+def average_total(invoices_by_month):\n+    \"\"\"Calcula a media mensal.\"\"\"\n+    totals = [month_total(m) for m in invoices_by_month]\n+    return sum(totals) / max(len(totals), 1)",
+        "source_after": "\"\"\"Totais de faturamento.\"\"\"\n\n\ndef month_total(invoices):\n    return sum(i.total() for i in invoices)\n\n\ndef year_total(invoices_by_month):\n    \"\"\"Soma os totais do ano.\"\"\"\n    totals = [month_total(m) for m in invoices_by_month]\n    return sum(totals) #soma anual\n\n\ndef average_total(invoices_by_month):\n    \"\"\"Calcula a media mensal.\"\"\"\n    totals = [month_total(m) for m in invoices_by_month]\n    return sum(totals) / max(len(totals), 1)",
         "added_lines": [
           {
             "line": "",
@@ -3294,6 +3729,13 @@
           },
           {
             "line": "def year_total(invoices_by_month):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Soma os totais do ano.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3335,6 +3777,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Calcula a media mensal.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    totals = [month_total(m) for m in invoices_by_month]",
             "viola": false,
             "regra": null,
@@ -3359,7 +3808,7 @@
       {
         "filename": "app/importer/validate.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,22 @@\n+\"\"\"Validacao de registros importados.\"\"\"\n+\n+REQUIRED = (\"name\", \"email\")\n+\n+\n+def validate(record, defaults):\n+    if record.get(\"email\") == None:\n+        record[\"email\"] = defaults[\"email\"]\n+    if type(record.get(\"age\")) == int:\n+        record[\"age\"] = max(record[\"age\"], 0)\n+    normalize = lambda text: text.strip().lower()\n+    record[\"name\"] = normalize(record[\"name\"])\n+    missing = [key for key in REQUIRED if not record.get(key)]\n+    return len(missing) == 0 and sorted( missing ) == []\n+\n+\n+def clean_all(records, defaults):\n+    cleaned = []\n+    for record in records:\n+        if record.get(\"phone\") != None:\n+            cleaned.append(validate(record, defaults))\n+    return cleaned",
+        "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Validacao de registros importados.\"\"\"\n+\n+REQUIRED = (\"name\", \"email\")\n+\n+\n+def validate(record, defaults):\n+    \"\"\"Valida e normaliza o registro.\"\"\"\n+    if record.get(\"email\") == None:\n+        record[\"email\"] = defaults[\"email\"]\n+    if type(record.get(\"age\")) == int:\n+        record[\"age\"] = max(record[\"age\"], 0)\n+    normalize = lambda text: text.strip().lower()\n+    record[\"name\"] = normalize(record[\"name\"])\n+    missing = [key for key in REQUIRED if not record.get(key)]\n+    return len(missing) == 0 and sorted( missing ) == []\n+\n+\n+def clean_all(records, defaults):\n+    \"\"\"Valida todos os registros.\"\"\"\n+    cleaned = []\n+    for record in records:\n+        if record.get(\"phone\") != None:\n+            cleaned.append(validate(record, defaults))\n+    return cleaned",
         "added_lines": [
           {
             "line": "\"\"\"Validacao de registros importados.\"\"\"",
@@ -3398,6 +3847,13 @@
           },
           {
             "line": "def validate(record, defaults):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Valida e normaliza o registro.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3481,6 +3937,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Valida todos os registros.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    cleaned = []",
             "viola": false,
             "regra": null,
@@ -3526,7 +3989,7 @@
       {
         "filename": "app/tasks/queue.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Fila de tarefas em segundo plano.\"\"\"\n+\n+import os, sys\n+import time\n+\n+\n+class TaskFailed(Exception):\n+    \"\"\"A tarefa nao pode ser concluida.\"\"\"\n+\n+\n+class Worker:\n+    def __init__(self, queue):\n+        self.queue = queue\n+        self.pid = os.getpid()\n+\n+    def run(this, limit):\n+        started = time.time()\n+        done = []\n+        while this.queue and len(done) < limit:\n+            done.append(this.queue.pop(0))\n+        elapsed = time.time() - started\n+        sys.stdout.write(f\"{len(done)} tarefas em {elapsed:.1f}s\")\n+        return done\n+\n+    @classmethod\n+    def create(cls, items):\n+        return cls(list(items))",
+        "patch": "@@ -0,0 +1,31 @@\n+\"\"\"Fila de tarefas em segundo plano.\"\"\"\n+\n+import os, sys\n+import time\n+\n+\n+class TaskFailed(Exception):\n+    \"\"\"A tarefa nao pode ser concluida.\"\"\"\n+\n+\n+class Worker:\n+    \"\"\"Executa tarefas da fila.\"\"\"\n+    def __init__(self, queue):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.queue = queue\n+        self.pid = os.getpid()\n+\n+    def run(this, limit):\n+        \"\"\"Executa o processamento.\"\"\"\n+        started = time.time()\n+        done = []\n+        while this.queue and len(done) < limit:\n+            done.append(this.queue.pop(0))\n+        elapsed = time.time() - started\n+        sys.stdout.write(f\"{len(done)} tarefas em {elapsed:.1f}s\")\n+        return done\n+\n+    @classmethod\n+    def create(cls, items):\n+        \"\"\"Cria o executor a partir dos itens.\"\"\"\n+        return cls(list(items))",
         "added_lines": [
           {
             "line": "\"\"\"Fila de tarefas em segundo plano.\"\"\"",
@@ -3606,7 +4069,21 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Executa tarefas da fila.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def __init__(self, queue):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3638,6 +4115,13 @@
             "viola": true,
             "regra": "pep8-nomes",
             "sub_regra": "self_cls",
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Executa o processamento.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
             "hard_negative": false
           },
           {
@@ -3711,6 +4195,13 @@
             "hard_negative": true
           },
           {
+            "line": "        \"\"\"Cria o executor a partir dos itens.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        return cls(list(items))",
             "viola": false,
             "regra": null,
@@ -3722,8 +4213,8 @@
       {
         "filename": "app/tasks/report.py",
         "status": "modified",
-        "patch": "@@ -4,2 +4,12 @@\n def summary(done):\n     return len(done)\n+\n+\n+def details(done, failed):\n+    rows = [done , failed]\n+    return rows\n+\n+\n+def ratio(done, failed):\n+    total = len(done) + len(failed)\n+    return len(done) / total if total else 0",
-        "source_after": "\"\"\"Relatorio de tarefas.\"\"\"\n\n\ndef summary(done):\n    return len(done)\n\n\ndef details(done, failed):\n    rows = [done , failed]\n    return rows\n\n\ndef ratio(done, failed):\n    total = len(done) + len(failed)\n    return len(done) / total if total else 0",
+        "patch": "@@ -4,2 +4,14 @@\n def summary(done):\n     return len(done)\n+\n+\n+def details(done, failed):\n+    \"\"\"Monta as linhas do relatorio.\"\"\"\n+    rows = [done , failed]\n+    return rows\n+\n+\n+def ratio(done, failed):\n+    \"\"\"Calcula a taxa de conclusao.\"\"\"\n+    total = len(done) + len(failed)\n+    return len(done) / total if total else 0",
+        "source_after": "\"\"\"Relatorio de tarefas.\"\"\"\n\n\ndef summary(done):\n    return len(done)\n\n\ndef details(done, failed):\n    \"\"\"Monta as linhas do relatorio.\"\"\"\n    rows = [done , failed]\n    return rows\n\n\ndef ratio(done, failed):\n    \"\"\"Calcula a taxa de conclusao.\"\"\"\n    total = len(done) + len(failed)\n    return len(done) / total if total else 0",
         "added_lines": [
           {
             "line": "",
@@ -3741,6 +4232,13 @@
           },
           {
             "line": "def details(done, failed):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Monta as linhas do relatorio.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3782,6 +4280,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Calcula a taxa de conclusao.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    total = len(done) + len(failed)",
             "viola": false,
             "regra": null,
@@ -3806,8 +4311,8 @@
       {
         "filename": "app/audit/filters.py",
         "status": "modified",
-        "patch": "@@ -6,2 +6,16 @@\n def trim(entries):\n     return entries[-AUDIT_LIMIT:]\n+\n+\n+def keep(entries, user):\n+    kept=[e for e in entries if e.user == user]\n+    if not user is None:\n+        kept.sort(key=str)\n+    note = \"nao use except Exception: pass aqui\"\n+    # nunca escreva except Exception: pass sem registrar\n+    first = kept[0] if kept else None; last = kept[-1] if kept else None\n+    return first, last, note\n+\n+\n+def summary(kept):\n+    return f\"Auditoria filtrada por usuario e limitada a quinhentas entradas: {len(kept)}\"",
-        "source_after": "\"\"\"Fila de auditoria.\"\"\"\n\nAUDIT_LIMIT = 500\n\n\ndef trim(entries):\n    return entries[-AUDIT_LIMIT:]\n\n\ndef keep(entries, user):\n    kept=[e for e in entries if e.user == user]\n    if not user is None:\n        kept.sort(key=str)\n    note = \"nao use except Exception: pass aqui\"\n    # nunca escreva except Exception: pass sem registrar\n    first = kept[0] if kept else None; last = kept[-1] if kept else None\n    return first, last, note\n\n\ndef summary(kept):\n    return f\"Auditoria filtrada por usuario e limitada a quinhentas entradas: {len(kept)}\"",
+        "patch": "@@ -6,2 +6,18 @@\n def trim(entries):\n     return entries[-AUDIT_LIMIT:]\n+\n+\n+def keep(entries, user):\n+    \"\"\"Filtra as entradas do usuario.\"\"\"\n+    kept=[e for e in entries if e.user == user]\n+    if not user is None:\n+        kept.sort(key=str)\n+    note = \"nao use except Exception: pass aqui\"\n+    # nunca escreva except Exception: pass sem registrar\n+    first = kept[0] if kept else None; last = kept[-1] if kept else None\n+    return first, last, note\n+\n+\n+def summary(kept):\n+    \"\"\"Resume os dados processados.\"\"\"\n+    return f\"Auditoria filtrada por usuario e limitada a quinhentas entradas: {len(kept)}\"",
+        "source_after": "\"\"\"Fila de auditoria.\"\"\"\n\nAUDIT_LIMIT = 500\n\n\ndef trim(entries):\n    return entries[-AUDIT_LIMIT:]\n\n\ndef keep(entries, user):\n    \"\"\"Filtra as entradas do usuario.\"\"\"\n    kept=[e for e in entries if e.user == user]\n    if not user is None:\n        kept.sort(key=str)\n    note = \"nao use except Exception: pass aqui\"\n    # nunca escreva except Exception: pass sem registrar\n    first = kept[0] if kept else None; last = kept[-1] if kept else None\n    return first, last, note\n\n\ndef summary(kept):\n    \"\"\"Resume os dados processados.\"\"\"\n    return f\"Auditoria filtrada por usuario e limitada a quinhentas entradas: {len(kept)}\"",
         "added_lines": [
           {
             "line": "",
@@ -3825,6 +4330,13 @@
           },
           {
             "line": "def keep(entries, user):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Filtra as entradas do usuario.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3901,6 +4413,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Resume os dados processados.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return f\"Auditoria filtrada por usuario e limitada a quinhentas entradas: {len(kept)}\"",
             "viola": true,
             "regra": "pep8-layout",
@@ -3918,8 +4437,8 @@
       {
         "filename": "app/orders/status.py",
         "status": "modified",
-        "patch": "@@ -8,2 +8,20 @@\n def is_open(order):\n     return order.status == \"open\"\n+\n+\n+def close_if_paid(order):\n+    if order.paid == True:\n+        order.status = \"closed\"\n+    return order\n+\n+\n+def notify(order, channel):\n+    try:\n+        channel.send(order.id)\n+    except:\n+        pass\n+\n+\n+def archive(order):\n+    order.archived = True #arquivado\n+    return order",
-        "source_after": "\"\"\"Estado dos pedidos.\"\"\"\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef is_open(order):\n    return order.status == \"open\"\n\n\ndef close_if_paid(order):\n    if order.paid == True:\n        order.status = \"closed\"\n    return order\n\n\ndef notify(order, channel):\n    try:\n        channel.send(order.id)\n    except:\n        pass\n\n\ndef archive(order):\n    order.archived = True #arquivado\n    return order",
+        "patch": "@@ -8,2 +8,23 @@\n def is_open(order):\n     return order.status == \"open\"\n+\n+\n+def close_if_paid(order):\n+    \"\"\"Fecha o pedido quando esta pago.\"\"\"\n+    if order.paid == True:\n+        order.status = \"closed\"\n+    return order\n+\n+\n+def notify(order, channel):\n+    \"\"\"Avisa o canal sobre o pedido.\"\"\"\n+    try:\n+        channel.send(order.id)\n+    except:\n+        pass\n+\n+\n+def archive(order):\n+    \"\"\"Marca o pedido como arquivado.\"\"\"\n+    order.archived = True #arquivado\n+    return order",
+        "source_after": "\"\"\"Estado dos pedidos.\"\"\"\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef is_open(order):\n    return order.status == \"open\"\n\n\ndef close_if_paid(order):\n    \"\"\"Fecha o pedido quando esta pago.\"\"\"\n    if order.paid == True:\n        order.status = \"closed\"\n    return order\n\n\ndef notify(order, channel):\n    \"\"\"Avisa o canal sobre o pedido.\"\"\"\n    try:\n        channel.send(order.id)\n    except:\n        pass\n\n\ndef archive(order):\n    \"\"\"Marca o pedido como arquivado.\"\"\"\n    order.archived = True #arquivado\n    return order",
         "added_lines": [
           {
             "line": "",
@@ -3937,6 +4456,13 @@
           },
           {
             "line": "def close_if_paid(order):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Fecha o pedido quando esta pago.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -3979,6 +4505,13 @@
           },
           {
             "line": "def notify(order, channel):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Avisa o canal sobre o pedido.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -4034,6 +4567,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Marca o pedido como arquivado.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    order.archived = True #arquivado",
             "viola": true,
             "regra": "pep8-comentarios",
@@ -4052,8 +4592,8 @@
       {
         "filename": "app/orders/models.py",
         "status": "modified",
-        "patch": "@@ -1,3 +1,5 @@\n \"\"\"Modelos de pedidos.\"\"\"\n+\n+MaxItems = 50\n \n \n@@ -5,2 +7,8 @@\n     def __init__(self, order_id):\n         self.order_id = order_id\n+\n+\n+class order_line:\n+    def __init__(self, sku, qty):\n+        self.sku = sku\n+        self.qty = qty",
-        "source_after": "\"\"\"Modelos de pedidos.\"\"\"\n\nMaxItems = 50\n\n\nclass Order:\n    def __init__(self, order_id):\n        self.order_id = order_id\n\n\nclass order_line:\n    def __init__(self, sku, qty):\n        self.sku = sku\n        self.qty = qty",
+        "patch": "@@ -1,3 +1,5 @@\n \"\"\"Modelos de pedidos.\"\"\"\n+\n+MaxItems = 50\n \n \n@@ -5,2 +7,10 @@\n     def __init__(self, order_id):\n         self.order_id = order_id\n+\n+\n+class order_line:\n+    \"\"\"Linha de um pedido.\"\"\"\n+    def __init__(self, sku, qty):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.sku = sku\n+        self.qty = qty",
+        "source_after": "\"\"\"Modelos de pedidos.\"\"\"\n\nMaxItems = 50\n\n\nclass Order:\n    def __init__(self, order_id):\n        self.order_id = order_id\n\n\nclass order_line:\n    \"\"\"Linha de um pedido.\"\"\"\n    def __init__(self, sku, qty):\n        \"\"\"Inicializa a instancia.\"\"\"\n        self.sku = sku\n        self.qty = qty",
         "added_lines": [
           {
             "line": "",
@@ -4091,7 +4631,21 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Linha de um pedido.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def __init__(self, sku, qty):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -4122,7 +4676,7 @@
       {
         "filename": "app/plugins/loader.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,19 @@\n+\"\"\"Carga de plugins.\"\"\"\n+\n+from importlib import *\n+from pkgutil import *\n+\n+PLUGIN_DIR = \"plugins\"\n+PLUGINS = []\n+\n+\n+def discover(names):\n+    I = len(names)\n+    return [import_module(f\"{PLUGIN_DIR}.{n}\") for n in names]\n+\n+\n+def is_plugin(module):\n+    return type(module) == type(import_module)\n+\n+\n+register = lambda module: PLUGINS.append(module)",
+        "patch": "@@ -0,0 +1,21 @@\n+\"\"\"Carga de plugins.\"\"\"\n+\n+from importlib import *\n+from pkgutil import *\n+\n+PLUGIN_DIR = \"plugins\"\n+PLUGINS = []\n+\n+\n+def discover(names):\n+    \"\"\"Importa os plugins pelos nomes.\"\"\"\n+    I = len(names)\n+    return [import_module(f\"{PLUGIN_DIR}.{n}\") for n in names]\n+\n+\n+def is_plugin(module):\n+    \"\"\"Indica se o modulo e um plugin.\"\"\"\n+    return type(module) == type(import_module)\n+\n+\n+register = lambda module: PLUGINS.append(module)",
         "added_lines": [
           {
             "line": "\"\"\"Carga de plugins.\"\"\"",
@@ -4195,6 +4749,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Importa os plugins pelos nomes.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    I = len(names)",
             "viola": true,
             "regra": "pep8-nomes",
@@ -4224,6 +4785,13 @@
           },
           {
             "line": "def is_plugin(module):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Indica se o modulo e um plugin.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -4262,8 +4830,8 @@
       {
         "filename": "app/plugins/registry.py",
         "status": "modified",
-        "patch": "@@ -6,2 +6,11 @@\n def register(name, plugin):\n     REGISTRY[name] = plugin\n+\n+\n+def unregister(name):\n+    REGISTRY.pop( name, None )\n+    return name\n+\n+\n+def names():\n+    return sorted(REGISTRY)",
-        "source_after": "\"\"\"Registro de plugins.\"\"\"\n\nREGISTRY = {}\n\n\ndef register(name, plugin):\n    REGISTRY[name] = plugin\n\n\ndef unregister(name):\n    REGISTRY.pop( name, None )\n    return name\n\n\ndef names():\n    return sorted(REGISTRY)",
+        "patch": "@@ -6,2 +6,13 @@\n def register(name, plugin):\n     REGISTRY[name] = plugin\n+\n+\n+def unregister(name):\n+    \"\"\"Remove o plugin do registro.\"\"\"\n+    REGISTRY.pop( name, None )\n+    return name\n+\n+\n+def names():\n+    \"\"\"Lista os nomes registrados.\"\"\"\n+    return sorted(REGISTRY)",
+        "source_after": "\"\"\"Registro de plugins.\"\"\"\n\nREGISTRY = {}\n\n\ndef register(name, plugin):\n    REGISTRY[name] = plugin\n\n\ndef unregister(name):\n    \"\"\"Remove o plugin do registro.\"\"\"\n    REGISTRY.pop( name, None )\n    return name\n\n\ndef names():\n    \"\"\"Lista os nomes registrados.\"\"\"\n    return sorted(REGISTRY)",
         "added_lines": [
           {
             "line": "",
@@ -4281,6 +4849,13 @@
           },
           {
             "line": "def unregister(name):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Remove o plugin do registro.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -4322,6 +4897,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Lista os nomes registrados.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return sorted(REGISTRY)",
             "viola": false,
             "regra": null,
@@ -4339,8 +4921,8 @@
       {
         "filename": "app/inventory/stock.py",
         "status": "modified",
-        "patch": "@@ -8,2 +8,31 @@\n def total_quantity(items):\n     return sum(item.quantity for item in items)\n+\n+\n+def reserve(items, wanted):\n+    reserved = []\n+    for item in items:\n+        if item.reserved is True:\n+            continue\n+        if item.supplier is not None:\n+            reserved.append(item)\n+    return reserved[:wanted]\n+\n+\n+def by_sku(items):\n+    return sorted(items, key=lambda item: item.sku)\n+\n+\n+def restock(items, quantity):\n+    pending = []\n+    if not items:\n+        return pending\n+    if isinstance(quantity, int):\n+        total = total_quantity(items)  # total atual\n+        return round(total + quantity, ndigits=2)\n+    return pending\n+\n+\n+def banner():\n+    message = \"Reposicao concluida para os itens do deposito principal do site\"\n+    return message",
-        "source_after": "\"\"\"Controle de estoque.\"\"\"\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef total_quantity(items):\n    return sum(item.quantity for item in items)\n\n\ndef reserve(items, wanted):\n    reserved = []\n    for item in items:\n        if item.reserved is True:\n            continue\n        if item.supplier is not None:\n            reserved.append(item)\n    return reserved[:wanted]\n\n\ndef by_sku(items):\n    return sorted(items, key=lambda item: item.sku)\n\n\ndef restock(items, quantity):\n    pending = []\n    if not items:\n        return pending\n    if isinstance(quantity, int):\n        total = total_quantity(items)  # total atual\n        return round(total + quantity, ndigits=2)\n    return pending\n\n\ndef banner():\n    message = \"Reposicao concluida para os itens do deposito principal do site\"\n    return message",
+        "patch": "@@ -8,2 +8,35 @@\n def total_quantity(items):\n     return sum(item.quantity for item in items)\n+\n+\n+def reserve(items, wanted):\n+    \"\"\"Separa os itens disponiveis.\"\"\"\n+    reserved = []\n+    for item in items:\n+        if item.reserved:\n+            continue\n+        if item.supplier is not None:\n+            reserved.append(item)\n+    return reserved[:wanted]\n+\n+\n+def by_sku(items):\n+    \"\"\"Ordena os itens por SKU.\"\"\"\n+    return sorted(items, key=lambda item: item.sku)\n+\n+\n+def restock(items, quantity):\n+    \"\"\"Repoe o estoque dos itens.\"\"\"\n+    pending = []\n+    if not items:\n+        return pending\n+    if isinstance(quantity, int):\n+        total = total_quantity(items)  # total atual\n+        return round(total + quantity, ndigits=2)\n+    return pending\n+\n+\n+def banner():\n+    \"\"\"Devolve a mensagem de reposicao.\"\"\"\n+    message = \"Reposicao concluida para os itens do deposito principal do site\"\n+    return message",
+        "source_after": "\"\"\"Controle de estoque.\"\"\"\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n\ndef total_quantity(items):\n    return sum(item.quantity for item in items)\n\n\ndef reserve(items, wanted):\n    \"\"\"Separa os itens disponiveis.\"\"\"\n    reserved = []\n    for item in items:\n        if item.reserved:\n            continue\n        if item.supplier is not None:\n            reserved.append(item)\n    return reserved[:wanted]\n\n\ndef by_sku(items):\n    \"\"\"Ordena os itens por SKU.\"\"\"\n    return sorted(items, key=lambda item: item.sku)\n\n\ndef restock(items, quantity):\n    \"\"\"Repoe o estoque dos itens.\"\"\"\n    pending = []\n    if not items:\n        return pending\n    if isinstance(quantity, int):\n        total = total_quantity(items)  # total atual\n        return round(total + quantity, ndigits=2)\n    return pending\n\n\ndef banner():\n    \"\"\"Devolve a mensagem de reposicao.\"\"\"\n    message = \"Reposicao concluida para os itens do deposito principal do site\"\n    return message",
         "added_lines": [
           {
             "line": "",
@@ -4364,6 +4946,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Separa os itens disponiveis.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    reserved = []",
             "viola": false,
             "regra": null,
@@ -4378,7 +4967,7 @@
             "hard_negative": false
           },
           {
-            "line": "        if item.reserved is True:",
+            "line": "        if item.reserved:",
             "viola": false,
             "regra": "pep8-recomendacoes",
             "sub_regra": null,
@@ -4434,6 +5023,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Ordena os itens por SKU.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return sorted(items, key=lambda item: item.sku)",
             "viola": false,
             "regra": "pep8-recomendacoes",
@@ -4456,6 +5052,13 @@
           },
           {
             "line": "def restock(items, quantity):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Repoe o estoque dos itens.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -4532,6 +5135,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Devolve a mensagem de reposicao.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    message = \"Reposicao concluida para os itens do deposito principal do site\"",
             "viola": false,
             "regra": "pep8-layout",
@@ -4556,7 +5166,7 @@
       {
         "filename": "app/ingest/pipeline.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,47 @@\n+\"\"\"Pipeline de ingestao de eventos.\"\"\"\n+\n+import json\n+import logging\n+from collections import (\n+    Counter,\n+    defaultdict,\n+)\n+from os import path, sep\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+class PipelineError(Exception):\n+    \"\"\"Falha em alguma etapa da ingestao.\"\"\"\n+\n+\n+class Stage:\n+    def __init__(self, name):\n+        self.name = name\n+\n+\n+def run(*args, **kwargs):\n+    counts = Counter()\n+    for event in args:\n+        counts[event[\"type\"]] += 1\n+    return counts, kwargs\n+\n+\n+def parse_all(lines):\n+    events = []\n+    for line in lines:\n+        try:\n+            events.append(json.loads(line))\n+        except Exception as exc:\n+            logger.exception(\"linha invalida: %s\", exc)\n+    return events\n+\n+\n+def load_stage(name):\n+    groups = defaultdict(list)\n+    try:\n+        with open(path.join(sep, name)) as handle:\n+            groups[name].append(handle.read())\n+            return groups\n+    except Exception as error:\n+        raise PipelineError(name) from error",
+        "patch": "@@ -0,0 +1,52 @@\n+\"\"\"Pipeline de ingestao de eventos.\"\"\"\n+\n+import json\n+import logging\n+from collections import (\n+    Counter,\n+    defaultdict,\n+)\n+from os import path, sep\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+class PipelineError(Exception):\n+    \"\"\"Falha em alguma etapa da ingestao.\"\"\"\n+\n+\n+class Stage:\n+    \"\"\"Etapa do pipeline.\"\"\"\n+    def __init__(self, name):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.name = name\n+\n+\n+def run(*args, **kwargs):\n+    \"\"\"Executa o processamento.\"\"\"\n+    counts = Counter()\n+    for event in args:\n+        counts[event[\"type\"]] += 1\n+    return counts, kwargs\n+\n+\n+def parse_all(lines):\n+    \"\"\"Le todos os eventos.\"\"\"\n+    events = []\n+    for line in lines:\n+        try:\n+            events.append(json.loads(line))\n+        except Exception as exc:\n+            logger.exception(\"linha invalida: %s\", exc)\n+    return events\n+\n+\n+def load_stage(name):\n+    \"\"\"Le o arquivo da etapa.\"\"\"\n+    groups = defaultdict(list)\n+    try:\n+        with open(path.join(sep, name)) as handle:\n+            groups[name].append(handle.read())\n+            return groups\n+    except Exception as error:\n+        raise PipelineError(name) from error",
         "added_lines": [
           {
             "line": "\"\"\"Pipeline de ingestao de eventos.\"\"\"",
@@ -4685,7 +5295,21 @@
             "hard_negative": true
           },
           {
+            "line": "    \"\"\"Etapa do pipeline.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def __init__(self, name):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -4718,6 +5342,13 @@
             "regra": "pep8-imports",
             "sub_regra": null,
             "hard_negative": true
+          },
+          {
+            "line": "    \"\"\"Executa o processamento.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
           },
           {
             "line": "    counts = Counter()",
@@ -4767,6 +5398,13 @@
             "regra": "pep8-layout",
             "sub_regra": null,
             "hard_negative": true
+          },
+          {
+            "line": "    \"\"\"Le todos os eventos.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
           },
           {
             "line": "    events = []",
@@ -4839,6 +5477,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Le o arquivo da etapa.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    groups = defaultdict(list)",
             "viola": false,
             "regra": null,
@@ -4898,7 +5543,7 @@
       {
         "filename": "app/models/entities.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,47 @@\n+\"\"\"Entidades do dominio de cadastro.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+MAX_NAME = 80\n+default_name = \"n/a\"\n+\n+\n+class ModelError(Exception):\n+    \"\"\"Erro generico do dominio.\"\"\"\n+\n+\n+class ValidationError(ModelError):\n+    \"\"\"Dado invalido.\"\"\"\n+\n+\n+class _Base:\n+    def __init__(self, data):\n+        self.data = data\n+\n+    @classmethod\n+    def from_dict(cls, data):\n+        return cls(dict(data))\n+\n+\n+class OrderItem(_Base):\n+    def total_price(self):\n+        try:\n+            return self.data[\"price\"] * self.data[\"qty\"]\n+        except KeyError as exc:\n+            raise ValidationError(\"item incompleto\") from exc\n+\n+    def label(self):\n+        lower = str(self.data.get(\"name\", default_name)).lower()\n+        for i in range(MAX_NAME):\n+            if len(lower) <= i:\n+                break\n+        return lower[:MAX_NAME]\n+\n+    def save(self, path):\n+        try:\n+            with open(path, \"w\") as handle:\n+                handle.write(self.label())\n+        except OSError as exc:\n+            logger.exception(\"falha ao gravar %s: %s\", path, exc)",
+        "patch": "@@ -0,0 +1,51 @@\n+\"\"\"Entidades do dominio de cadastro.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+MAX_NAME = 80\n+default_name = \"n/a\"\n+\n+\n+class ModelError(Exception):\n+    \"\"\"Erro generico do dominio.\"\"\"\n+\n+\n+class ValidationError(ModelError):\n+    \"\"\"Dado invalido.\"\"\"\n+\n+\n+class _Base:\n+    def __init__(self, data):\n+        self.data = data\n+\n+    @classmethod\n+    def from_dict(cls, data):\n+        return cls(dict(data))\n+\n+\n+class OrderItem(_Base):\n+    \"\"\"Item de pedido.\"\"\"\n+    def total_price(self):\n+        \"\"\"Calcula o preco total do item.\"\"\"\n+        try:\n+            return self.data[\"price\"] * self.data[\"qty\"]\n+        except KeyError as exc:\n+            raise ValidationError(\"item incompleto\") from exc\n+\n+    def label(self):\n+        \"\"\"Devolve o rotulo do item.\"\"\"\n+        lower = str(self.data.get(\"name\", default_name)).lower()\n+        for i in range(MAX_NAME):\n+            if len(lower) <= i:\n+                break\n+        return lower[:MAX_NAME]\n+\n+    def save(self, path):\n+        \"\"\"Grava os dados em disco.\"\"\"\n+        try:\n+            with open(path, \"w\") as handle:\n+                handle.write(self.label())\n+        except OSError as exc:\n+            logger.exception(\"falha ao gravar %s: %s\", path, exc)",
         "added_lines": [
           {
             "line": "\"\"\"Entidades do dominio de cadastro.\"\"\"",
@@ -4954,7 +5599,8 @@
             "viola": false,
             "regra": "pep8-nomes",
             "sub_regra": null,
-            "hard_negative": true
+            "hard_negative": false,
+            "ambiguo": true
           },
           {
             "line": "",
@@ -5097,11 +5743,25 @@
             "hard_negative": true
           },
           {
+            "line": "    \"\"\"Item de pedido.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def total_price(self):",
             "viola": false,
             "regra": "pep8-nomes",
             "sub_regra": null,
             "hard_negative": true
+          },
+          {
+            "line": "        \"\"\"Calcula o preco total do item.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
           },
           {
             "line": "        try:",
@@ -5140,6 +5800,13 @@
           },
           {
             "line": "    def label(self):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Devolve o rotulo do item.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5195,6 +5862,13 @@
             "hard_negative": false
           },
           {
+            "line": "        \"\"\"Grava os dados em disco.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "        try:",
             "viola": false,
             "regra": null,
@@ -5240,7 +5914,7 @@
       {
         "filename": "app/utils/text.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,46 @@\n+\"\"\"Utilitarios de texto para relatorios.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def build(prefix, value):\n+    return str(prefix) + str(value)\n+\n+\n+def summary(rows):\n+    values = ()\n+    title = \"Resumo semanal de movimentacao de estoque por deposito e setor\"\n+    hint = \"( nao e codigo )\"\n+    return title, hint, values, len(rows)\n+\n+\n+def tags(text):\n+    count = 0\n+    for word in text.split():\n+        if word.startswith(\"#\"):\n+            count += 1  # conta as hashtags\n+    label = \"#destaque\"\n+    sep = \"um , dois\"\n+    window = text[1:3]\n+    return count, label, sep, window\n+\n+\n+def render(items):\n+    first = build(prefix=\"a\", value=1)\n+    second = build(\"b\", value=2)\n+    return first + second + str(len(items))\n+\n+\n+def shout(items):\n+    ordered = sorted(items, key=lambda item: item.name)\n+    return [item for item in ordered if isinstance(item, str)]\n+\n+\n+def safe(call):\n+    try:\n+        return call()\n+    except:\n+        logger.exception(\"falha inesperada\")\n+        return None",
+        "patch": "@@ -0,0 +1,52 @@\n+\"\"\"Utilitarios de texto para relatorios.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def build(prefix, value):\n+    \"\"\"Junta o prefixo ao valor.\"\"\"\n+    return str(prefix) + str(value)\n+\n+\n+def summary(rows):\n+    \"\"\"Resume os dados processados.\"\"\"\n+    values = ()\n+    title = \"Resumo semanal de movimentacao de estoque por deposito e setor\"\n+    hint = \"( nao e codigo )\"\n+    return title, hint, values, len(rows)\n+\n+\n+def tags(text):\n+    \"\"\"Conta as hashtags do texto.\"\"\"\n+    count = 0\n+    for word in text.split():\n+        if word.startswith(\"#\"):\n+            count += 1  # conta as hashtags\n+    label = \"#destaque\"\n+    sep = \"um , dois\"\n+    window = text[1:3]\n+    return count, label, sep, window\n+\n+\n+def render(items):\n+    \"\"\"Monta o texto de saida.\"\"\"\n+    first = build(prefix=\"a\", value=1)\n+    second = build(\"b\", value=2)\n+    return first + second + str(len(items))\n+\n+\n+def shout(items):\n+    \"\"\"Filtra os textos ordenados.\"\"\"\n+    ordered = sorted(items, key=lambda item: item.name)\n+    return [item for item in ordered if isinstance(item, str)]\n+\n+\n+def safe(call):\n+    \"\"\"Executa a chamada sem propagar erro.\"\"\"\n+    try:\n+        return call()\n+    except:\n+        logger.exception(\"falha inesperada\")\n+        return None",
         "added_lines": [
           {
             "line": "\"\"\"Utilitarios de texto para relatorios.\"\"\"",
@@ -5299,6 +5973,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Junta o prefixo ao valor.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    return str(prefix) + str(value)",
             "viola": false,
             "regra": null,
@@ -5321,6 +6002,13 @@
           },
           {
             "line": "def summary(rows):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Resume os dados processados.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5370,6 +6058,13 @@
           },
           {
             "line": "def tags(text):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Conta as hashtags do texto.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5453,6 +6148,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Monta o texto de saida.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    first = build(prefix=\"a\", value=1)",
             "viola": false,
             "regra": "pep8-espacos",
@@ -5495,6 +6197,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Filtra os textos ordenados.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    ordered = sorted(items, key=lambda item: item.name)",
             "viola": false,
             "regra": "pep8-recomendacoes",
@@ -5524,6 +6233,13 @@
           },
           {
             "line": "def safe(call):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Executa a chamada sem propagar erro.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5575,7 +6291,7 @@
       {
         "filename": "app/core/flags.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Flags de funcionalidade.\"\"\"\n+\n+\n+def enabled(flag, default=False):\n+    if flag is None:\n+        return default\n+    if flag:\n+        return True\n+    return False\n+\n+\n+def same_flag(first, second):\n+    if first is not second:\n+        return False\n+    return type(first) is type(second)\n+\n+\n+def drain(queue):\n+    while not queue:\n+        return []\n+    note = \"Texto de apoio exibido ao usuario durante a revisao do cadastro\"\n+    return [queue.pop(0), note]\n+\n+\n+def snake_case_name(flags):\n+    for j in range(len(flags)):\n+        flags[j] = bool(flags[j])\n+    return flags",
+        "patch": "@@ -0,0 +1,32 @@\n+\"\"\"Flags de funcionalidade.\"\"\"\n+\n+\n+def enabled(flag, default=False):\n+    \"\"\"Indica se a flag esta ativa.\"\"\"\n+    if flag is None:\n+        return default\n+    if flag:\n+        return True\n+    return False\n+\n+\n+def same_flag(first, second):\n+    \"\"\"Compara duas flags.\"\"\"\n+    if first is not second:\n+        return False\n+    return isinstance(first, type(second))\n+\n+\n+def drain(queue):\n+    \"\"\"Esvazia a fila.\"\"\"\n+    while not queue:\n+        return []\n+    note = \"Texto de apoio exibido ao usuario durante a revisao do cadastro\"\n+    return [queue.pop(0), note]\n+\n+\n+def snake_case_name(flags):\n+    \"\"\"Normaliza as flags para booleano.\"\"\"\n+    for j in range(len(flags)):\n+        flags[j] = bool(flags[j])\n+    return flags",
         "added_lines": [
           {
             "line": "\"\"\"Flags de funcionalidade.\"\"\"",
@@ -5600,6 +6316,13 @@
           },
           {
             "line": "def enabled(flag, default=False):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Indica se a flag esta ativa.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5662,6 +6385,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Compara duas flags.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    if first is not second:",
             "viola": false,
             "regra": "pep8-recomendacoes",
@@ -5676,7 +6406,7 @@
             "hard_negative": false
           },
           {
-            "line": "    return type(first) is type(second)",
+            "line": "    return isinstance(first, type(second))",
             "viola": false,
             "regra": "pep8-recomendacoes",
             "sub_regra": null,
@@ -5698,6 +6428,13 @@
           },
           {
             "line": "def drain(queue):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Esvazia a fila.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5753,6 +6490,13 @@
             "hard_negative": true
           },
           {
+            "line": "    \"\"\"Normaliza as flags para booleano.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    for j in range(len(flags)):",
             "viola": false,
             "regra": "pep8-nomes",
@@ -5778,7 +6522,7 @@
       {
         "filename": "app/core/settings.py",
         "status": "added",
-        "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Configuracoes da aplicacao.\"\"\"\n+\n+DEFAULT_TIMEOUT = 30\n+retries = 3\n+\n+\n+def title():\n+    return \"Relatorio gerado automaticamente a partir dos eventos do turno\"\n+\n+\n+def reload(loader):\n+    try:\n+        return loader()\n+    except:\n+        raise\n+\n+\n+def timeout(options):\n+    value = options.get(\"timeout\", DEFAULT_TIMEOUT)\n+    return value if value is not None else DEFAULT_TIMEOUT\n+\n+\n+class Settings:\n+    def __init__(self, values):\n+        self.values = values\n+\n+    def get(self, key):\n+        return self.values.get(key, retries)",
+        "patch": "@@ -0,0 +1,34 @@\n+\"\"\"Configuracoes da aplicacao.\"\"\"\n+\n+DEFAULT_TIMEOUT = 30\n+retries = 3\n+\n+\n+def title():\n+    \"\"\"Devolve o titulo do relatorio.\"\"\"\n+    return \"Relatorio gerado automaticamente a partir dos eventos do turno\"\n+\n+\n+def reload(loader):\n+    \"\"\"Recarrega a configuracao.\"\"\"\n+    try:\n+        return loader()\n+    except:\n+        raise\n+\n+\n+def timeout(options):\n+    \"\"\"Devolve o tempo limite configurado.\"\"\"\n+    value = options.get(\"timeout\", DEFAULT_TIMEOUT)\n+    return value if value is not None else DEFAULT_TIMEOUT\n+\n+\n+class Settings:\n+    \"\"\"Configuracoes da aplicacao.\"\"\"\n+    def __init__(self, values):\n+        \"\"\"Inicializa a instancia.\"\"\"\n+        self.values = values\n+\n+    def get(self, key):\n+        \"\"\"Devolve o valor da configuracao.\"\"\"\n+        return self.values.get(key, retries)",
         "added_lines": [
           {
             "line": "\"\"\"Configuracoes da aplicacao.\"\"\"",
@@ -5806,7 +6550,8 @@
             "viola": false,
             "regra": "pep8-nomes",
             "sub_regra": null,
-            "hard_negative": true
+            "hard_negative": false,
+            "ambiguo": true
           },
           {
             "line": "",
@@ -5824,6 +6569,13 @@
           },
           {
             "line": "def title():",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Devolve o titulo do relatorio.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5852,6 +6604,13 @@
           },
           {
             "line": "def reload(loader):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "    \"\"\"Recarrega a configuracao.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5907,6 +6666,13 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Devolve o tempo limite configurado.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    value = options.get(\"timeout\", DEFAULT_TIMEOUT)",
             "viola": false,
             "regra": null,
@@ -5942,7 +6708,21 @@
             "hard_negative": false
           },
           {
+            "line": "    \"\"\"Configuracoes da aplicacao.\"\"\"",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
             "line": "    def __init__(self, values):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Inicializa a instancia.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,
@@ -5964,6 +6744,13 @@
           },
           {
             "line": "    def get(self, key):",
+            "viola": false,
+            "regra": null,
+            "sub_regra": null,
+            "hard_negative": false
+          },
+          {
+            "line": "        \"\"\"Devolve o valor da configuracao.\"\"\"",
             "viola": false,
             "regra": null,
             "sub_regra": null,

@@ -197,7 +197,7 @@ NORMAS: tuple[Norma, ...] = (
         "pep8-imports",
         _a(r"imports\s+should\s+be\s+grouped\s+in\s+the\s+following\s+order"),
         frozenset({"I001"}),
-        "import sys\nimport os\n",
+        "import requests\nimport os\n",
         so_arquivo_novo=True,
     ),
     Norma(
@@ -251,11 +251,11 @@ def _p(*padroes: str) -> tuple[re.Pattern[str], ...]:
 
 
 NEGATIVOS: dict[str, tuple[re.Pattern[str], ...]] = {
-    "booleano": _p(r"\bis (?:True|False)\b", r"^\s*if\s+(?:not\s+)?[\w.]+\s*:"),
+    "booleano": _p(r"^\s*if\s+(?:not\s+)?[\w.]+\s*:", r"\breturn\s+bool\("),
     "nulo": _p(r"\bis None\b", r"\bis not None\b"),
     "except_nu": _p(r"^\s*except\s+[\w(]", r"^\s*except\s*:"),
     "not_is": _p(r"\bis not\b", r"^\s*(?:if|while)\s+not\s+[\w.]+\s*:"),
-    "tipo_isinstance": _p(r"\bisinstance\(", r"\btype\([^)]*\)\s+is\b"),
+    "tipo_isinstance": _p(r"\bisinstance\(", r"\bissubclass\("),
     "lambda_atribuido": _p(r"key=lambda\b", r"[(,]\s*lambda\b"),
     "instrucoes_compostas": _p(
         r"[\"'][^\"']*;[^\"']*[\"']", r"\[[^\]]*:[^\]]*\]", r"\{[^}]*:[^}]*\}"
@@ -265,7 +265,7 @@ NEGATIVOS: dict[str, tuple[re.Pattern[str], ...]] = {
     "nome_proibido": _p(r"^\s*lower\s*=", r"^\s*for\s+[ij]\s+in\b", r"\.l\b"),
     "erro_sufixo": _p(r"class\s+\w+Error\(", r"class\s+\w+\((?!.*Exception)"),
     "self_cls": _p(r"\(self\b", r"\(cls\b"),
-    "constante_maiuscula": _p(r"^[A-Z][A-Z0-9_]*\s*=", r"^[a-z_]+\s*="),
+    "constante_maiuscula": _p(r"^[A-Z][A-Z0-9_]*\s*="),
     "linha_longa": _p(r"^.{74,79}$"),
     "linhas_em_branco": _p(r"^(?:async\s+)?def\s", r"^class\s"),
     "import_unico": _p(r"^import\s+\w+\s*$", r"^from\s+\S+\s+import\s+\w+,\s*\w+"),

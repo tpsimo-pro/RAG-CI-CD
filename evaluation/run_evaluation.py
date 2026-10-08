@@ -128,6 +128,41 @@ def _build_gold_lines(pr_id: str, file_data: dict) -> list[GoldLine]:
     ]
 
 
+def _resumo_ambiguas(details: list[dict]) -> dict:
+    """Total de linhas ambíguas e quantas o modelo sinalizou (fora da matriz)."""
+    linhas = [
+        {"pr_id": d["pr_id"], **a}
+        for d in details
+        for a in d.get("ambiguous_lines", [])
+    ]
+    return {
+        "total": len(linhas),
+        "signaled": sum(1 for a in linhas if a["signaled"]),
+        "lines": linhas,
+    }
+
+
+def _separar_ambiguas(
+    line_results: list[LineResult], file_data: dict
+) -> tuple[list[LineResult], list[dict]]:
+    """
+    Tira da matriz as linhas marcadas `ambiguo` no dataset (D-010).
+
+    Uma linha é ambígua quando o texto da PEP 8 não decide o rótulo (por
+    exemplo, um literal global em minúsculas, que pode ou não ser uma
+    constante). Nem acerto nem erro: ela sai da matriz de confusão e é
+    reportada à parte, com a informação de o modelo tê-la sinalizado ou não.
+    """
+    flags = [bool(al.get("ambiguo", False)) for al in file_data["added_lines"]]
+    validas = [r for r, amb in zip(line_results, flags) if not amb]
+    ambiguas = [
+        {"line": r.line, "regra": r.regra, "signaled": r.signaled}
+        for r, amb in zip(line_results, flags)
+        if amb
+    ]
+    return validas, ambiguas
+
+
 def _build_file_diff(file_data: dict) -> FileDiff:
     """
     Constrói o FileDiff de produção a partir de um arquivo de um PR do dataset.
@@ -253,8 +288,9 @@ _CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
 # `cites_correct_norm` (emenda de D-002): um checkpoint da versão 1 não
 # reconstrói um `LineResult` atual e é descartado em vez de quebrar a execução.
 # Subiu para 3 quando cada PR passou a guardar as detecções brutas do LLM.
-# Subiu para 4 com o dataset de vários arquivos por PR (D-010).
-_CHECKPOINT_SCHEMA = 4
+# Subiu para 4 com o dataset de vários arquivos por PR (D-010) e para 5 com
+# as linhas ambíguas, guardadas à parte de `line_results`.
+_CHECKPOINT_SCHEMA = 5
 
 # O caminho do dataset não basta como chave: a linha de base das Seções 5 e 2
 # roda num checkout antigo, com o mesmo caminho, outro conteúdo e outro prompt
@@ -387,14 +423,17 @@ def run_evaluation(
             per_pr_reps = []
             for rep in range(repeticoes):
                 line_results: list[LineResult] = []
+                ambiguas: list[dict] = []
                 total_det = hallucinated = 0
                 detections_dicts: list[dict] = []
-                for (_, file_diff, gold_lines), context in zip(arquivos, contextos):
+                for (file_data, file_diff, gold_lines), context in zip(arquivos, contextos):
                     detections = (
                         _review_with_backoff(llm, context) if context is not None else []
                     )
                     lr, n_det, n_hall = classify_lines(gold_lines, detections)
+                    lr, amb = _separar_ambiguas(lr, file_data)
                     line_results.extend(lr)
+                    ambiguas.extend({**a, "filename": file_diff.filename} for a in amb)
                     total_det += n_det
                     hallucinated += n_hall
                     detections_dicts.extend(
@@ -407,6 +446,7 @@ def run_evaluation(
                         "total_detections": total_det,
                         "hallucinated_detections": hallucinated,
                         "detections": detections_dicts,
+                        "ambiguous_lines": ambiguas,
                     }
                 )
                 _log_pr_repetition(rep, line_results)
@@ -425,6 +465,7 @@ def run_evaluation(
                     "pr_id": pr_id,
                     "line_results": rep_data["line_results"],
                     "detections": rep_data["detections"],
+                    "ambiguous_lines": rep_data.get("ambiguous_lines", []),
                 }
             )
 
@@ -655,6 +696,7 @@ def _save_results(
                 ),
             },
             "hallucination_rate": round(published.hallucination_rate, 4),
+            "ambiguous": _resumo_ambiguas(details[published.repetition_index]),
             "misplaced_block_fps": published.misplaced_block_fps(),
             "norm_reference_precision": (
                 round(published.norm_reference_precision, 4)

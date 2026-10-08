@@ -160,3 +160,85 @@ def test_achado_em_linha_de_contexto_e_ignorado_com_alvo():
     assert conformity_errors(lines, subs, alvo={3}) == []
     erros = conformity_errors(lines, subs, alvo={3, 4})
     assert len(erros) == 1 and "linha 4" in erros[0]
+
+
+# ── docstring em definicoes publicas (PEP 8, Documentation Strings) ──────────
+
+from evaluation.dataset.conformity import docstring_findings  # noqa: E402
+
+
+def _linhas_sem_doc(src):
+    return [i for i, _ in docstring_findings(textwrap.dedent(src))]
+
+
+def test_modulo_sem_docstring_e_acusado_na_linha_zero():
+    assert _linhas_sem_doc("x = 1\n") == [0]
+
+
+def test_funcao_e_classe_publicas_sem_docstring_sao_acusadas():
+    src = '''\
+        """Modulo."""
+
+
+        class Cart:
+            def total(self):
+                return 0
+
+
+        def build():
+            return Cart()
+    '''
+    assert _linhas_sem_doc(src) == [3, 4, 8]
+
+
+def test_init_e_publico_e_exige_docstring():
+    src = '''\
+        """Modulo."""
+
+
+        class Cart:
+            """Carrinho."""
+
+            def __init__(self):
+                self.items = []
+    '''
+    assert _linhas_sem_doc(src) == [6]
+
+
+def test_nomes_privados_e_funcoes_aninhadas_ficam_de_fora():
+    src = '''\
+        """Modulo."""
+
+
+        def _interna():
+            return 1
+
+
+        class _Auxiliar:
+            def metodo(self):
+                return 2
+
+
+        def publica():
+            """Faz algo."""
+
+            def aninhada():
+                return 3
+
+            return aninhada
+    '''
+    assert _linhas_sem_doc(src) == []
+
+
+def test_conformity_errors_so_cobra_docstring_quando_pedido():
+    lines = ['"""Modulo."""', "", "", "def build():", "    return 1"]
+    subs = [None] * len(lines)
+    assert conformity_errors(lines, subs) == []
+    erros = conformity_errors(lines, subs, docstrings=True)
+    assert len(erros) == 1 and "docstring_publico" in erros[0]
+
+
+def test_docstring_em_linha_de_contexto_e_ignorada_com_alvo():
+    lines = ['"""Modulo."""', "", "", "def build():", "    return 1"]
+    subs = [None] * len(lines)
+    assert conformity_errors(lines, subs, alvo={4}, docstrings=True) == []

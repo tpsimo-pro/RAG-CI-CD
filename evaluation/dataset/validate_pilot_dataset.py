@@ -192,6 +192,7 @@ class Estatisticas:
         self.linhas_positivas = 0
         self.linhas_negativas = 0
         self.linhas_dificeis = 0
+        self.linhas_ambiguas = 0
         self.n_linhas = 0
 
 
@@ -290,12 +291,20 @@ def _validar_entradas(
                 )
             if e["hard_negative"]:
                 fail(errors, f"{loc}: hard_negative=true com viola=true.")
+            if e.get("ambiguo"):
+                fail(errors, f"{loc}: linha positiva nao pode ser ambigua.")
         else:
+            ambiguo = e.get("ambiguo", False)
+            if not isinstance(ambiguo, bool):
+                fail(errors, f"{loc}: 'ambiguo' deve ser bool.")
             if e["sub_regra"] is not None:
                 fail(errors, f"{loc}: viola=false mas sub_regra={e['sub_regra']!r}.")
             if e["hard_negative"] and e["regra"] not in FAMILIAS:
                 fail(errors, f"{loc}: hard_negative exige 'regra' valida.")
-            if not e["hard_negative"] and e["regra"] is not None:
+            if ambiguo:
+                if e["hard_negative"] or e["regra"] not in FAMILIAS:
+                    fail(errors, f"{loc}: linha ambigua exige regra valida e hard_negative=false.")
+            elif not e["hard_negative"] and e["regra"] is not None:
                 fail(errors, f"{loc}: negativo comum deve ter regra=null.")
     return ok
 
@@ -325,7 +334,7 @@ def validar_arquivo(
     alvo = set(mapa)
 
     # Oraculo 1: nenhum achado sem rotulo nas linhas adicionadas.
-    for msg in conformity_errors(fonte, subs, alvo):
+    for msg in conformity_errors(fonte, subs, alvo, docstrings=True):
         fail(errors, f"{loc0}: {msg} (oraculo)")
 
     # Oraculo 2: todo rotulo positivo dispara a propria norma.
@@ -365,6 +374,8 @@ def validar_arquivo(
                 fail(errors, f"{loc}: {sub} rotulada, mas nenhum oraculo a detecta: {e['line']!r}")
             if sub == "except_nu" and rotulos_exc.get(src_idx) != "except_nu":
                 fail(errors, f"{loc}: except_nu exige `except:` nu com corpo so pass/continue.")
+        elif e.get("ambiguo"):
+            stats.linhas_ambiguas += 1
         else:
             stats.linhas_negativas += 1
             if src_idx in rotulos_exc and rotulos_exc[src_idx] is not None:
@@ -472,7 +483,7 @@ def main() -> int:
     print(f"PRs: {len(data)} (limpos {resumo['limpos']}, violadores {resumo['violadores']})")
     print(f"Arquivos: {resumo['arquivos']} (novos {resumo['novos']}, modificados {resumo['modificados']})")
     print(f"Linhas adicionadas: {stats.n_linhas}")
-    print(f"Positivas: {stats.linhas_positivas}; negativas: {stats.linhas_negativas}; dificeis: {stats.linhas_dificeis}")
+    print(f"Positivas: {stats.linhas_positivas}; negativas: {stats.linhas_negativas}; dificeis: {stats.linhas_dificeis}; ambiguas: {stats.linhas_ambiguas}")
     print("\nNorma                    positivas  PRs  negativos dificeis")
     for n in NORMAS:
         print(f"  {n.id:<22} {stats.positivas[n.id]:>5} {len(stats.prs_da_norma[n.id]):>5} {stats.negativos[n.id]:>8}")
