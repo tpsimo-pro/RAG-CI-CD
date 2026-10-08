@@ -1,4 +1,4 @@
-"""Conformidade do codigo do dataset com a PEP 8 (D-008, D-009).
+"""Conformidade do codigo do dataset com a PEP 8 (D-008, D-009, D-010).
 
 Nao faz parte do sistema avaliado: confere que o material de teste nao
 comete violacoes da PEP 8 que o gabarito nao rotula. Cada achado e um par
@@ -14,6 +14,8 @@ import re
 import subprocess
 import sys
 
+from evaluation.dataset.norms import NORMAS
+
 _RUFF_ARGS = [
     "check", "--isolated", "--no-cache", "--preview",
     "--output-format", "json", "--line-length", "79",
@@ -22,16 +24,11 @@ _RUFF_ARGS = [
     "--stdin-filename", "pr.py", "-",
 ]
 
-# O achado que e a propria violacao rotulada so vale na linha positiva
-# da sub-regra correspondente.
+# O achado que e a propria violacao rotulada so vale na linha positiva da
+# norma correspondente: os codigos do ruff do catalogo e, se a norma tambem
+# tem checagem AST, a propria tag (D-010).
 ALLOWED_BY_SUB = {
-    "booleano": {"E712"},
-    "nulo": {"E711"},
-    "nome_funcao": {"N802"},
-    "nome_classe": {"N801"},
-    # N806: `O`/`I` dentro de funcao e a mesma violacao vista como maiuscula.
-    "nome_proibido": {"E741", "N806"},
-    "except_nu": {"E722"},
+    n.id: set(n.ruff) | ({n.id} if n.ast else set()) for n in NORMAS
 }
 
 # PEP 8: `l`, `O` e `I` nunca como nome; so aparecem na linha positiva que
@@ -118,12 +115,23 @@ def ast_findings(code: str) -> list[tuple[int, str]]:
     return out
 
 
-def conformity_errors(lines: list[str], sub_regras: list[str | None]) -> list[str]:
-    """Achados que nao sao a propria violacao rotulada na linha."""
+def conformity_errors(
+    lines: list[str],
+    sub_regras: list[str | None],
+    alvo: set[int] | None = None,
+) -> list[str]:
+    """Achados que nao sao a propria violacao rotulada na linha.
+
+    `lines` e o arquivo inteiro e `sub_regras` a norma de cada linha (None se
+    nao rotulada). `alvo` limita a checagem as linhas adicionadas (indices
+    0-based); achados em linhas de contexto sao codigo pre-existente.
+    """
     code = "\n".join(lines)
     tolerated = tolerated_bare_excepts(code)
     errors: list[str] = []
     for idx, tag in ruff_findings(code) + ast_findings(code):
+        if alvo is not None and idx not in alvo:
+            continue
         if tag == "E722" and idx in tolerated:
             continue
         inside = 0 <= idx < len(lines)

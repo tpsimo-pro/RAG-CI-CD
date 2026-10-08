@@ -241,3 +241,39 @@ def ids_da_familia(familia: str) -> set[str]:
 def normas_do_chunk(texto: str) -> set[str]:
     """Normas cujo enunciado esta no texto de um chunk recuperado."""
     return {n.id for n in NORMAS if n.ancora.search(texto)}
+
+
+# Formas validas que parecem violar a norma (negativos dificeis). O validador
+# exige pelo menos 2 linhas `hard_negative` da familia da norma que casem algum
+# destes padroes.
+def _p(*padroes: str) -> tuple[re.Pattern[str], ...]:
+    return tuple(re.compile(p) for p in padroes)
+
+
+NEGATIVOS: dict[str, tuple[re.Pattern[str], ...]] = {
+    "booleano": _p(r"\bis (?:True|False)\b", r"^\s*if\s+(?:not\s+)?[\w.]+\s*:"),
+    "nulo": _p(r"\bis None\b", r"\bis not None\b"),
+    "except_nu": _p(r"^\s*except\s+[\w(]", r"^\s*except\s*:"),
+    "not_is": _p(r"\bis not\b", r"^\s*(?:if|while)\s+not\s+[\w.]+\s*:"),
+    "tipo_isinstance": _p(r"\bisinstance\(", r"\btype\([^)]*\)\s+is\b"),
+    "lambda_atribuido": _p(r"key=lambda\b", r"[(,]\s*lambda\b"),
+    "instrucoes_compostas": _p(
+        r"[\"'][^\"']*;[^\"']*[\"']", r"\[[^\]]*:[^\]]*\]", r"\{[^}]*:[^}]*\}"
+    ),
+    "nome_funcao": _p(r"^\s*def\s+__init__\(", r"^\s*def\s+_?[a-z]+_[a-z_]+\("),
+    "nome_classe": _p(r"^\s*class\s+[A-Z][a-z]+[A-Z]\w*", r"^\s*class\s+_[A-Z]\w*"),
+    "nome_proibido": _p(r"^\s*lower\s*=", r"^\s*for\s+[ij]\s+in\b", r"\.l\b"),
+    "erro_sufixo": _p(r"class\s+\w+Error\(", r"class\s+\w+\((?!.*Exception)"),
+    "self_cls": _p(r"\(self\b", r"\(cls\b"),
+    "constante_maiuscula": _p(r"^[A-Z][A-Z0-9_]*\s*=", r"^[a-z_]+\s*="),
+    "linha_longa": _p(r"^.{74,79}$"),
+    "linhas_em_branco": _p(r"^(?:async\s+)?def\s", r"^class\s"),
+    "import_unico": _p(r"^import\s+\w+\s*$", r"^from\s+\S+\s+import\s+\w+,\s*\w+"),
+    "import_topo": _p(r"^(?:import|from)\s"),
+    "import_estrela": _p(r"^from\s+\S+\s+import\s+\(", r"\*args|\*\*kwargs"),
+    "import_ordem": _p(r"^(?:import|from)\s"),
+    "espaco_operador": _p(r"[(,]\s*\w+=[^=\s]", r"\w\s==\s\w"),
+    "espaco_parenteses": _p(r"\(\)|\[\]|\{\}", r"[\"'][^\"']*\(\s[^\"']*[\"']"),
+    "espaco_antes_virgula": _p(r"[\"'][^\"']*\s,[^\"']*[\"']", r"\[[^\]]*:[^\]]*\]"),
+    "comentario_inline": _p(r"\S  # \S", r"[\"'][^\"']*#[^\"']*[\"']"),
+}

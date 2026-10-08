@@ -151,3 +151,12 @@ def test_except_nu_silencioso_vale_na_positiva_except_nu():
     subs = [None] * len(lines)
     subs[lines.index("    except:")] = "except_nu"
     assert _erros(lines, subs) == []
+
+
+def test_achado_em_linha_de_contexto_e_ignorado_com_alvo():
+    lines = ["x=1", "", "", "y = 2", "z=3"]
+    subs = [None] * len(lines)
+    assert any("E225" in e for e in _erros(lines))
+    assert conformity_errors(lines, subs, alvo={3}) == []
+    erros = conformity_errors(lines, subs, alvo={3, 4})
+    assert len(erros) == 1 and "linha 4" in erros[0]
