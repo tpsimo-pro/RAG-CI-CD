@@ -1,4 +1,4 @@
-"""Testes da checagem por AST da regra coding-4.1 (emenda 2 de D-002)."""
+"""Testes da checagem por AST da regra pep8-excecoes (D-009)."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from evaluation.dataset.validate_pilot_dataset import (
     SUB_REGRAS,
     block_duplicates,
     except_labels,
+    main,
     matches_exc_catalog,
 )
 
@@ -20,17 +21,59 @@ def _labels(src: str) -> tuple[dict[int, str | None], list[str]]:
 
 
 class TestExceptLabels:
-    def test_exception_com_pass_e_captura_generica(self):
+    def test_except_nu_com_pass_viola(self):
+        labels, errors = _labels("""
+            try:
+                run()
+            except:
+                pass
+        """)
+        assert labels == {2: "except_nu"}
+        assert errors == []
+
+    def test_except_nu_com_continue_viola(self):
+        labels, errors = _labels("""
+            for item in items:
+                try:
+                    run(item)
+                except:
+                    continue
+        """)
+        assert labels == {3: "except_nu"}
+        assert errors == []
+
+    def test_except_nu_com_logger_exception_e_tolerado(self):
+        labels, errors = _labels("""
+            try:
+                run()
+            except:
+                logger.exception("Falha")
+        """)
+        assert labels == {2: None}
+        assert errors == []
+
+    def test_except_nu_com_raise_e_tolerado(self):
+        labels, errors = _labels("""
+            try:
+                run()
+            except:
+                raise
+        """)
+        assert labels == {2: None}
+        assert errors == []
+
+    def test_exception_com_pass_nao_viola(self):
+        # A PEP 8 manda usar `except Exception:` para erros de programa.
         labels, errors = _labels("""
             try:
                 run()
             except Exception:
                 pass
         """)
-        assert labels == {2: "captura_generica"}
+        assert labels == {2: None}
         assert errors == []
 
-    def test_especifica_com_continue_e_captura_silenciosa(self):
+    def test_especifica_com_continue_nao_viola(self):
         labels, errors = _labels("""
             for item in items:
                 try:
@@ -38,17 +81,26 @@ class TestExceptLabels:
                 except ValueError:
                     continue
         """)
-        assert labels == {3: "captura_silenciosa"}
+        assert labels == {3: None}
         assert errors == []
 
-    def test_tipo_com_atributo_e_especifico(self):
-        labels, _ = _labels("""
+    @pytest.mark.parametrize(
+        "cabecalho",
+        [
+            "except json.JSONDecodeError:",
+            "except BaseException:",
+            "except (ValueError, KeyError):",
+        ],
+    )
+    def test_qualquer_tipo_nunca_viola(self, cabecalho):
+        labels, errors = _labels(f"""
             try:
                 run()
-            except json.JSONDecodeError:
+            {cabecalho}
                 pass
         """)
-        assert labels == {2: "captura_silenciosa"}
+        assert labels == {2: None}
+        assert errors == []
 
     def test_exception_com_logger_exception_nao_viola(self):
         labels, errors = _labels("""
@@ -56,27 +108,6 @@ class TestExceptLabels:
                 run()
             except Exception as exc:
                 logger.exception("Falha: %s", exc)
-        """)
-        assert labels == {2: None}
-        assert errors == []
-
-    def test_exception_com_raise_puro_fica_fora_do_escopo(self):
-        # O guia pede re-raise "com contexto adicional"; raise puro nao traz.
-        labels, errors = _labels("""
-            try:
-                run()
-            except Exception:
-                raise
-        """)
-        assert labels == {}
-        assert len(errors) == 1
-
-    def test_exception_com_raise_from_nao_viola(self):
-        labels, errors = _labels("""
-            try:
-                run()
-            except Exception as exc:
-                raise AppError("falha") from exc
         """)
         assert labels == {2: None}
         assert errors == []
@@ -91,26 +122,17 @@ class TestExceptLabels:
         assert labels == {2: None}
         assert errors == []
 
-    def test_especifica_com_raise_sem_from_fica_fora_do_escopo(self):
-        labels, errors = _labels("""
-            try:
-                run()
-            except ValueError:
-                raise
-        """)
-        assert labels == {}
-        assert len(errors) == 1
-
+    @pytest.mark.parametrize("cabecalho", ["except:", "except Exception:"])
     @pytest.mark.parametrize(
         "corpo",
         ['logger.error("falha")', 'print("falha")', "return None", "fallback = 0"],
     )
-    def test_corpo_fora_do_escopo_e_rejeitado(self, corpo):
+    def test_corpo_fora_do_escopo_e_rejeitado(self, cabecalho, corpo):
         labels, errors = _labels(f"""
             def run_job():
                 try:
                     run()
-                except Exception:
+                {cabecalho}
                     {corpo}
         """)
         assert labels == {}
@@ -140,25 +162,11 @@ class TestExceptLabels:
         assert 2 not in labels
         assert errors
 
-    @pytest.mark.parametrize(
-        "cabecalho",
-        ["except:", "except BaseException:", "except (ValueError, KeyError):"],
-    )
-    def test_tipos_fora_do_escopo_sao_rejeitados(self, cabecalho):
-        labels, errors = _labels(f"""
-            try:
-                run()
-            {cabecalho}
-                pass
-        """)
-        assert labels == {}
-        assert len(errors) == 1
-
     def test_corpo_na_mesma_linha_e_rejeitado(self):
         labels, errors = _labels("""
             try:
                 run()
-            except Exception: pass
+            except: pass
         """)
         assert labels == {}
         assert len(errors) == 1
@@ -170,32 +178,32 @@ class TestExceptLabels:
 class TestBlockDuplicates:
     def test_except_repetido_no_pr_e_erro(self):
         lines = [
-            "try:", "    run()", "except ValueError:", "    pass",
-            "try:", "    stop()", "except ValueError:", "    raise AppError() from None",
+            "try:", "    run()", "except:", "    pass",
+            "try:", "    stop()", "except:", "    raise",
         ]
-        labels = {2: "captura_silenciosa", 6: None}
+        labels = {2: "except_nu", 6: None}
         errors = block_duplicates(lines, labels)
         assert len(errors) == 2  # cada ocorrencia do except repetido
 
     def test_corpo_violador_repetido_no_pr_e_erro(self):
         lines = [
-            "try:", "    run()", "except ValueError:", "    pass",
+            "try:", "    run()", "except:", "    pass",
             "class Empty:", "    pass",
         ]
-        errors = block_duplicates(lines, {2: "captura_silenciosa"})
+        errors = block_duplicates(lines, {2: "except_nu"})
         assert len(errors) == 1
 
     def test_pr_sem_repeticao_passa(self):
         lines = [
-            "try:", "    run()", "except ValueError:", "    pass",
-            "except KeyError:", "    continue",
+            "try:", "    run()", "except KeyError:", "    pass",
+            "except:", "    continue",
         ]
-        labels = {2: "captura_silenciosa", 4: "captura_silenciosa"}
+        labels = {2: None, 4: "except_nu"}
         assert block_duplicates(lines, labels) == []
 
 
-def test_sub_regras_da_regra_nova():
-    assert SUB_REGRAS["coding-4.1"] == {"captura_generica", "captura_silenciosa"}
+def test_sub_regras_da_regra_de_excecao():
+    assert SUB_REGRAS["pep8-excecoes"] == {"except_nu"}
 
 
 class TestCatalogoExcecao:
@@ -210,6 +218,13 @@ class TestCatalogoExcecao:
              "    except KeyError as exc:", '        raise AppError("x") from exc'),
             ("except especifica + logger.exception",
              "    except OSError as exc:", '        logger.exception("x %s", exc)'),
+            ("except Exception + pass (PEP 8 recomenda)",
+             "    except Exception:", "        pass"),
+            ("except especifica + pass/continue",
+             "    except KeyError:", "        continue"),
+            ("except nu + logger.exception (tolerado)",
+             "    except:", '        logger.exception("x")'),
+            ("except nu + raise (tolerado)", "    except:", "        raise"),
             ("comentario com except Exception: pass",
              "    # nunca usar except Exception: pass aqui", ""),
             ("string com except Exception: pass",
@@ -224,3 +239,11 @@ class TestCatalogoExcecao:
         assert not matches_exc_catalog(
             padrao, "    except Exception as exc:", '        logger.exception("x")'
         )
+
+    def test_except_nu_violador_nao_conta_como_tolerado(self):
+        padrao = HARD_NEGATIVE_CATALOG_EXCECAO["except nu + raise (tolerado)"]
+        assert not matches_exc_catalog(padrao, "    except:", "        pass")
+
+
+def test_dataset_real_passa_no_validador(capsys):
+    assert main() == 0, capsys.readouterr().out

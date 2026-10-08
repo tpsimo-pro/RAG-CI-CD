@@ -15,7 +15,6 @@ from evaluation.metrics import (
     LineResult,
     PRGateResult,
     RepetitionResult,
-    _SECTION_5_PATTERN,
     check_targets,
     cites_norm_of,
     classify_lines,
@@ -32,26 +31,36 @@ class _Det:
     norm_reference: str = ""
 
 
-# ── _SECTION_5_PATTERN ──────────────────────────────────────────────────────
+# ── cites_norm_of (citação da seção da PEP 8) ───────────────────────────────
 
 
-def test_regex_casa_o_nome_de_secao_que_o_corpus_realmente_usa():
-    """
-    O corpus rotula a norma como "5. Práticas de Código e Idiomas Pythonicos",
-    sem a palavra "Seção". O regex antigo exigia "Seção 5" e portanto NUNCA
-    casaria uma citação correta — norm_reference_precision saía 0.0 por bug,
-    não por desempenho.
-    """
-    assert _SECTION_5_PATTERN.search(
-        "guia_python_pep8.md | Seção: 5. Práticas de Código e Idiomas Pythonicos"
+def test_citacao_da_secao_do_corpus_real_e_reconhecida():
+    """A citação sai do contexto `[Fonte: ... | Seção: ...]` da PEP 8."""
+    ref = r"docs\style_guides\pep-0008.md | Seção: Programming Recommendations"
+    assert cites_norm_of("pep8-recomendacoes", ref)
+    assert cites_norm_of("pep8-excecoes", ref)
+
+
+def test_nomenclatura_aceita_secao_e_subsecoes_de_nomes():
+    for secao in (
+        "Naming Conventions",
+        "Function and Variable Names",
+        "Class Names",
+        "Names to Avoid",
+    ):
+        assert cites_norm_of("pep8-nomes", f"pep-0008.md | Seção: {secao}")
+
+
+def test_citacao_de_outra_secao_nao_conta():
+    assert not cites_norm_of(
+        "pep8-recomendacoes", "pep-0008.md | Seção: Maximum Line Length"
     )
-    assert _SECTION_5_PATTERN.search("guia_python_pep8.md — Seção 5")
+    assert not cites_norm_of("pep8-nomes", "pep-0008.md | Seção: Imports")
 
 
-def test_regex_nao_casa_outras_secoes():
-    assert not _SECTION_5_PATTERN.search("guia_python_pep8.md | Seção: 1.1 Tamanho Máximo")
-    assert not _SECTION_5_PATTERN.search("coding_standards.md | Seção: Correto")
-    assert not _SECTION_5_PATTERN.search("guia_python_pep8.md | Seção: 5.1 Docstrings")
+def test_regra_ausente_ou_desconhecida_nunca_conta():
+    assert not cites_norm_of(None, "Programming Recommendations")
+    assert not cites_norm_of("inexistente", "Programming Recommendations")
 
 
 # ── normalize_line (D-003) ──────────────────────────────────────────────────
@@ -165,14 +174,14 @@ class TestClassifyLines:
         for r in results:
             assert r.cites_correct_norm is None
 
-    def test_cites_correct_norm_verdadeiro_quando_tp_cita_secao_5(self):
+    def test_cites_correct_norm_verdadeiro_quando_tp_cita_a_secao_da_regra(self):
         gold = [
-            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5")
+            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="pep8-recomendacoes")
         ]
         dets = [
             _Det(
                 line_content="if x == True:",
-                norm_reference="guia_python_pep8.md | Seção: 5. Práticas",
+                norm_reference="pep-0008.md | Seção: Programming Recommendations",
             )
         ]
 
@@ -183,12 +192,12 @@ class TestClassifyLines:
 
     def test_cites_correct_norm_falso_quando_tp_cita_outra_secao(self):
         gold = [
-            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5")
+            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="pep8-recomendacoes")
         ]
         dets = [
             _Det(
                 line_content="if x == True:",
-                norm_reference="coding_standards.md | Seção: Correto",
+                norm_reference="pep-0008.md | Seção: Maximum Line Length",
             )
         ]
 
@@ -387,10 +396,10 @@ class TestRepetitionResult:
 class TestPerRule:
     def test_separa_as_regras_e_ignora_linhas_sem_regra(self):
         results = [
-            _line_result("PR-1", "TP", regra="secao-5", sub_regra="booleano"),
-            _line_result("PR-1", "FP", regra="secao-5"),
-            _line_result("PR-2", "TP", regra="secao-2", sub_regra="nome_funcao"),
-            _line_result("PR-2", "FN", regra="secao-2", sub_regra="nome_classe"),
+            _line_result("PR-1", "TP", regra="pep8-recomendacoes", sub_regra="booleano"),
+            _line_result("PR-1", "FP", regra="pep8-recomendacoes"),
+            _line_result("PR-2", "TP", regra="pep8-nomes", sub_regra="nome_funcao"),
+            _line_result("PR-2", "FN", regra="pep8-nomes", sub_regra="nome_classe"),
             _line_result("PR-3", "FP"),  # negativo comum: fora de toda regra
             _line_result("PR-3", "TN"),
         ]
@@ -398,14 +407,14 @@ class TestPerRule:
 
         por_regra = rep.per_rule()
 
-        assert set(por_regra) == {"secao-5", "secao-2"}
-        assert por_regra["secao-5"].confusion_matrix == {
+        assert set(por_regra) == {"pep8-recomendacoes", "pep8-nomes"}
+        assert por_regra["pep8-recomendacoes"].confusion_matrix == {
             "tp": 1, "fp": 1, "fn": 0, "tn": 0, "n": 2
         }
-        assert por_regra["secao-5"].precision == pytest.approx(0.5)
-        assert por_regra["secao-5"].recall == pytest.approx(1.0)
-        assert por_regra["secao-2"].recall == pytest.approx(0.5)
-        assert por_regra["secao-2"].precision == pytest.approx(1.0)
+        assert por_regra["pep8-recomendacoes"].precision == pytest.approx(0.5)
+        assert por_regra["pep8-recomendacoes"].recall == pytest.approx(1.0)
+        assert por_regra["pep8-nomes"].recall == pytest.approx(0.5)
+        assert por_regra["pep8-nomes"].precision == pytest.approx(1.0)
 
     def test_fp_em_linha_sem_regra_nao_entra_em_regra_alguma(self):
         """
@@ -413,20 +422,20 @@ class TestPerRule:
         negativos comuns só existem na matriz global (per_rule_note).
         """
         results = [
-            _line_result("PR-1", "TP", regra="secao-5"),
+            _line_result("PR-1", "TP", regra="pep8-recomendacoes"),
             _line_result("PR-1", "FP"),
         ]
         rep = RepetitionResult(repetition_index=0, line_results=results)
 
         assert rep.precision == pytest.approx(0.5)
-        assert rep.per_rule()["secao-5"].precision == pytest.approx(1.0)
+        assert rep.per_rule()["pep8-recomendacoes"].precision == pytest.approx(1.0)
 
     def test_recall_por_sub_regra_so_conta_positivas(self):
         results = [
-            _line_result("PR-1", "TP", regra="secao-2", sub_regra="nome_funcao"),
-            _line_result("PR-1", "FN", regra="secao-2", sub_regra="nome_funcao"),
-            _line_result("PR-1", "TP", regra="secao-2", sub_regra="nome_classe"),
-            _line_result("PR-1", "FP", regra="secao-2"),  # negativo difícil
+            _line_result("PR-1", "TP", regra="pep8-nomes", sub_regra="nome_funcao"),
+            _line_result("PR-1", "FN", regra="pep8-nomes", sub_regra="nome_funcao"),
+            _line_result("PR-1", "TP", regra="pep8-nomes", sub_regra="nome_classe"),
+            _line_result("PR-1", "FP", regra="pep8-nomes"),  # negativo difícil
         ]
         rep = RepetitionResult(repetition_index=0, line_results=results)
 
@@ -440,13 +449,13 @@ class TestPerRule:
 
     def test_fp_logo_abaixo_de_except_violador_e_erro_de_localizacao(self):
         results = [
-            _line_result("PR-1", "FN", regra="coding-4.1", sub_regra="captura_generica"),
+            _line_result("PR-1", "FN", regra="pep8-excecoes", sub_regra="except_nu"),
             _line_result("PR-1", "FP"),  # o `pass` do bloco violador
-            _line_result("PR-1", "TN", viola=False, regra="coding-4.1"),  # except correto
+            _line_result("PR-1", "TN", viola=False, regra="pep8-excecoes"),  # except correto
             _line_result("PR-1", "FP"),  # corpo de bloco que nao viola
-            _line_result("PR-2", "FN", regra="coding-4.1", sub_regra="captura_silenciosa"),
+            _line_result("PR-2", "FN", regra="pep8-excecoes", sub_regra="except_nu"),
             _line_result("PR-3", "FP"),  # primeira linha de outro PR
-            _line_result("PR-3", "TP", regra="secao-5", sub_regra="nulo"),
+            _line_result("PR-3", "TP", regra="pep8-recomendacoes", sub_regra="nulo"),
             _line_result("PR-3", "FP"),  # abaixo de positiva de outra regra
         ]
         rep = RepetitionResult(repetition_index=0, line_results=results)
@@ -455,34 +464,34 @@ class TestPerRule:
 
     def test_norm_reference_precision_por_regra_usa_a_norma_da_regra(self):
         gold = [
-            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="secao-5"),
-            GoldLine(pr_id="PR-1", line="def CalculateTax(a):", viola=True, regra="secao-2"),
+            GoldLine(pr_id="PR-1", line="if x == True:", viola=True, regra="pep8-recomendacoes"),
+            GoldLine(pr_id="PR-1", line="def CalculateTax(a):", viola=True, regra="pep8-nomes"),
         ]
         dets = [
             _Det(
                 line_content="if x == True:",
-                norm_reference="guia_python_pep8.md | Seção: 5. Práticas",
+                norm_reference="pep-0008.md | Seção: Programming Recommendations",
             ),
             _Det(
                 line_content="def CalculateTax(a):",
-                norm_reference="coding_standards.md | Seção: 2.1 Python",
+                norm_reference="pep-0008.md | Seção: Function and Variable Names",
             ),
         ]
 
         results, _, _ = classify_lines(gold, dets)
         rep = RepetitionResult(repetition_index=0, line_results=results)
 
-        assert rep.per_rule()["secao-5"].norm_reference_precision == 1.0
-        assert rep.per_rule()["secao-2"].norm_reference_precision == 1.0
+        assert rep.per_rule()["pep8-recomendacoes"].norm_reference_precision == 1.0
+        assert rep.per_rule()["pep8-nomes"].norm_reference_precision == 1.0
 
     def test_citacao_da_secao_errada_nao_conta(self):
         gold = [
-            GoldLine(pr_id="PR-1", line="def CalculateTax(a):", viola=True, regra="secao-2")
+            GoldLine(pr_id="PR-1", line="def CalculateTax(a):", viola=True, regra="pep8-nomes")
         ]
         dets = [
             _Det(
                 line_content="def CalculateTax(a):",
-                norm_reference="guia_python_pep8.md | Seção: 5. Práticas",
+                norm_reference="pep-0008.md | Seção: Programming Recommendations",
             )
         ]
 
@@ -496,17 +505,17 @@ class TestPerRule:
             RepetitionResult(
                 repetition_index=i,
                 line_results=[
-                    _line_result("PR-1", "TP", regra="secao-5"),
-                    _line_result("PR-1", "FN", regra="secao-2"),
+                    _line_result("PR-1", "TP", regra="pep8-recomendacoes"),
+                    _line_result("PR-1", "FN", regra="pep8-nomes"),
                 ],
             )
             for i in range(2)
         ]
         resumo = AggregatedEvaluation(repetitions=reps).per_rule_summary()
 
-        assert resumo["secao-5"]["recall_mean"] == 1.0
-        assert resumo["secao-5"]["recall_stdev"] == 0.0
-        assert resumo["secao-2"]["recall_mean"] == 0.0
+        assert resumo["pep8-recomendacoes"]["recall_mean"] == 1.0
+        assert resumo["pep8-recomendacoes"]["recall_stdev"] == 0.0
+        assert resumo["pep8-nomes"]["recall_mean"] == 0.0
 
 
 # ── PRGateResult ──────────────────────────────────────────────────────────────
@@ -625,14 +634,13 @@ class TestCheckTargets:
 @pytest.mark.parametrize(
     ("ref", "esperado"),
     [
-        ("coding_standards.md | Seção: 4.1 Regras Obrigatórias", True),
-        ("coding_standards.md, 4.1", True),
-        ("coding_standards.md — Seção 4 Tratamento de Exceções", True),
-        ("guia_python_pep8.md | Seção: 4. Uso de Espaços em Branco", False),
-        ("guia_python_pep8.md | Seção: 5. Práticas", False),
-        ("coding_standards.md | Seção: 14.1", False),
+        ("pep-0008.md | Seção: Programming Recommendations", True),
+        ("PEP 8, bare except", True),
+        ("pep-0008.md | Seção: Exception Names", False),
+        ("pep-0008.md | Seção: Imports", False),
+        ("pep-0008.md | Seção: Maximum Line Length", False),
         ("", False),
     ],
 )
 def test_cites_norm_of_regra_de_excecao(ref, esperado):
-    assert cites_norm_of("coding-4.1", ref) is esperado
+    assert cites_norm_of("pep8-excecoes", ref) is esperado

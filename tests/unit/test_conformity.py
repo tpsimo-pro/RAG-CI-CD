@@ -1,4 +1,4 @@
-"""Testes da conformidade do dataset com o corpus (D-008)."""
+"""Testes da conformidade do dataset com a PEP 8 (D-008, D-009)."""
 
 from __future__ import annotations
 
@@ -15,33 +15,13 @@ LIMPO = textwrap.dedent('''\
     MAX_RATE = 0.5
 
 
-    def calculate_discount(price: float, rate: float) -> float:
-        """Calcula o desconto aplicado a um preco.
-
-        Args:
-            price: Preco original.
-            rate: Taxa de desconto entre 0 e 1.
-
-        Returns:
-            Valor do desconto.
-
-        Raises:
-            ValueError: Se a taxa passar do limite.
-        """
+    def calculate_discount(price, rate):
         if rate > MAX_RATE:
             raise ValueError("Taxa acima do limite")
         return price * rate
 
 
-    def is_free(price: float) -> bool:
-        """Indica se o preco e zero.
-
-        Args:
-            price: Preco a verificar.
-
-        Returns:
-            True se o preco for zero.
-        """
+    def is_free(price):
         return price == 0
 ''').splitlines()
 
@@ -58,10 +38,25 @@ def test_modulo_limpo_passa():
     assert _erros(LIMPO) == []
 
 
-def test_funcao_sem_docstring_reprova():
-    inicio = LIMPO.index("def is_free(price: float) -> bool:")
-    lines = LIMPO[: inicio + 1] + ["    return price == 0"]
-    assert any("D103" in e for e in _erros(lines))
+def test_linha_acima_de_79_colunas_reprova():
+    lines = LIMPO[:-1] + ["    return price == 0  # " + "x" * 60]
+    assert any("E501" in e for e in _erros(lines))
+
+
+def test_comentario_acima_de_72_colunas_reprova():
+    lines = LIMPO[:-1] + ["    # " + "palavra " * 9, "    return price == 0"]
+    assert any("W505" in e for e in _erros(lines))
+
+
+def test_espaco_ausente_apos_dois_pontos_reprova():
+    lines = LIMPO.copy()
+    lines[LIMPO.index("def is_free(price):")] = "def is_free(price:int):"
+    assert any("E231" in e for e in _erros(lines))
+
+
+def test_imports_fora_de_ordem_reprovam():
+    lines = ["import sys", "import logging", ""] + LIMPO[3:]
+    assert any("I001" in e for e in _erros(lines))
 
 
 def test_e712_so_vale_na_positiva_booleana():
@@ -73,11 +68,13 @@ def test_e712_so_vale_na_positiva_booleana():
 
 def test_positiva_com_outra_violacao_reprova():
     lines = LIMPO.copy()
-    idx = lines.index("def is_free(price: float) -> bool:")
-    lines[idx] = "def isFree(price: float):"
+    idx = lines.index("def is_free(price):")
+    lines[idx] = "def isFree(price:int):"
     subs = [None] * len(lines)
     subs[idx] = "nome_funcao"
-    assert any("ANN201" in e for e in _erros(lines, subs))
+    erros = _erros(lines, subs)
+    assert any("E231" in e for e in erros)
+    assert not any("N802" in e for e in erros)
 
 
 def test_achado_fora_do_intervalo_de_linhas_nao_quebra():
@@ -85,56 +82,20 @@ def test_achado_fora_do_intervalo_de_linhas_nao_quebra():
     assert isinstance(_erros(lines), list)
 
 
-def test_prefixo_booleano_nos_dois_sentidos():
-    assert "prefixo-booleano" in _tags(
-        "def check_stock(n: int) -> bool:\n    return n > 0\n"
-    )
-    assert "prefixo-booleano" in _tags(
-        "def is_ready(n: int) -> int:\n    return n\n"
-    )
-    assert "prefixo-booleano" not in _tags(
-        "def has_items(n: int) -> bool:\n    return n > 0\n"
-    )
+def test_o_que_a_pep8_nao_manda_nao_reprova():
+    # Docstring, anotacoes, prefixo booleano, quantidade de parametros,
+    # nomes genericos e de uma letra eram exigencias dos guias antigos.
+    codigo = textwrap.dedent('''\
+        def check_stock(a1, a2, a3, a4, a5, strict=False):
+            result = a1
+            x = a2
+            return result and x and strict
 
 
-def test_nomes_genericos_e_de_uma_letra():
-    assert "nome-generico" in _tags("def f_(n: int) -> None:\n    result = n\n")
-    assert "uma-letra" in _tags("def f_(n: int) -> None:\n    x = n\n")
-    assert "uma-letra" not in _tags(
-        "def f_(count: int) -> None:\n    for i in range(count):\n        pass\n"
-    )
-    assert "nome-generico" in _tags(
-        "try:\n    run()\nexcept Exception as err:\n    raise AppError() from err\n"
-    )
-
-
-def test_nome_de_modulo():
-    assert "nome-de-modulo" in _tags("total = 1\n")
-    assert "nome-de-modulo" not in _tags("MAX_ROWS = 1\nlogger = make()\n")
-
-
-def test_parametros():
-    assert "muitos-parametros" in _tags(
-        "def g(a1: int, a2: int, a3: int, a4: int, a5: int) -> None:\n    pass\n"
-    )
-    assert "muitos-parametros" not in _tags(
-        "def g(self, a1: int, a2: int, a3: int, a4: int) -> None:\n    pass\n"
-    )
-    assert "parametro-booleano" in _tags("def g(strict: bool) -> None:\n    pass\n")
-    assert "parametro-booleano" in _tags("def g(strict=False) -> None:\n    pass\n")
-
-
-def test_secoes_da_docstring():
-    sem_args = 'def g(a1: int) -> None:\n    """Faz algo."""\n'
-    assert "docstring-sem-args" in _tags(sem_args)
-    sem_returns = 'def g() -> int:\n    """Faz algo."""\n    return 1\n'
-    assert "docstring-sem-returns" in _tags(sem_returns)
-    sem_raises = 'def g() -> None:\n    """Faz algo."""\n    raise ValueError()\n'
-    assert "docstring-sem-raises" in _tags(sem_raises)
-
-
-def test_segredo_em_literal():
-    assert "segredo" in _tags('DB_URL = "postgresql://u:p@host/db"\n')
+        total = 1
+        DB_URL = "postgresql://u:p@host/db"
+    ''').splitlines()
+    assert _erros(codigo) == []
 
 
 def test_nome_proibido_maiusculo_em_funcao_vale_so_na_positiva():
@@ -147,30 +108,46 @@ def test_nome_proibido_maiusculo_em_funcao_vale_so_na_positiva():
 
 def test_uso_de_nome_proibido_fora_da_atribuicao_reprova():
     assert "uso-nome-proibido" in _tags(
-        "def f_(count: int) -> int:\n    l = count\n    return l\n"
+        "def f_(count):\n    l = count\n    return l\n"
     )
     assert "uso-nome-proibido" not in _tags(
-        "def f_(count: int) -> int:\n    l = count\n    return count\n"
+        "def f_(count):\n    l = count\n    return count\n"
     )
 
 
-def test_positiva_nome_funcao_com_retorno_bool_viola_tambem_a_2_3():
-    lines = LIMPO.copy()
-    idx = lines.index("def is_free(price: float) -> bool:")
-    lines[idx] = "def isFree(price: float) -> bool:"
+EXCETO = textwrap.dedent('''\
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+
+    def load(path):
+        try:
+            return open(path)
+        except:
+            {corpo}
+''')
+
+
+def _exceto(corpo):
+    return EXCETO.format(corpo=corpo).splitlines()
+
+
+def test_except_nu_com_logger_exception_e_tolerado_pela_pep8():
+    assert _erros(_exceto('logger.exception("falha")')) == []
+
+
+def test_except_nu_com_raise_e_tolerado_pela_pep8():
+    assert _erros(_exceto("raise")) == []
+
+
+def test_except_nu_silencioso_reprova_fora_da_positiva():
+    lines = _exceto("pass")
+    assert any("E722" in e for e in _erros(lines))
+
+
+def test_except_nu_silencioso_vale_na_positiva_except_nu():
+    lines = _exceto("pass")
     subs = [None] * len(lines)
-    subs[idx] = "nome_funcao"
-    assert any("prefixo-booleano" in e for e in _erros(lines, subs))
-
-
-def test_init_sem_docstring_reprova():
-    lines = LIMPO + [
-        "",
-        "",
-        "class Wallet:",
-        '    """Carteira do cliente."""',
-        "",
-        "    def __init__(self, owner: str) -> None:",
-        "        self.owner = owner",
-    ]
-    assert any("D107" in e for e in _erros(lines))
+    subs[lines.index("    except:")] = "except_nu"
+    assert _erros(lines, subs) == []

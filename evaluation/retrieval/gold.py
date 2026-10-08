@@ -31,8 +31,7 @@ _SUB_REGRA_PARA_CHAVE = {
     "nome_funcao": NORM_NOME_FUNCAO,
     "nome_classe": NORM_NOME_CLASSE,
     "nome_proibido": NORM_NOME_PROIBIDO,
-    "captura_generica": NORM_EXCECAO,
-    "captura_silenciosa": NORM_EXCECAO,
+    "except_nu": NORM_EXCECAO,
 }
 
 

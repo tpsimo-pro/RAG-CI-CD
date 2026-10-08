@@ -1,0 +1,16 @@
+{
+  "label": "pep8_L3_minilm",
+  "config": {
+    "per_line": true,
+    "hybrid": false,
+    "embedding_model": "all-MiniLM-L6-v2",
+    "top_k": 5,
+    "score_threshold": 0.35,
+    "collection": "pep8_chunks_minilm"
+  },
+  "n_gold_lines": 118,
+  "recall_at_1": 0.0508,
+  "recall_at_3": 0.0593,
+  "recall_at_5": 0.0593,
+  "context_precision_at_5": 0.0537
+}

@@ -1,0 +1,16 @@
+{
+  "label": "pep8_L1",
+  "config": {
+    "per_line": false,
+    "hybrid": false,
+    "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "top_k": 5,
+    "score_threshold": 0.35,
+    "collection": "pep8_chunks"
+  },
+  "n_gold_lines": 118,
+  "recall_at_1": 0.0169,
+  "recall_at_3": 0.0169,
+  "recall_at_5": 0.0169,
+  "context_precision_at_5": 0.0169
+}

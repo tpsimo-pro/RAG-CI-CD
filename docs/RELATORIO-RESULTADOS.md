@@ -1,4 +1,169 @@
-# Relatório de resultados: avaliação oficial de D-008
+# Relatório de resultados: avaliação oficial de D-009 (PEP 8)
+
+Rodada de 2026-10-07, branch `feat/corpus-pep8`. Corpus: a PEP 8 completa, em
+inglês (`docs/style_guides/pep-0008.md`, 43 chunks, coleção Qdrant
+`pep8_chunks`). Dataset de 75 PRs e 2.025 linhas (D-008, reapontado para a
+PEP 8 em D-009). LLM `qwen/qwen3.8-27b`, temperatura 0.0, 1 repetição.
+Resultado completo em `evaluation/results_pep8.json`. O relatório da rodada
+anterior (D-008, corpus de três guias) está no anexo, ao fim.
+
+Esta rodada **não é comparável um a um** com a de D-008: mudaram o corpus, duas
+das três regras (as de exceção) e o prompt. A seção 7 diz o que a comparação
+permite concluir.
+
+## 1. Resultado principal
+
+| Métrica | D-009 (PEP 8) | D-008 (3 guias) | Meta mínima |
+|---|---|---|---|
+| Precisão | 0,9583 | 0,8722 | 0,70 |
+| Recall | 0,9746 | 0,8788 | 0,65 |
+| F1 | 0,9664 | 0,8755 | 0,67 |
+
+As três metas do TCC foram atingidas. Matriz por linha (2.025 linhas):
+
+| | Previsto positivo | Previsto negativo |
+|---|---|---|
+| **Real positivo** | TP = 115 | FN = 3 |
+| **Real negativo** | FP = 5 | TN = 1902 |
+
+Em D-008: TP 116, FP 17, FN 16, TN 1876. Alucinação de localização 0,0. Precisão
+da referência normativa 0,9478 (D-008: 0,9397). Acurácia 0,996, secundária e
+não representativa (80% das linhas são negativas).
+
+## 2. Por regra
+
+| Regra | TP/FP/FN/TN | Precisão | Recall | F1 | Citação correta |
+|---|---|---|---|---|---|
+| `pep8-recomendacoes` | 52/0/0/50 | 1,0000 | 1,0000 | 1,0000 | 0,9423 |
+| `pep8-nomes` | 47/1/1/49 | 0,9792 | 0,9792 | 0,9792 | 0,9362 |
+| `pep8-excecoes` | 16/4/2/42 | 0,8000 | 0,8889 | 0,8421 | 1,0000 |
+
+Recall por sub-regra:
+
+| Sub-regra | Positivas | TP | FN | Recall |
+|---|---|---|---|---|
+| `booleano` | 26 | 26 | 0 | 1,00 |
+| `nulo` | 26 | 26 | 0 | 1,00 |
+| `nome_funcao` | 16 | 15 | 1 | 0,94 |
+| `nome_classe` | 16 | 16 | 0 | 1,00 |
+| `nome_proibido` | 16 | 16 | 0 | 1,00 |
+| `except_nu` | 18 | 16 | 2 | 0,89 |
+
+## 3. O que ainda falha
+
+São 8 erros por linha: 3 FNs e 5 FPs. A causa dos FNs não foi investigada.
+
+| Tipo | PR | Linha | Leitura |
+|---|---|---|---|
+| FN | PR-033 | `def notifyWarehouse(order: Order) -> None:` | `nome_funcao` não sinalizado |
+| FN | PR-066 | `        except:` | `except_nu` com `pass`/`continue` não sinalizado |
+| FN | PR-072 | `        except:` | idem |
+| FP | PR-062 | `    except Exception:` | A PEP 8 recomenda esta forma. O modelo cita Programming Recommendations e diz "exceção genérica sem tratamento" |
+| FP | PR-074 | `    except Exception as exc:` | Mesmo padrão: "catching broad Exception instead of specific exceptions" |
+| FP | PR-079 | `    except:` | `except:` tolerado pela PEP 8 (o corpo registra com `logger.exception`). O modelo acusou "cláusula nua" |
+| FP | PR-080 | `    except:` | `except:` tolerado pela PEP 8 (o corpo faz `raise`). Mesmo erro |
+| FP | PR-047 | `    limit = count.l` | Acesso ao atributo `.l`, que não é nome de variável. O modelo citou Names to Avoid |
+
+Quatro dos cinco FPs estão em exceções. Os dois últimos de exceção são os
+casos que a PEP 8 tolera (handler que registra o traceback ou relança), e o
+modelo não os distinguiu do `except:` nu que viola.
+
+## 4. Nível de PR (gate de CI/CD)
+
+| | Sistema bloqueia | Sistema não bloqueia |
+|---|---|---|
+| **PR viola** | TP = 52 | FN = 2 |
+| **PR limpo** | FP = 3 | TN = 18 |
+
+Em D-008: TP 54, FP 11, FN 0, TN 10. Os 3 PRs de controle bloqueados são
+PR-074, PR-079 e PR-080, todos com `except`. Os 2 PRs violadores liberados são
+PR-066 e PR-072.
+
+## 5. Recuperação (sem LLM)
+
+`recall@k` sobre as 118 linhas positivas, consulta por linha, `top_k` 5.
+`context_precision@5` é a fração dos chunks recuperados que carregam a norma.
+
+| Config | recall@1 | recall@3 | recall@5 | context_precision@5 |
+|---|---|---|---|---|
+| Consulta por arquivo, multilíngue, só denso | 0,0169 | 0,0169 | 0,0169 | 0,0169 |
+| Consulta por linha, multilíngue, só denso | 0,0424 | 0,0763 | 0,0763 | 0,0458 |
+| Híbrido denso + BM25 com RRF, multilíngue (produção) | 0,2966 | 0,6186 | 0,7373 | 0,1475 |
+| Híbrido, MiniLM em inglês | 0,4322 | 0,6610 | 0,7288 | 0,1458 |
+| Consulta por linha, MiniLM em inglês, só denso | 0,0508 | 0,0593 | 0,0593 | 0,0537 |
+| Consulta por arquivo, MiniLM em inglês, só denso | 0,0254 | 0,0254 | 0,0254 | 0,0254 |
+
+Em D-008, o híbrido multilíngue deu 0,6667 / 0,8182 / 0,8409 / 0,1894.
+Critério do plano (`recall@5 >= 0,95`): não atingido, como antes.
+
+Recall@5 por norma no híbrido multilíngue, medido com um script avulso
+(não versionado):
+
+| Norma | Linhas | recall@5 |
+|---|---|---|
+| comparação com booleano | 26 | 1,00 |
+| `except:` nu | 18 | 1,00 |
+| `None` com `==`/`!=` | 26 | 0,77 |
+| nome `l`/`O`/`I` | 16 | 0,75 |
+| nome de classe | 16 | 0,69 |
+| nome de função | 16 | 0,00 |
+
+A norma de nome de função é prosa ("Function names should be lowercase...") e
+a consulta é a linha `def CalculateTax(...)`, sem palavra em comum. O mesmo
+ponto fraco já aparecia em D-008.
+
+Tamanho do chunk, híbrido por linha: recall@5 de 0,7373 (512, padrão), 0,6780
+(256), 0,6695 (128) e 0,4915 (64). Mantido 512.
+
+## 6. Custo
+
+Cada chamada ao LLM pede entre 3.700 e 5.000 tokens (o `max_tokens` de 900 da
+resposta conta na reserva da Groq). O limite é de 200.000 tokens por dia, então
+75 PRs (cerca de 277 mil) não cabem em um dia. A rodada levou três execuções
+com checkpoint (`evaluation/.eval_checkpoint.json`), e duas delas foram
+encerradas pelo sistema por memória baixa durante a espera da cota. O contexto
+da PEP 8 é maior que o de D-008 porque os chunks de Programming
+Recommendations têm cerca de 450 palavras cada.
+
+## 7. Como ler a comparação com D-008
+
+- Parte dos FPs de D-008 vinha de normas fora do piloto que estavam no corpus
+  (cs 1.1 e outras): 11 dos 21 PRs de controle eram bloqueados. Com o corpus
+  restrito à PEP 8, essas normas deixam de existir para o modelo. A melhora de
+  precisão não mede só o sistema; mede também um corpus mais estreito.
+- O pior resultado de D-008, `captura_silenciosa` (recall 0,13), vinha de um
+  exemplo do `coding_standards.md`. A sub-regra saiu, então esse resultado
+  não tem equivalente aqui.
+- A regra de exceção é outra (`except:` nu, 18 positivas), com 4 FPs. É o
+  ponto mais fraco desta rodada.
+- A PEP 8 é um texto amplamente conhecido pelos LLMs. O recall de detecção
+  (0,97) é bem maior que o recall@5 de recuperação (0,74), e o modelo pode
+  estar acertando por conhecimento prévio, sem depender do contexto
+  recuperado. Sem uma linha de base sem recuperação, não é possível separar a
+  contribuição do RAG da do conhecimento do modelo. Essa linha de base não foi
+  medida.
+- Uma repetição, dataset sintético escrito pelo autor (D-004) e 18 positivas
+  em `except_nu` limitam a generalização.
+
+## 8. Próximos passos possíveis
+
+- Medir uma linha de base sem recuperação (o mesmo prompt, sem os chunks),
+  para quantificar o que o RAG contribui sobre a PEP 8.
+- Ajustar o prompt ou o corpus para os dois casos tolerados do `except:` nu e
+  para `except Exception:`, causa de 4 dos 5 FPs.
+- Ao ampliar o dataset com outras normas da PEP 8, limitar cada rodada a cerca
+  de 50 PRs ou reduzir os tokens por chamada, para caber na cota diária.
+- Decidir o modelo de embedding: o MiniLM em inglês dá recall@1 de 0,43
+  contra 0,30 do multilíngue, com recall@5 igual (0,73 e 0,74).
+
+---
+
+# Anexo: relatório de D-008 (corpus de três guias)
+
+Resultados da rodada anterior, mantidos como registro. O corpus daquela rodada
+(`guia_python_pep8.md`, `coding_standards.md`, `architecture_patterns.md`) saiu
+do repositório em D-009 e está no histórico do git, antes do commit `339e75a`.
+
 
 Rodada de 2026-09-29, branch `feat/dataset-conforme-corpus`. Dataset de
 75 PRs e 2.025 linhas conforme o corpus inteiro (D-008), retriever com a

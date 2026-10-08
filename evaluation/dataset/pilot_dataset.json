@@ -99,7 +99,7 @@
       {
         "line": "    if user.is_admin == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -113,7 +113,7 @@
       {
         "line": "    if account.suspended == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -127,7 +127,7 @@
       {
         "line": "    if account.owner is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -141,7 +141,7 @@
       {
         "line": "    if account.billing_profile is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -155,7 +155,7 @@
       {
         "line": "    return user.two_factor_enabled == True",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       }
@@ -275,7 +275,7 @@
       {
         "line": "    if gateway_response.approved == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -289,7 +289,7 @@
       {
         "line": "    if gateway_response.declined == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -303,7 +303,7 @@
       {
         "line": "    if transaction.is_recurring:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -317,7 +317,7 @@
       {
         "line": "    if not gateway_response.fraud_flag:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -331,7 +331,7 @@
       {
         "line": "    return transaction.refunded == True",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       }
@@ -437,7 +437,7 @@
       {
         "line": "    if session.dirty == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -451,7 +451,7 @@
       {
         "line": "    if session.locked == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -465,7 +465,7 @@
       {
         "line": "    if session.region != cache_client.region:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -479,7 +479,7 @@
       {
         "line": "    if session.version == cache_client.schema_version:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -493,7 +493,7 @@
       {
         "line": "    return session.revoked == True",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       }
@@ -620,7 +620,7 @@
       {
         "line": "    if report.finalized == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -634,7 +634,7 @@
       {
         "line": "    if options.include_charts == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -648,7 +648,7 @@
       {
         "line": "    if report.has_errors == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -662,7 +662,7 @@
       {
         "line": "    assert report.draft_version is None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -676,7 +676,7 @@
       {
         "line": "    return report.file_path is not None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -775,7 +775,7 @@
       {
         "line": "    if user.push_enabled == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -789,7 +789,7 @@
       {
         "line": "    if notification.muted == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -803,7 +803,7 @@
       {
         "line": "    if user.device_token is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -817,7 +817,7 @@
       {
         "line": "    if notification.scheduled_at is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -930,7 +930,7 @@
       {
         "line": "    if product.discontinued == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -944,7 +944,7 @@
       {
         "line": "    if warehouse.active == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -958,7 +958,7 @@
       {
         "line": "    if product.backorder_allowed:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -972,7 +972,7 @@
       {
         "line": "    if not warehouse.has_capacity:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1092,7 +1092,7 @@
       {
         "line": "    if event.cancelled == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -1106,7 +1106,7 @@
       {
         "line": "    if event.shipped == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -1120,7 +1120,7 @@
       {
         "line": "    if order.priority != event.priority:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1134,7 +1134,7 @@
       {
         "line": "    if order.warehouse_id == event.warehouse_id:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1148,7 +1148,7 @@
       {
         "line": "    return event.delivered == True",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       }
@@ -1261,7 +1261,7 @@
       {
         "line": "    if plan.active == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -1275,7 +1275,7 @@
       {
         "line": "    if customer.tax_exempt == False:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -1289,7 +1289,7 @@
       {
         "line": "    if plan.trial == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -1303,7 +1303,7 @@
       {
         "line": "    assert invoice.due_date is None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1317,7 +1317,7 @@
       {
         "line": "    return invoice.total is not None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -1423,7 +1423,7 @@
       {
         "line": "    if payload.email != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1437,7 +1437,7 @@
       {
         "line": "    if payload.avatar_url == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1451,7 +1451,7 @@
       {
         "line": "    if payload.locale != user.locale:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1465,7 +1465,7 @@
       {
         "line": "    if payload.timezone == user.timezone:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1479,7 +1479,7 @@
       {
         "line": "    return payload.phone != None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       }
@@ -1585,7 +1585,7 @@
       {
         "line": "    if upload.content_type != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1599,7 +1599,7 @@
       {
         "line": "    if upload.checksum == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1613,7 +1613,7 @@
       {
         "line": "    if upload.virus_scan_result != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1627,7 +1627,7 @@
       {
         "line": "    assert upload.temp_path is None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1641,7 +1641,7 @@
       {
         "line": "    return storage.finalize(upload) is not None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -1768,7 +1768,7 @@
       {
         "line": "    if task.cron_expression == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1782,7 +1782,7 @@
       {
         "line": "    if task.last_run != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1796,7 +1796,7 @@
       {
         "line": "    if task.retry_policy is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1810,7 +1810,7 @@
       {
         "line": "    if task.timeout is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1824,7 +1824,7 @@
       {
         "line": "    return task.owner == None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       }
@@ -1930,7 +1930,7 @@
       {
         "line": "    if event.user_id != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1944,7 +1944,7 @@
       {
         "line": "    if event.metadata == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -1958,7 +1958,7 @@
       {
         "line": "    if event.is_anonymous:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1972,7 +1972,7 @@
       {
         "line": "    if not session.is_authenticated:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -1986,7 +1986,7 @@
       {
         "line": "    return session.referrer != None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       }
@@ -2071,7 +2071,7 @@
       {
         "line": "    if message.payload == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2085,7 +2085,7 @@
       {
         "line": "    if message.correlation_id != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2099,7 +2099,7 @@
       {
         "line": "    if message.retry_count != message.max_retries:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2113,7 +2113,7 @@
       {
         "line": "    if message.priority == handler.default_priority:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2226,7 +2226,7 @@
       {
         "line": "    if client.override_token != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2240,7 +2240,7 @@
       {
         "line": "    if window.remaining_quota == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2268,14 +2268,14 @@
       {
         "line": "    assert client.blocked_until is None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    return window.remaining_quota is not None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -2381,7 +2381,7 @@
       {
         "line": "    if flag.rollout_percentage == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2395,7 +2395,7 @@
       {
         "line": "    if context.user_segment != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2409,7 +2409,7 @@
       {
         "line": "    if flag.description is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2423,7 +2423,7 @@
       {
         "line": "    if context.experiment_id is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2437,7 +2437,7 @@
       {
         "line": "    return flag.expires_at == None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       }
@@ -2543,7 +2543,7 @@
       {
         "line": "    if record.trace_id != None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2557,7 +2557,7 @@
       {
         "line": "    if record.exception == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2571,7 +2571,7 @@
       {
         "line": "    if config.pretty_print:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2585,7 +2585,7 @@
       {
         "line": "    if not config.include_stack_trace:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2599,7 +2599,7 @@
       {
         "line": "    return config.include_hostname != None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       }
@@ -2726,7 +2726,7 @@
       {
         "line": "    if coupon.expired == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -2740,7 +2740,7 @@
       {
         "line": "    if coupon.owner_id is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2754,7 +2754,7 @@
       {
         "line": "    if cart.applied_coupon is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2768,7 +2768,7 @@
       {
         "line": "    if coupon.applicable_category == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2789,14 +2789,14 @@
       {
         "line": "        return coupon.min_purchase != None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    return coupon.single_use == False",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       }
@@ -2902,7 +2902,7 @@
       {
         "line": "    if review.flagged == True:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       },
@@ -2916,7 +2916,7 @@
       {
         "line": "    if rules.strict_mode:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2930,7 +2930,7 @@
       {
         "line": "    if not rules.allow_profanity:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -2944,7 +2944,7 @@
       {
         "line": "    if review.rejection_reason == None:",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
@@ -2965,14 +2965,14 @@
       {
         "line": "        return review.moderator_id != None",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "nulo",
         "hard_negative": false
       },
       {
         "line": "    return review.auto_approved == False",
         "viola": true,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": "booleano",
         "hard_negative": false
       }
@@ -3106,7 +3106,7 @@
       {
         "line": "    if subscription.plan_id != billing.default_plan_id:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3120,7 +3120,7 @@
       {
         "line": "    if subscription.currency == billing.account_currency:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3289,14 +3289,14 @@
       {
         "line": "    assert referral.processed_at is None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    return referral.reward_id is not None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -3465,7 +3465,7 @@
       {
         "line": "    if customer.assigned_agent is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3479,7 +3479,7 @@
       {
         "line": "    if ticket.sla_deadline is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3627,7 +3627,7 @@
       {
         "line": "    if location.is_vpn:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3641,7 +3641,7 @@
       {
         "line": "    if not location.is_trusted_source:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3782,7 +3782,7 @@
       {
         "line": "    if event.retry_count != subscribers.max_retries:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3796,7 +3796,7 @@
       {
         "line": "    if event.source == subscribers.trusted_source:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -3979,14 +3979,14 @@
       {
         "line": "    assert entry.reviewed_at is None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    return entry.checksum is not None",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -4120,7 +4120,7 @@
       {
         "line": "    if product.active_promotion is not None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -4134,7 +4134,7 @@
       {
         "line": "    if product.discount_cap is None:",
         "viola": false,
-        "regra": "secao-5",
+        "regra": "pep8-recomendacoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -4198,7 +4198,7 @@
       {
         "line": "def CalculateTax(order: Order) -> float:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4289,7 +4289,7 @@
       {
         "line": "def calculate_discount(order: Order) -> float:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -4387,7 +4387,7 @@
       {
         "line": "def applyShipping(order: Order) -> float:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4450,7 +4450,7 @@
       {
         "line": "    return order.total + order.shipping_fee",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -4471,7 +4471,7 @@
       {
         "line": "def GetFinalPrice(order: Order) -> float:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4570,7 +4570,7 @@
       {
         "line": "class UserService:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -4591,7 +4591,7 @@
       {
         "line": "    def __init__(self, repository: UserRepository) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -4647,7 +4647,7 @@
       {
         "line": "    def getUser(self, user_id: int) -> User:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4724,7 +4724,7 @@
       {
         "line": "    def DeleteUser(self, user_id: int) -> None:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4780,7 +4780,7 @@
       {
         "line": "    def listActiveUsers(self) -> list[User]:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4858,7 +4858,7 @@
       {
         "line": "def sendConfirmation(order: Order) -> None:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -4928,7 +4928,7 @@
       {
         "line": "def _build_message(order: Order) -> str:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -5012,7 +5012,7 @@
       {
         "line": "def SendCancellation(order: Order) -> None:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5075,7 +5075,7 @@
       {
         "line": "def notifyWarehouse(order: Order) -> None:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5117,7 +5117,7 @@
       {
         "line": "    for i in range(3):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -5174,7 +5174,7 @@
       {
         "line": "def ExportCsv(report: Report) -> str:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5265,7 +5265,7 @@
       {
         "line": "def export_json(report: Report) -> str:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -5349,7 +5349,7 @@
       {
         "line": "def exportPdf(report: Report) -> bytes:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5433,7 +5433,7 @@
       {
         "line": "def BuildSummary(report: Report) -> dict[str, int]:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5496,7 +5496,7 @@
       {
         "line": "    return {\"total\": len(report.rows())}",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -5546,7 +5546,7 @@
       {
         "line": "def ValidateEmail(value: str) -> str:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5630,7 +5630,7 @@
       {
         "line": "def validate_phone(value: str) -> str:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -5714,7 +5714,7 @@
       {
         "line": "def checkAge(value: int) -> int:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5798,7 +5798,7 @@
       {
         "line": "def _normalize(value: str) -> str:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -5897,7 +5897,7 @@
       {
         "line": "def ClearExpired(store: SessionStore) -> None:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -5967,7 +5967,7 @@
       {
         "line": "def refresh_all(store: SessionStore) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -6030,7 +6030,7 @@
       {
         "line": "def getSessionCount(store: SessionStore) -> int:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_funcao",
         "hard_negative": false
       },
@@ -6114,7 +6114,7 @@
       {
         "line": "def __getattr__(name: str) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -6213,7 +6213,7 @@
       {
         "line": "class payment_processor:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6234,7 +6234,7 @@
       {
         "line": "    def __init__(self, gateway: Gateway) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -6374,7 +6374,7 @@
       {
         "line": "class refund_handler:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6479,7 +6479,7 @@
       {
         "line": "class Payment_Audit(object):",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6500,7 +6500,7 @@
       {
         "line": "    total_audited = 0",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -6536,7 +6536,7 @@
       {
         "line": "class InvalidInvoiceError(Exception):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -6564,7 +6564,7 @@
       {
         "line": "class invoice_builder:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6669,7 +6669,7 @@
       {
         "line": "class line_item:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6690,7 +6690,7 @@
       {
         "line": "    def __init__(self, sku: str, quantity: int) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -6767,7 +6767,7 @@
       {
         "line": "class Tax_Rule:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6824,7 +6824,7 @@
       {
         "line": "class message_queue:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6859,7 +6859,7 @@
       {
         "line": "        self.items = []",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -6936,7 +6936,7 @@
       {
         "line": "class dead_letter_queue(message_queue):",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -6964,7 +6964,7 @@
       {
         "line": "class Retry_Policy:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7006,7 +7006,7 @@
       {
         "line": "class BackoffPolicy:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7077,7 +7077,7 @@
       {
         "line": "class product_repository:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7161,7 +7161,7 @@
       {
         "line": "        return DB.get(sku)",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7182,7 +7182,7 @@
       {
         "line": "class Category_Repository:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7266,7 +7266,7 @@
       {
         "line": "class stock_cache:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7308,7 +7308,7 @@
       {
         "line": "class StockError(Exception):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7351,7 +7351,7 @@
       {
         "line": "class job_scheduler:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7372,7 +7372,7 @@
       {
         "line": "    def __init__(self, clock: Clock) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7491,7 +7491,7 @@
       {
         "line": "class Cron_Parser:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7512,7 +7512,7 @@
       {
         "line": "    def _split(self, expression: str) -> list[str]:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7611,7 +7611,7 @@
       {
         "line": "class ConfigReader:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7653,7 +7653,7 @@
       {
         "line": "class env_loader:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7737,7 +7737,7 @@
       {
         "line": "class Yaml_Loader:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_classe",
         "hard_negative": false
       },
@@ -7835,7 +7835,7 @@
       {
         "line": "        return parse(path)",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -7941,7 +7941,7 @@
       {
         "line": "    l = []",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -7962,14 +7962,14 @@
       {
         "line": "    O = 0",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    lower = 1",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -7983,14 +7983,14 @@
       {
         "line": "    I = \"\"",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    for i in range(3):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8096,7 +8096,7 @@
       {
         "line": "    for l in results:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8110,7 +8110,7 @@
       {
         "line": "    for j in rows:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8124,7 +8124,7 @@
       {
         "line": "    O = compute_offset(results)",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8138,14 +8138,14 @@
       {
         "line": "    I = len(page)",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    # l = 1 e apenas um exemplo",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8258,7 +8258,7 @@
       {
         "line": "    l = 0",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8272,7 +8272,7 @@
       {
         "line": "    item_length = item.l",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8286,7 +8286,7 @@
       {
         "line": "    for O in events:",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8300,14 +8300,14 @@
       {
         "line": "    I = hits",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    lower = min(hits, 5)",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8413,7 +8413,7 @@
       {
         "line": "    l = sorted(items)",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8427,7 +8427,7 @@
       {
         "line": "    for i in range(len(items)):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8441,7 +8441,7 @@
       {
         "line": "    O = items[-1]",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8455,7 +8455,7 @@
       {
         "line": "    message = \"l = 1\"",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8568,7 +8568,7 @@
       {
         "line": "    for l in open(path, encoding=\"utf-8\"):",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8582,14 +8582,14 @@
       {
         "line": "    I = 0",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    for j in range(3):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8610,7 +8610,7 @@
       {
         "line": "    limit = count.l",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8730,21 +8730,21 @@
       {
         "line": "    l = []",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    later = 1",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
         "line": "    O = None",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
@@ -8758,14 +8758,14 @@
       {
         "line": "    I = 10",
         "viola": true,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": "nome_proibido",
         "hard_negative": false
       },
       {
         "line": "    for i in range(I_MAX):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8850,7 +8850,7 @@
       {
         "line": "    def __init__(self, sink: LogSink) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -8969,7 +8969,7 @@
       {
         "line": "def build_report(log: AccessLog) -> str:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9082,7 +9082,7 @@
       {
         "line": "def _remove_old(path: Path) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9215,7 +9215,7 @@
       {
         "line": "        _remove_old(path)",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9279,7 +9279,7 @@
       {
         "line": "    def __init__(self, owner: Customer) -> None:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9377,7 +9377,7 @@
       {
         "line": "        return self.owner.total",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9490,7 +9490,7 @@
       {
         "line": "MESSAGE = \"I = 1\"",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9581,7 +9581,7 @@
       {
         "line": "    for i in range(len(rows)):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9645,7 +9645,7 @@
       {
         "line": "class PreferenceError(Exception):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9736,7 +9736,7 @@
       {
         "line": "    lower = user.settings.get(\"theme\")",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9856,7 +9856,7 @@
       {
         "line": "    for j in range(len(outbox)):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -9891,7 +9891,7 @@
       {
         "line": "class OutboxFullError(Exception):",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -10102,7 +10102,7 @@
       {
         "line": "class ShippingRule:",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -10123,7 +10123,7 @@
       {
         "line": "    zone = \"I\"",
         "viola": false,
-        "regra": "secao-2",
+        "regra": "pep8-nomes",
         "sub_regra": null,
         "hard_negative": true
       }
@@ -10133,7 +10133,7 @@
     "pr_id": "PR-056",
     "description": "Leitura de pedidos em lote",
     "filename": "orders/reader.py",
-    "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Leitura de pedidos em lote.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def read_orders(paths: list[Path]) -> list[Order]:\n+    \"\"\"Lê os pedidos dos arquivos informados.\n+\n+    Args:\n+        paths: Arquivos de pedidos.\n+\n+    Returns:\n+        Pedidos lidos com sucesso.\n+    \"\"\"\n+    orders = []\n+    for path in paths:\n+        try:\n+            orders.append(parse_order(path))\n+        except ValueError:\n+            continue\n+        except OSError as exc:\n+            logger.exception(\"Falha ao ler %s: %s\", path, exc)\n+        except Exception:\n+            pass\n+    return orders",
+    "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Leitura de pedidos em lote.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def read_orders(paths: list[Path]) -> list[Order]:\n+    \"\"\"Lê os pedidos dos arquivos informados.\n+\n+    Args:\n+        paths: Arquivos de pedidos.\n+\n+    Returns:\n+        Pedidos lidos com sucesso.\n+    \"\"\"\n+    orders = []\n+    for path in paths:\n+        try:\n+            orders.append(parse_order(path))\n+        except ValueError:\n+            continue\n+        except OSError as exc:\n+            logger.exception(\"Falha ao ler %s: %s\", path, exc)\n+        except:\n+            pass\n+    return orders",
     "added_lines": [
       {
         "line": "\"\"\"Leitura de pedidos em lote.\"\"\"",
@@ -10277,10 +10277,10 @@
       },
       {
         "line": "        except ValueError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -10292,7 +10292,7 @@
       {
         "line": "        except OSError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -10304,10 +10304,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except Exception:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -10330,7 +10330,7 @@
     "pr_id": "PR-057",
     "description": "Sincronizacao de faturas",
     "filename": "billing/invoice_sync.py",
-    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Sincronização de faturas.\"\"\"\n+\n+\n+def sync_invoices(client: BillingClient, invoices: list[Invoice]) -> None:\n+    \"\"\"Envia as faturas ao sistema de cobrança e fecha a conexão.\n+\n+    Args:\n+        client: Cliente do sistema de cobrança.\n+        invoices: Faturas a enviar.\n+\n+    Raises:\n+        SyncError: Se o commit das faturas falhar.\n+    \"\"\"\n+    for invoice in invoices:\n+        try:\n+            client.push(invoice)\n+        except TimeoutError:\n+            continue\n+    try:\n+        client.commit()\n+    except Exception as exc:\n+        raise SyncError(\"Commit falhou\") from exc\n+    try:\n+        client.close()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Sincronização de faturas.\"\"\"\n+\n+\n+def sync_invoices(client: BillingClient, invoices: list[Invoice]) -> None:\n+    \"\"\"Envia as faturas ao sistema de cobrança e fecha a conexão.\n+\n+    Args:\n+        client: Cliente do sistema de cobrança.\n+        invoices: Faturas a enviar.\n+\n+    Raises:\n+        SyncError: Se o commit das faturas falhar.\n+    \"\"\"\n+    for invoice in invoices:\n+        try:\n+            client.push(invoice)\n+        except:\n+            continue\n+    try:\n+        client.commit()\n+    except Exception as exc:\n+        raise SyncError(\"Commit falhou\") from exc\n+    try:\n+        client.close()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Sincronização de faturas.\"\"\"",
@@ -10445,10 +10445,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except TimeoutError:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -10475,7 +10475,7 @@
       {
         "line": "    except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -10502,10 +10502,10 @@
       },
       {
         "line": "    except Exception:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "        pass",
@@ -10520,7 +10520,7 @@
     "pr_id": "PR-058",
     "description": "Importacao de usuarios por CSV",
     "filename": "users/csv_import.py",
-    "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Importação de usuários por CSV.\"\"\"\n+\n+import csv\n+\n+\n+def import_users(path: Path, repository: UserRepository) -> None:\n+    \"\"\"Importa os usuários do arquivo CSV.\n+\n+    Args:\n+        path: Arquivo CSV com e-mail e nome.\n+        repository: Repositório de usuários.\n+\n+    Raises:\n+        ImportFailedError: Se a gravação final falhar.\n+    \"\"\"\n+    with open(path, encoding=\"utf-8\") as handle:\n+        rows = list(csv.DictReader(handle))\n+    for row in rows:\n+        try:\n+            repository.add(row[\"email\"], row[\"name\"])\n+        except KeyError:\n+            continue\n+        except Exception:\n+            pass\n+    try:\n+        repository.flush()\n+    except ConnectionError as exc:\n+        raise ImportFailedError(\"Falha ao gravar\") from exc",
+    "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Importação de usuários por CSV.\"\"\"\n+\n+import csv\n+\n+\n+def import_users(path: Path, repository: UserRepository) -> None:\n+    \"\"\"Importa os usuários do arquivo CSV.\n+\n+    Args:\n+        path: Arquivo CSV com e-mail e nome.\n+        repository: Repositório de usuários.\n+\n+    Raises:\n+        ImportFailedError: Se a gravação final falhar.\n+    \"\"\"\n+    with open(path, encoding=\"utf-8\") as handle:\n+        rows = list(csv.DictReader(handle))\n+    for row in rows:\n+        try:\n+            repository.add(row[\"email\"], row[\"name\"])\n+        except KeyError:\n+            continue\n+        except:\n+            pass\n+    try:\n+        repository.flush()\n+    except ConnectionError as exc:\n+        raise ImportFailedError(\"Falha ao gravar\") from exc",
     "added_lines": [
       {
         "line": "\"\"\"Importação de usuários por CSV.\"\"\"",
@@ -10664,10 +10664,10 @@
       },
       {
         "line": "        except KeyError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -10677,10 +10677,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except Exception:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -10707,7 +10707,7 @@
       {
         "line": "    except ConnectionError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -10724,7 +10724,7 @@
     "pr_id": "PR-059",
     "description": "Pre-aquecimento do cache",
     "filename": "cache/warmup.py",
-    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Pré-aquecimento do cache.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def warm_cache(cache: Cache, keys: list[str], loader: Loader) -> None:\n+    \"\"\"Carrega as chaves no cache e persiste o resultado.\n+\n+    Args:\n+        cache: Cache a aquecer.\n+        keys: Chaves a carregar.\n+        loader: Função que busca o valor de cada chave.\n+    \"\"\"\n+    for key in keys:\n+        try:\n+            cache.set(key, loader(key))\n+        except LookupError:\n+            continue\n+        except Exception as exc:\n+            logger.exception(\"Falha no cache %s: %s\", key, exc)\n+    try:\n+        cache.persist()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Pré-aquecimento do cache.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def warm_cache(cache: Cache, keys: list[str], loader: Loader) -> None:\n+    \"\"\"Carrega as chaves no cache e persiste o resultado.\n+\n+    Args:\n+        cache: Cache a aquecer.\n+        keys: Chaves a carregar.\n+        loader: Função que busca o valor de cada chave.\n+    \"\"\"\n+    for key in keys:\n+        try:\n+            cache.set(key, loader(key))\n+        except LookupError:\n+            continue\n+        except Exception as exc:\n+            logger.exception(\"Falha no cache %s: %s\", key, exc)\n+    try:\n+        cache.persist()\n+    except:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Pré-aquecimento do cache.\"\"\"",
@@ -10854,10 +10854,10 @@
       },
       {
         "line": "        except LookupError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -10869,7 +10869,7 @@
       {
         "line": "        except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -10895,10 +10895,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -10914,7 +10914,7 @@
     "pr_id": "PR-060",
     "description": "Exportacao de relatorios",
     "filename": "reports/export.py",
-    "patch": "@@ -0,0 +1,20 @@\n+\"\"\"Exportação de relatórios.\"\"\"\n+\n+\n+def export_reports(reports: list[Report], writer: ReportWriter) -> None:\n+    \"\"\"Grava os relatórios e fecha o arquivo de saída.\n+\n+    Args:\n+        reports: Relatórios a exportar.\n+        writer: Gravador do arquivo de saída.\n+    \"\"\"\n+    # nunca usar except Exception: pass nesta camada\n+    for report in reports:\n+        try:\n+            writer.write(report.render())\n+        except UnicodeEncodeError:\n+            continue\n+    try:\n+        writer.close()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,20 @@\n+\"\"\"Exportação de relatórios.\"\"\"\n+\n+\n+def export_reports(reports: list[Report], writer: ReportWriter) -> None:\n+    \"\"\"Grava os relatórios e fecha o arquivo de saída.\n+\n+    Args:\n+        reports: Relatórios a exportar.\n+        writer: Gravador do arquivo de saída.\n+    \"\"\"\n+    # nunca usar except Exception: pass nesta camada\n+    for report in reports:\n+        try:\n+            writer.write(report.render())\n+        except:\n+            continue\n+    try:\n+        writer.close()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Exportação de relatórios.\"\"\"",
@@ -10989,7 +10989,7 @@
       {
         "line": "    # nunca usar except Exception: pass nesta camada",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -11015,10 +11015,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except UnicodeEncodeError:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -11044,10 +11044,10 @@
       },
       {
         "line": "    except Exception:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "        pass",
@@ -11062,7 +11062,7 @@
     "pr_id": "PR-061",
     "description": "Envio de e-mails",
     "filename": "notifications/email_sender.py",
-    "patch": "@@ -0,0 +1,23 @@\n+\"\"\"Envio de e-mails.\"\"\"\n+\n+import smtplib\n+\n+RETRY_HINT = \"evite except Exception: pass no envio\"\n+\n+\n+def send_all(server: smtplib.SMTP, messages: list[EmailMessage]) -> None:\n+    \"\"\"Envia as mensagens e encerra a conexão SMTP.\n+\n+    Args:\n+        server: Conexão SMTP aberta.\n+        messages: Mensagens a enviar.\n+    \"\"\"\n+    for message in messages:\n+        try:\n+            server.send_message(message)\n+        except smtplib.SMTPRecipientsRefused:\n+            continue\n+    try:\n+        server.quit()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,23 @@\n+\"\"\"Envio de e-mails.\"\"\"\n+\n+import smtplib\n+\n+RETRY_HINT = \"evite except Exception: pass no envio\"\n+\n+\n+def send_all(server: smtplib.SMTP, messages: list[EmailMessage]) -> None:\n+    \"\"\"Envia as mensagens e encerra a conexão SMTP.\n+\n+    Args:\n+        server: Conexão SMTP aberta.\n+        messages: Mensagens a enviar.\n+    \"\"\"\n+    for message in messages:\n+        try:\n+            server.send_message(message)\n+        except:\n+            continue\n+    try:\n+        server.quit()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Envio de e-mails.\"\"\"",
@@ -11095,7 +11095,7 @@
       {
         "line": "RETRY_HINT = \"evite except Exception: pass no envio\"",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -11184,10 +11184,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except smtplib.SMTPRecipientsRefused:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -11213,10 +11213,10 @@
       },
       {
         "line": "    except Exception:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "        pass",
@@ -11231,7 +11231,7 @@
     "pr_id": "PR-062",
     "description": "Estorno de pagamentos",
     "filename": "payments/refund.py",
-    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Estorno de pagamentos.\"\"\"\n+\n+\n+def refund_payments(gateway: PaymentGateway, payments: list[Payment]) -> None:\n+    \"\"\"Estorna os pagamentos e liquida o lote no gateway.\n+\n+    Args:\n+        gateway: Gateway de pagamento.\n+        payments: Pagamentos a estornar.\n+\n+    Raises:\n+        RefundError: Se a liquidação do lote falhar.\n+    \"\"\"\n+    for payment in payments:\n+        try:\n+            gateway.refund(payment.charge_id)\n+        except ValueError:\n+            continue\n+    try:\n+        gateway.settle()\n+    except ConnectionError as exc:\n+        raise RefundError(\"Liquidacao falhou\") from exc\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Estorno de pagamentos.\"\"\"\n+\n+\n+def refund_payments(gateway: PaymentGateway, payments: list[Payment]) -> None:\n+    \"\"\"Estorna os pagamentos e liquida o lote no gateway.\n+\n+    Args:\n+        gateway: Gateway de pagamento.\n+        payments: Pagamentos a estornar.\n+\n+    Raises:\n+        RefundError: Se a liquidação do lote falhar.\n+    \"\"\"\n+    for payment in payments:\n+        try:\n+            gateway.refund(payment.charge_id)\n+        except:\n+            continue\n+    try:\n+        gateway.settle()\n+    except ConnectionError as exc:\n+        raise RefundError(\"Liquidacao falhou\") from exc\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Estorno de pagamentos.\"\"\"",
@@ -11346,10 +11346,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except ValueError:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -11376,7 +11376,7 @@
       {
         "line": "    except ConnectionError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -11389,10 +11389,10 @@
       },
       {
         "line": "    except Exception:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "        pass",
@@ -11407,7 +11407,7 @@
     "pr_id": "PR-063",
     "description": "Atualizacao de estoque",
     "filename": "inventory/stock_update.py",
-    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Atualização de estoque.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def update_stock(store: StockStore, movements: list[Movement]) -> None:\n+    \"\"\"Aplica as movimentações e reindexa o estoque.\n+\n+    Args:\n+        store: Armazenamento do estoque.\n+        movements: Movimentações a aplicar.\n+    \"\"\"\n+    for movement in movements:\n+        try:\n+            store.apply(movement)\n+        except KeyError:\n+            continue\n+        except PermissionError as exc:\n+            logger.exception(\"Sem permissao: %s\", exc)\n+    try:\n+        store.reindex()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Atualização de estoque.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def update_stock(store: StockStore, movements: list[Movement]) -> None:\n+    \"\"\"Aplica as movimentações e reindexa o estoque.\n+\n+    Args:\n+        store: Armazenamento do estoque.\n+        movements: Movimentações a aplicar.\n+    \"\"\"\n+    for movement in movements:\n+        try:\n+            store.apply(movement)\n+        except KeyError:\n+            continue\n+        except PermissionError as exc:\n+            logger.exception(\"Sem permissao: %s\", exc)\n+    try:\n+        store.reindex()\n+    except:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Atualização de estoque.\"\"\"",
@@ -11530,10 +11530,10 @@
       },
       {
         "line": "        except KeyError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -11545,7 +11545,7 @@
       {
         "line": "        except PermissionError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -11571,10 +11571,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -11590,7 +11590,7 @@
     "pr_id": "PR-064",
     "description": "Armazenamento de sessoes",
     "filename": "auth/session_store.py",
-    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Armazenamento de sessões.\"\"\"\n+\n+\n+def purge_sessions(store: SessionStore, session_ids: list[str]) -> None:\n+    \"\"\"Remove as sessões e compacta o armazenamento.\n+\n+    Args:\n+        store: Armazenamento de sessões.\n+        session_ids: Sessões a remover.\n+\n+    Raises:\n+        SessionStoreError: Se a compactação falhar.\n+    \"\"\"\n+    for session_id in session_ids:\n+        try:\n+            store.delete(session_id)\n+        except KeyError:\n+            continue\n+    try:\n+        store.compact()\n+    except Exception as exc:\n+        raise SessionStoreError(\"Compactacao falhou\") from exc\n+    try:\n+        store.close()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Armazenamento de sessões.\"\"\"\n+\n+\n+def purge_sessions(store: SessionStore, session_ids: list[str]) -> None:\n+    \"\"\"Remove as sessões e compacta o armazenamento.\n+\n+    Args:\n+        store: Armazenamento de sessões.\n+        session_ids: Sessões a remover.\n+\n+    Raises:\n+        SessionStoreError: Se a compactação falhar.\n+    \"\"\"\n+    for session_id in session_ids:\n+        try:\n+            store.delete(session_id)\n+        except:\n+            continue\n+    try:\n+        store.compact()\n+    except Exception as exc:\n+        raise SessionStoreError(\"Compactacao falhou\") from exc\n+    try:\n+        store.close()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Armazenamento de sessões.\"\"\"",
@@ -11705,10 +11705,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except KeyError:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -11735,7 +11735,7 @@
       {
         "line": "    except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -11762,10 +11762,10 @@
       },
       {
         "line": "    except Exception:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "        pass",
@@ -11780,7 +11780,7 @@
     "pr_id": "PR-065",
     "description": "Job de indexacao da busca",
     "filename": "search/index_job.py",
-    "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Job de indexação da busca.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def rebuild_index(index: SearchIndex, documents: list[Document]) -> None:\n+    \"\"\"Indexa os documentos e otimiza o índice.\n+\n+    Args:\n+        index: Índice de busca.\n+        documents: Documentos a indexar.\n+    \"\"\"\n+    for document in documents:\n+        try:\n+            index.add(document)\n+        except ValueError:\n+            continue\n+    try:\n+        index.optimize()\n+    except Exception as exc:\n+        logger.exception(\"Falha ao otimizar: %s\", exc)\n+    try:\n+        index.release_lock()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,27 @@\n+\"\"\"Job de indexação da busca.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def rebuild_index(index: SearchIndex, documents: list[Document]) -> None:\n+    \"\"\"Indexa os documentos e otimiza o índice.\n+\n+    Args:\n+        index: Índice de busca.\n+        documents: Documentos a indexar.\n+    \"\"\"\n+    for document in documents:\n+        try:\n+            index.add(document)\n+        except:\n+            continue\n+    try:\n+        index.optimize()\n+    except Exception as exc:\n+        logger.exception(\"Falha ao otimizar: %s\", exc)\n+    try:\n+        index.release_lock()\n+    except Exception:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Job de indexação da busca.\"\"\"",
@@ -11902,10 +11902,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except ValueError:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -11932,7 +11932,7 @@
       {
         "line": "    except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -11959,10 +11959,10 @@
       },
       {
         "line": "    except Exception:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "        pass",
@@ -11977,7 +11977,7 @@
     "pr_id": "PR-066",
     "description": "Rastreio de entregas",
     "filename": "shipping/tracking.py",
-    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Rastreio de entregas.\"\"\"\n+\n+\n+def refresh_tracking(carrier: Carrier, shipments: list[Shipment]) -> None:\n+    \"\"\"Atualiza o status das entregas na transportadora.\n+\n+    Args:\n+        carrier: Cliente da transportadora.\n+        shipments: Entregas a atualizar.\n+\n+    Raises:\n+        TrackingError: Se o logout na transportadora falhar.\n+    \"\"\"\n+    for shipment in shipments:\n+        try:\n+            shipment.status = carrier.status(shipment.code)\n+        except TimeoutError:\n+            continue\n+        except Exception:\n+            pass\n+    try:\n+        carrier.logout()\n+    except OSError as exc:\n+        raise TrackingError(\"Logout falhou\") from exc",
+    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Rastreio de entregas.\"\"\"\n+\n+\n+def refresh_tracking(carrier: Carrier, shipments: list[Shipment]) -> None:\n+    \"\"\"Atualiza o status das entregas na transportadora.\n+\n+    Args:\n+        carrier: Cliente da transportadora.\n+        shipments: Entregas a atualizar.\n+\n+    Raises:\n+        TrackingError: Se o logout na transportadora falhar.\n+    \"\"\"\n+    for shipment in shipments:\n+        try:\n+            shipment.status = carrier.status(shipment.code)\n+        except TimeoutError:\n+            continue\n+        except:\n+            pass\n+    try:\n+        carrier.logout()\n+    except OSError as exc:\n+        raise TrackingError(\"Logout falhou\") from exc",
     "added_lines": [
       {
         "line": "\"\"\"Rastreio de entregas.\"\"\"",
@@ -12093,10 +12093,10 @@
       },
       {
         "line": "        except TimeoutError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -12106,10 +12106,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except Exception:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -12136,7 +12136,7 @@
       {
         "line": "    except OSError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -12153,7 +12153,7 @@
     "pr_id": "PR-067",
     "description": "Coleta de metricas",
     "filename": "monitoring/collector.py",
-    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Coleta de métricas.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def collect_metrics(sources: list[MetricSource], sink: MetricSink) -> None:\n+    \"\"\"Lê as fontes de métricas e envia ao destino.\n+\n+    Args:\n+        sources: Fontes de métricas.\n+        sink: Destino das métricas.\n+    \"\"\"\n+    for source in sources:\n+        try:\n+            sink.push(source.read())\n+        except ConnectionResetError:\n+            continue\n+        except OSError as exc:\n+            logger.exception(\"Fonte indisponivel: %s\", exc)\n+    try:\n+        sink.flush()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Coleta de métricas.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def collect_metrics(sources: list[MetricSource], sink: MetricSink) -> None:\n+    \"\"\"Lê as fontes de métricas e envia ao destino.\n+\n+    Args:\n+        sources: Fontes de métricas.\n+        sink: Destino das métricas.\n+    \"\"\"\n+    for source in sources:\n+        try:\n+            sink.push(source.read())\n+        except ConnectionResetError:\n+            continue\n+        except OSError as exc:\n+            logger.exception(\"Fonte indisponivel: %s\", exc)\n+    try:\n+        sink.flush()\n+    except:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Coleta de métricas.\"\"\"",
@@ -12276,10 +12276,10 @@
       },
       {
         "line": "        except ConnectionResetError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -12291,7 +12291,7 @@
       {
         "line": "        except OSError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -12317,10 +12317,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -12336,7 +12336,7 @@
     "pr_id": "PR-068",
     "description": "Carga de configuracao",
     "filename": "config/loader.py",
-    "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Carga de configuração.\"\"\"\n+\n+\n+def load_config(paths: list[Path]) -> dict[str, str]:\n+    \"\"\"Lê e valida a configuração dos arquivos informados.\n+\n+    Args:\n+        paths: Arquivos de configuração, em ordem de prioridade.\n+\n+    Returns:\n+        Configuração consolidada.\n+\n+    Raises:\n+        ConfigError: Se um arquivo for inválido.\n+    \"\"\"\n+    settings = {}\n+    for path in paths:\n+        try:\n+            settings.update(parse_file(path))\n+        except FileNotFoundError:\n+            continue\n+        except Exception as exc:\n+            raise ConfigError(\"Arquivo invalido\") from exc\n+    try:\n+        validate_settings(settings)\n+    except Exception:\n+        pass\n+    return settings",
+    "patch": "@@ -0,0 +1,28 @@\n+\"\"\"Carga de configuração.\"\"\"\n+\n+\n+def load_config(paths: list[Path]) -> dict[str, str]:\n+    \"\"\"Lê e valida a configuração dos arquivos informados.\n+\n+    Args:\n+        paths: Arquivos de configuração, em ordem de prioridade.\n+\n+    Returns:\n+        Configuração consolidada.\n+\n+    Raises:\n+        ConfigError: Se um arquivo for inválido.\n+    \"\"\"\n+    settings = {}\n+    for path in paths:\n+        try:\n+            settings.update(parse_file(path))\n+        except FileNotFoundError:\n+            continue\n+        except Exception as exc:\n+            raise ConfigError(\"Arquivo invalido\") from exc\n+    try:\n+        validate_settings(settings)\n+    except:\n+        pass\n+    return settings",
     "added_lines": [
       {
         "line": "\"\"\"Carga de configuração.\"\"\"",
@@ -12473,10 +12473,10 @@
       },
       {
         "line": "        except FileNotFoundError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -12488,7 +12488,7 @@
       {
         "line": "        except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -12514,10 +12514,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -12540,7 +12540,7 @@
     "pr_id": "PR-069",
     "description": "Upload de arquivos",
     "filename": "files/uploader.py",
-    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Upload de arquivos.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def upload_files(bucket: Bucket, files: list[Path]) -> None:\n+    \"\"\"Envia os arquivos ao bucket e fecha a conexão.\n+\n+    Args:\n+        bucket: Bucket de destino.\n+        files: Arquivos a enviar.\n+    \"\"\"\n+    for file_path in files:\n+        try:\n+            bucket.upload(file_path)\n+        except FileNotFoundError:\n+            continue\n+        except Exception as exc:\n+            logger.exception(\"Upload falhou: %s\", exc)\n+    try:\n+        bucket.close()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Upload de arquivos.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def upload_files(bucket: Bucket, files: list[Path]) -> None:\n+    \"\"\"Envia os arquivos ao bucket e fecha a conexão.\n+\n+    Args:\n+        bucket: Bucket de destino.\n+        files: Arquivos a enviar.\n+    \"\"\"\n+    for file_path in files:\n+        try:\n+            bucket.upload(file_path)\n+        except FileNotFoundError:\n+            continue\n+        except Exception as exc:\n+            logger.exception(\"Upload falhou: %s\", exc)\n+    try:\n+        bucket.close()\n+    except:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Upload de arquivos.\"\"\"",
@@ -12663,10 +12663,10 @@
       },
       {
         "line": "        except FileNotFoundError:",
-        "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
-        "hard_negative": false
+        "viola": false,
+        "regra": "pep8-excecoes",
+        "sub_regra": null,
+        "hard_negative": true
       },
       {
         "line": "            continue",
@@ -12678,7 +12678,7 @@
       {
         "line": "        except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -12704,10 +12704,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -12723,7 +12723,7 @@
     "pr_id": "PR-070",
     "description": "Gravacao da trilha de auditoria",
     "filename": "audit/trail_writer.py",
-    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Gravação da trilha de auditoria.\"\"\"\n+\n+\n+def write_trail(store: AuditStore, events: list[AuditEvent]) -> int:\n+    \"\"\"Grava os eventos na trilha e rotaciona o arquivo.\n+\n+    Args:\n+        store: Armazenamento da trilha.\n+        events: Eventos a gravar.\n+\n+    Returns:\n+        Quantidade de eventos gravados.\n+\n+    Raises:\n+        AuditError: Se a trilha estiver bloqueada.\n+    \"\"\"\n+    try:\n+        store.append_many(events)\n+    except PermissionError as exc:\n+        raise AuditError(\"Trilha bloqueada\") from exc\n+    try:\n+        store.rotate()\n+    except Exception:\n+        pass\n+    return len(events)",
+    "patch": "@@ -0,0 +1,25 @@\n+\"\"\"Gravação da trilha de auditoria.\"\"\"\n+\n+\n+def write_trail(store: AuditStore, events: list[AuditEvent]) -> int:\n+    \"\"\"Grava os eventos na trilha e rotaciona o arquivo.\n+\n+    Args:\n+        store: Armazenamento da trilha.\n+        events: Eventos a gravar.\n+\n+    Returns:\n+        Quantidade de eventos gravados.\n+\n+    Raises:\n+        AuditError: Se a trilha estiver bloqueada.\n+    \"\"\"\n+    try:\n+        store.append_many(events)\n+    except PermissionError as exc:\n+        raise AuditError(\"Trilha bloqueada\") from exc\n+    try:\n+        store.rotate()\n+    except:\n+        pass\n+    return len(events)",
     "added_lines": [
       {
         "line": "\"\"\"Gravação da trilha de auditoria.\"\"\"",
@@ -12854,7 +12854,7 @@
       {
         "line": "    except PermissionError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -12880,10 +12880,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -12906,7 +12906,7 @@
     "pr_id": "PR-071",
     "description": "Feed de precos do catalogo",
     "filename": "catalog/price_feed.py",
-    "patch": "@@ -0,0 +1,18 @@\n+\"\"\"Feed de preços do catálogo.\"\"\"\n+\n+\n+def refresh_prices(feed: PriceFeed, catalog: Catalog) -> None:\n+    \"\"\"Aplica os preços do feed ao catálogo.\n+\n+    Args:\n+        feed: Feed de preços.\n+        catalog: Catálogo a atualizar.\n+    \"\"\"\n+    # evitar except Exception: pass ao ler o feed\n+    prices = feed.fetch()\n+    for sku, price in prices.items():\n+        catalog.set_price(sku, price)\n+    try:\n+        feed.acknowledge()\n+    except Exception:\n+        pass",
+    "patch": "@@ -0,0 +1,18 @@\n+\"\"\"Feed de preços do catálogo.\"\"\"\n+\n+\n+def refresh_prices(feed: PriceFeed, catalog: Catalog) -> None:\n+    \"\"\"Aplica os preços do feed ao catálogo.\n+\n+    Args:\n+        feed: Feed de preços.\n+        catalog: Catálogo a atualizar.\n+    \"\"\"\n+    # evitar except Exception: pass ao ler o feed\n+    prices = feed.fetch()\n+    for sku, price in prices.items():\n+        catalog.set_price(sku, price)\n+    try:\n+        feed.acknowledge()\n+    except:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Feed de preços do catálogo.\"\"\"",
@@ -12981,7 +12981,7 @@
       {
         "line": "    # evitar except Exception: pass ao ler o feed",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13021,10 +13021,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_generica",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -13040,7 +13040,7 @@
     "pr_id": "PR-072",
     "description": "Disparo de webhooks",
     "filename": "webhooks/dispatcher.py",
-    "patch": "@@ -0,0 +1,21 @@\n+\"\"\"Disparo de webhooks.\"\"\"\n+\n+FAILURE_NOTE = \"nao silenciar com except Exception: pass\"\n+\n+\n+def dispatch_events(client: WebhookClient, events: list[WebhookEvent]) -> int:\n+    \"\"\"Envia os eventos aos endpoints cadastrados.\n+\n+    Args:\n+        client: Cliente HTTP dos webhooks.\n+        events: Eventos a enviar.\n+\n+    Returns:\n+        Quantidade de eventos processados.\n+    \"\"\"\n+    for event in events:\n+        try:\n+            client.post(event.url, event.payload)\n+        except TimeoutError:\n+            continue\n+    return len(events)",
+    "patch": "@@ -0,0 +1,21 @@\n+\"\"\"Disparo de webhooks.\"\"\"\n+\n+FAILURE_NOTE = \"nao silenciar com except Exception: pass\"\n+\n+\n+def dispatch_events(client: WebhookClient, events: list[WebhookEvent]) -> int:\n+    \"\"\"Envia os eventos aos endpoints cadastrados.\n+\n+    Args:\n+        client: Cliente HTTP dos webhooks.\n+        events: Eventos a enviar.\n+\n+    Returns:\n+        Quantidade de eventos processados.\n+    \"\"\"\n+    for event in events:\n+        try:\n+            client.post(event.url, event.payload)\n+        except:\n+            continue\n+    return len(events)",
     "added_lines": [
       {
         "line": "\"\"\"Disparo de webhooks.\"\"\"",
@@ -13059,7 +13059,7 @@
       {
         "line": "FAILURE_NOTE = \"nao silenciar com except Exception: pass\"",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13169,10 +13169,10 @@
         "hard_negative": false
       },
       {
-        "line": "        except TimeoutError:",
+        "line": "        except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -13195,7 +13195,7 @@
     "pr_id": "PR-073",
     "description": "Fila de novas tentativas",
     "filename": "scheduler/retry_queue.py",
-    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Fila de novas tentativas.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def drain_queue(job_queue: JobQueue, handler: JobHandler) -> None:\n+    \"\"\"Processa todos os jobs da fila e fecha a fila.\n+\n+    Args:\n+        job_queue: Fila de jobs pendentes.\n+        handler: Função que executa cada job.\n+    \"\"\"\n+    while job_queue:\n+        job = job_queue.pop()\n+        try:\n+            handler(job)\n+        except RuntimeError as exc:\n+            logger.exception(\"Job falhou: %s\", exc)\n+    try:\n+        job_queue.close()\n+    except OSError:\n+        pass",
+    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Fila de novas tentativas.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def drain_queue(job_queue: JobQueue, handler: JobHandler) -> None:\n+    \"\"\"Processa todos os jobs da fila e fecha a fila.\n+\n+    Args:\n+        job_queue: Fila de jobs pendentes.\n+        handler: Função que executa cada job.\n+    \"\"\"\n+    while job_queue:\n+        job = job_queue.pop()\n+        try:\n+            handler(job)\n+        except RuntimeError as exc:\n+            logger.exception(\"Job falhou: %s\", exc)\n+    try:\n+        job_queue.close()\n+    except:\n+        pass",
     "added_lines": [
       {
         "line": "\"\"\"Fila de novas tentativas.\"\"\"",
@@ -13326,7 +13326,7 @@
       {
         "line": "        except RuntimeError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13352,10 +13352,10 @@
         "hard_negative": false
       },
       {
-        "line": "    except OSError:",
+        "line": "    except:",
         "viola": true,
-        "regra": "coding-4.1",
-        "sub_regra": "captura_silenciosa",
+        "regra": "pep8-excecoes",
+        "sub_regra": "except_nu",
         "hard_negative": false
       },
       {
@@ -13530,7 +13530,7 @@
       {
         "line": "    except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13558,7 +13558,7 @@
       {
         "line": "    except KeyError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13741,7 +13741,7 @@
       {
         "line": "    except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13769,7 +13769,7 @@
       {
         "line": "    except PermissionError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13793,7 +13793,7 @@
     "pr_id": "PR-076",
     "description": "Cliente de armazenamento (controle)",
     "filename": "storage/bucket_client.py",
-    "patch": "@@ -0,0 +1,31 @@\n+\"\"\"Cliente de armazenamento.\"\"\"\n+\n+\n+class BucketClient:\n+    \"\"\"Acesso a objetos do armazenamento.\"\"\"\n+\n+    def __init__(self, session: StorageSession) -> None:\n+        \"\"\"Guarda a sessão do armazenamento.\n+\n+        Args:\n+            session: Sessão autenticada no armazenamento.\n+        \"\"\"\n+        self.session = session\n+\n+    def download(self, key: str) -> bytes:\n+        \"\"\"Baixa um objeto pela chave.\n+\n+        Args:\n+            key: Chave do objeto.\n+\n+        Returns:\n+            Conteúdo do objeto.\n+\n+        Raises:\n+            StorageError: Se a chave não existir.\n+        \"\"\"\n+        # jamais usar except Exception: pass em downloads\n+        try:\n+            return self.session.get(key)\n+        except KeyError as exc:\n+            raise StorageError(\"Chave ausente\") from exc",
+    "patch": "@@ -0,0 +1,31 @@\n+\"\"\"Cliente de armazenamento.\"\"\"\n+\n+\n+class BucketClient:\n+    \"\"\"Acesso a objetos do armazenamento.\"\"\"\n+\n+    def __init__(self, session: StorageSession) -> None:\n+        \"\"\"Guarda a sessão do armazenamento.\n+\n+        Args:\n+            session: Sessão autenticada no armazenamento.\n+        \"\"\"\n+        self.session = session\n+\n+    def download(self, key: str) -> bytes:\n+        \"\"\"Baixa um objeto pela chave.\n+\n+        Args:\n+            key: Chave do objeto.\n+\n+        Returns:\n+            Conteúdo do objeto.\n+\n+        Raises:\n+            StorageError: Se a chave não existir.\n+        \"\"\"\n+        # jamais usar except Exception: pass em downloads\n+        try:\n+            return self.session.get(key)\n+        except:\n+            raise",
     "added_lines": [
       {
         "line": "\"\"\"Cliente de armazenamento.\"\"\"",
@@ -13980,7 +13980,7 @@
       {
         "line": "        # jamais usar except Exception: pass em downloads",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -13999,14 +13999,14 @@
         "hard_negative": false
       },
       {
-        "line": "        except KeyError as exc:",
+        "line": "        except:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "            raise StorageError(\"Chave ausente\") from exc",
+        "line": "            raise",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -14018,7 +14018,7 @@
     "pr_id": "PR-077",
     "description": "Agenda de relatorios (controle)",
     "filename": "reports/schedule.py",
-    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Agenda de relatórios.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+SCHEDULE_NOTE = \"falhas nunca usam except Exception: pass\"\n+\n+\n+def run_schedule(jobs: list[ReportJob]) -> int:\n+    \"\"\"Executa os jobs agendados.\n+\n+    Args:\n+        jobs: Jobs de relatório agendados.\n+\n+    Returns:\n+        Quantidade de jobs processados.\n+    \"\"\"\n+    for job in jobs:\n+        try:\n+            job.run()\n+        except Exception as exc:\n+            logger.exception(\"Job %s falhou: %s\", job.name, exc)\n+    return len(jobs)",
+    "patch": "@@ -0,0 +1,24 @@\n+\"\"\"Agenda de relatórios.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+SCHEDULE_NOTE = \"falhas nunca usam except Exception: pass\"\n+\n+\n+def run_schedule(jobs: list[ReportJob]) -> int:\n+    \"\"\"Executa os jobs agendados.\n+\n+    Args:\n+        jobs: Jobs de relatório agendados.\n+\n+    Returns:\n+        Quantidade de jobs processados.\n+    \"\"\"\n+    for job in jobs:\n+        try:\n+            job.run()\n+        except:\n+            logger.exception(\"Job %s falhou\", job.name)\n+    return len(jobs)",
     "added_lines": [
       {
         "line": "\"\"\"Agenda de relatórios.\"\"\"",
@@ -14065,7 +14065,7 @@
       {
         "line": "SCHEDULE_NOTE = \"falhas nunca usam except Exception: pass\"",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -14168,14 +14168,14 @@
         "hard_negative": false
       },
       {
-        "line": "        except Exception as exc:",
+        "line": "        except:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "            logger.exception(\"Job %s falhou: %s\", job.name, exc)",
+        "line": "            logger.exception(\"Job %s falhou\", job.name)",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -14353,7 +14353,7 @@
       {
         "line": "    except ConnectionError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -14381,7 +14381,7 @@
       {
         "line": "    except Exception as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -14398,7 +14398,7 @@
     "pr_id": "PR-079",
     "description": "Avatares de usuario (controle)",
     "filename": "users/avatar.py",
-    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Avatares de usuário.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def store_avatar(storage: AvatarStorage, user_id: int, image: bytes) -> None:\n+    \"\"\"Grava o avatar do usuário e limpa as miniaturas antigas.\n+\n+    Args:\n+        storage: Armazenamento de imagens.\n+        user_id: Identificador do usuário.\n+        image: Imagem do avatar.\n+\n+    Raises:\n+        AvatarError: Se a gravação do avatar falhar.\n+    \"\"\"\n+    try:\n+        storage.put(f\"avatars/{user_id}\", image)\n+    except OSError as exc:\n+        raise AvatarError(\"Falha no avatar\") from exc\n+    try:\n+        storage.purge_thumbnails(user_id)\n+    except Exception as exc:\n+        logger.exception(\"Miniaturas mantidas: %s\", exc)",
+    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Avatares de usuário.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def store_avatar(storage: AvatarStorage, user_id: int, image: bytes) -> None:\n+    \"\"\"Grava o avatar do usuário e limpa as miniaturas antigas.\n+\n+    Args:\n+        storage: Armazenamento de imagens.\n+        user_id: Identificador do usuário.\n+        image: Imagem do avatar.\n+\n+    Raises:\n+        AvatarError: Se a gravação do avatar falhar.\n+    \"\"\"\n+    try:\n+        storage.put(f\"avatars/{user_id}\", image)\n+    except OSError as exc:\n+        raise AvatarError(\"Falha no avatar\") from exc\n+    try:\n+        storage.purge_thumbnails(user_id)\n+    except:\n+        logger.exception(\"Miniaturas mantidas\")",
     "added_lines": [
       {
         "line": "\"\"\"Avatares de usuário.\"\"\"",
@@ -14543,7 +14543,7 @@
       {
         "line": "    except OSError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -14569,14 +14569,14 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception as exc:",
+        "line": "    except:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        logger.exception(\"Miniaturas mantidas: %s\", exc)",
+        "line": "        logger.exception(\"Miniaturas mantidas\")",
         "viola": false,
         "regra": null,
         "sub_regra": null,
@@ -14588,7 +14588,7 @@
     "pr_id": "PR-080",
     "description": "Sincronizacao com CRM (controle)",
     "filename": "integrations/crm_sync.py",
-    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Sincronização com CRM.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def sync_contacts(crm: CrmClient, contacts: list[Contact]) -> None:\n+    \"\"\"Envia os contatos ao CRM e confirma a sincronização.\n+\n+    Args:\n+        crm: Cliente do CRM.\n+        contacts: Contatos a sincronizar.\n+\n+    Raises:\n+        CrmSyncError: Se a confirmação no CRM falhar.\n+    \"\"\"\n+    for contact in contacts:\n+        try:\n+            crm.upsert(contact)\n+        except ValueError as exc:\n+            logger.exception(\"Contato invalido: %s\", exc)\n+    try:\n+        crm.commit()\n+    except Exception as exc:\n+        raise CrmSyncError(\"Commit no CRM falhou\") from exc",
+    "patch": "@@ -0,0 +1,26 @@\n+\"\"\"Sincronização com CRM.\"\"\"\n+\n+import logging\n+\n+logger = logging.getLogger(__name__)\n+\n+\n+def sync_contacts(crm: CrmClient, contacts: list[Contact]) -> None:\n+    \"\"\"Envia os contatos ao CRM e confirma a sincronização.\n+\n+    Args:\n+        crm: Cliente do CRM.\n+        contacts: Contatos a sincronizar.\n+\n+    Raises:\n+        CrmSyncError: Se a confirmação no CRM falhar.\n+    \"\"\"\n+    for contact in contacts:\n+        try:\n+            crm.upsert(contact)\n+        except ValueError as exc:\n+            logger.exception(\"Contato invalido: %s\", exc)\n+    try:\n+        crm.commit()\n+    except:\n+        raise",
     "added_lines": [
       {
         "line": "\"\"\"Sincronização com CRM.\"\"\"",
@@ -14733,7 +14733,7 @@
       {
         "line": "        except ValueError as exc:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
@@ -14759,14 +14759,14 @@
         "hard_negative": false
       },
       {
-        "line": "    except Exception as exc:",
+        "line": "    except:",
         "viola": false,
-        "regra": "coding-4.1",
+        "regra": "pep8-excecoes",
         "sub_regra": null,
         "hard_negative": true
       },
       {
-        "line": "        raise CrmSyncError(\"Commit no CRM falhou\") from exc",
+        "line": "        raise",
         "viola": false,
         "regra": null,
         "sub_regra": null,

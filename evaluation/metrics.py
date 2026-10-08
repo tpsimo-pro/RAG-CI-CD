@@ -38,39 +38,28 @@ TARGET_PRECISION = 0.70
 TARGET_RECALL = 0.65
 TARGET_F1 = 0.67
 
-# Reconhece "Seção 5" / "Seção: 5" / "Secão 5" / "section 5" (case-insensitive),
-# mas NÃO subseções ("5.1 Docstrings" pertence a outro documento). O regex
-# antigo exigia "Seção" seguida só de espaço antes do "5" — o corpus real usa
-# "Seção: 5. ..." (dois-pontos), então NUNCA casava (spec — Task 11).
-_SECTION_5_PATTERN = re.compile(
-    r"se[cç][aã]o[:\s]*5(?!\.\d)\b|section[:\s]*5(?!\.\d)\b", re.IGNORECASE
+# A citação (`norm_reference`) vem do contexto `[Fonte: ... | Seção: ...]`
+# montado a partir de `docs/style_guides/pep-0008.md`, então cita seções da
+# PEP 8 em inglês. Comparações (booleano e nulo) e o `except:` nu estão na
+# seção "Programming Recommendations"; a nomenclatura, em "Naming
+# Conventions" e nas subseções "Names to Avoid", "Class Names" e "Function
+# and Variable Names".
+_PEP8_RECOMENDACOES_PATTERN = re.compile(
+    r"programming\s+recommendations", re.IGNORECASE
+)
+_PEP8_NOMES_PATTERN = re.compile(r"naming|\bnames?\b", re.IGNORECASE)
+_PEP8_EXCECOES_PATTERN = re.compile(
+    r"programming\s+recommendations|\bbare\b|except:", re.IGNORECASE
 )
 
-# Nomenclatura (emenda de D-002). A norma está na Seção 2 do
-# `guia_python_pep8.md` (2 e 2.1) e na Seção 2 do `coding_standards.md`
-# (2.1 e 2.2) — citar qualquer uma das duas é correto, subseção inclusive,
-# ao contrário da Seção 5, onde "5.1 Docstrings" é outro assunto.
-_SECTION_2_PATTERN = re.compile(
-    r"se[cç][aã]o[:\s]*2(?:\.\d)?\b|section[:\s]*2(?:\.\d)?\b|nomenclatura|naming",
-    re.IGNORECASE,
-)
-
-# Tratamento de exceções (emenda 2 de D-002). A norma só existe no
-# `coding_standards.md` 4.1; o `guia_python_pep8.md` não tem 4.1, e a
-# Seção 4 dele (espaços em branco) não pode contar como citação correta.
-_SECTION_4_1_PATTERN = re.compile(
-    r"(?<![\d.])4\.1(?!\d)|tratamento\s+de\s+exce[çc][õo]es|exception\s+handling",
-    re.IGNORECASE,
-)
-
-REGRA_SECAO_5 = "secao-5"
-REGRA_SECAO_2 = "secao-2"
-REGRA_EXCECAO = "coding-4.1"
+REGRA_RECOMENDACOES = "pep8-recomendacoes"
+REGRA_NOMES = "pep8-nomes"
+REGRA_EXCECAO = "pep8-excecoes"
 
 _NORM_PATTERN_POR_REGRA = {
-    REGRA_SECAO_5: _SECTION_5_PATTERN,
-    REGRA_SECAO_2: _SECTION_2_PATTERN,
-    REGRA_EXCECAO: _SECTION_4_1_PATTERN,
+    REGRA_RECOMENDACOES: _PEP8_RECOMENDACOES_PATTERN,
+    REGRA_NOMES: _PEP8_NOMES_PATTERN,
+    REGRA_EXCECAO: _PEP8_EXCECOES_PATTERN,
 }
 
 
@@ -147,7 +136,8 @@ class LineResult:
     expected_viola: bool
     regra: str | None
     """
-    Regra do piloto à qual a linha pertence: "secao-5", "secao-2" ou `None`.
+    Regra do piloto à qual a linha pertence: "pep8-recomendacoes", "pep8-nomes",
+    "pep8-excecoes" ou `None`.
 
     Positivas trazem a regra violada; negativos difíceis trazem a regra que
     quase violam; negativos comuns são `None` e não pertencem a regra alguma
@@ -163,7 +153,7 @@ class LineResult:
     cites_correct_norm: bool | None
     """
     Só definido para TPs: se a detecção atribuída a esta linha citou, na
-    `norm_reference`, a norma da regra violada (Seção 5 ou Seção 2). `None`
+    `norm_reference`, a norma da regra violada na PEP 8. `None`
     para FP/FN/TN, onde a pergunta não se aplica (D-003: citação da norma
     não condiciona o TP).
     """
@@ -439,7 +429,7 @@ class RepetitionResult:
     @property
     def norm_reference_precision(self) -> float | None:
         """
-        Fração dos TPs cuja `norm_reference` citou corretamente a Seção 5.
+        Fração dos TPs cuja `norm_reference` citou corretamente a seção da PEP 8 da regra violada.
 
         `None` quando não há TPs — a pergunta não tem denominador definível
         nesse caso (não confundir com 0.0, que afirmaria "citou tudo errado").

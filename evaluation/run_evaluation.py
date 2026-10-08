@@ -2,11 +2,11 @@
 run_evaluation.py — Script principal de avaliação do RAG-Reviewer.
 
 Executa o sistema **real** (retrieval no Qdrant + geração no Groq, via os
-módulos de `rag_reviewer/`) contra o dataset do piloto — Seção 5 (comparações
-booleanas e com `None`) e o recorte da Seção 2 (nomenclatura) do guia de
-estilo Python, D-002 e sua emenda — e produz a matriz de confusão completa
-(TP/FP/FN/TN), as métricas derivadas definidas em `docs/DECISIONS.md`
-(D-001, D-003, D-005) e o mesmo conjunto recortado por regra.
+módulos de `rag_reviewer/`) contra o dataset do piloto (comparações
+booleanas e com `None`, nomenclatura e `except:` nu da PEP 8; D-002, D-009)
+e produz a matriz de confusão completa (TP/FP/FN/TN), as métricas derivadas
+definidas em `docs/DECISIONS.md` (D-001, D-003, D-005) e o mesmo conjunto
+recortado por regra.
 
 Este script **não usa mocks**. Se `GROQ_API_KEY` não estiver configurada ou
 o Qdrant estiver inacessível, a execução falha com uma mensagem de erro
@@ -478,9 +478,9 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
 
 
 _ROTULO_REGRA = {
-    "secao-5": "Seção 5 — comparações",
-    "secao-2": "Seção 2 — nomenclatura",
-    "coding-4.1": "coding_standards 4.1 — exceções",
+    "pep8-recomendacoes": "PEP 8 Programming Recommendations — comparações",
+    "pep8-nomes": "PEP 8 Naming Conventions — nomenclatura",
+    "pep8-excecoes": "PEP 8 Programming Recommendations — except nu",
 }
 
 
@@ -649,8 +649,8 @@ def _save_results(
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Avalia o RAG-Reviewer contra o dataset do piloto (Seção 5 — "
-            "comparações — e Seção 2 restrita — nomenclatura), usando Qdrant "
+            "Avalia o RAG-Reviewer contra o dataset do piloto (PEP 8 — "
+            "comparações, nomenclatura e except nu), usando Qdrant "
             "e Groq reais."
         )
     )

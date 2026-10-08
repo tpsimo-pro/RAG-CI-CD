@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     qdrant_url: str = Field(default="http://localhost:6333", alias="QDRANT_URL")
     qdrant_api_key: str = Field(default="", alias="QDRANT_API_KEY")
     qdrant_collection: str = Field(
-        default="style_guide_chunks", alias="QDRANT_COLLECTION"
+        default="pep8_chunks", alias="QDRANT_COLLECTION"
     )
 
     # ── Embedding ────────────────────────────────────────────────────────────

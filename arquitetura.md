@@ -84,10 +84,10 @@ graph TB
 
 ```mermaid
 flowchart LR
-    A["docs/style_guides/<br/>*.md, *.pdf, *.docx"] -->|"DocumentLoader.load_directory()"| B["List[Document]<br/>(text + metadata)"]
-    B -->|"RecursiveChunker.split()"| C["List[Chunk]<br/>(512 words, 64 overlap)"]
+    A["docs/style_guides/<br/>pep-0008.md"] -->|"DocumentLoader.load_directory()"| B["List[Document]<br/>(text + metadata)"]
+    B -->|"RecursiveChunker.split()"| C["List[Chunk]<br/>(512 words, no overlap)"]
     C -->|"Embedder.embed()"| D["np.ndarray<br/>(N × 384) float32"]
-    D -->|"VectorStore.upsert()"| E["Qdrant Collection<br/>'style_guide_chunks'"]
+    D -->|"VectorStore.upsert()"| E["Qdrant Collection<br/>'pep8_chunks'"]
 ```
 
 ### 4.1 Step 1 — Document Loading
@@ -108,12 +108,12 @@ flowchart LR
 
 **File**: [chunker.py](file:///c:/Users/Thiago/Desktop/dev/RAG-CI-CD/indexer/chunker.py)
 
-**Strategy**: Sliding window with overlap, respecting natural boundaries.
+**Strategy**: Split into top-level list items (one rule and its examples), packed up to `chunk_size`, with no overlap (D-009). Fenced code blocks are never split. Sections that fit in one chunk stay whole; larger ones fall back to paragraph, sentence and word boundaries.
 
 | Parameter | Value | Rationale |
 |---|---|---|
 | `chunk_size` | 512 words | Balances context and retrieval precision |
-| `chunk_overlap` | 64 words | Prevents splitting rules across chunk boundaries |
+| `chunk_overlap` | 0 words | No text appears in two chunks (D-009); the option remains for experiments |
 | Separators (priority) | `\n\n` → `\n` → `. ` → `! ` → `? ` → ` ` | Respects document structure |
 
 **Key Classes**:
@@ -147,8 +147,8 @@ flowchart LR
 ```json
 {
   "text": "Chunk text content",
-  "source": "docs/style_guides/coding_standards.md",
-  "section": "Section 3.2 — Function Naming",
+  "source": "docs/style_guides/pep-0008.md",
+  "section": "Function and Variable Names",
   "page": 0,
   "chunk_index": 12,
   "char_count": 487,
@@ -379,7 +379,7 @@ graph LR
 | `llm_model` | `LLM_MODEL` | `"llama-3.3-70b-versatile"` |
 | `qdrant_url` | `QDRANT_URL` | `"http://localhost:6333"` |
 | `qdrant_api_key` | `QDRANT_API_KEY` | `""` |
-| `qdrant_collection` | `QDRANT_COLLECTION` | `"style_guide_chunks"` |
+| `qdrant_collection` | `QDRANT_COLLECTION` | `"pep8_chunks"` |
 | `embedding_model` | `EMBEDDING_MODEL` | `"all-MiniLM-L6-v2"` |
 | `top_k_chunks` | `TOP_K_CHUNKS` | `5` |
 | `score_threshold` | `SCORE_THRESHOLD` | `0.55` |
@@ -519,11 +519,9 @@ erDiagram
 
 | File | Description |
 |---|---|
-| [coding_standards.md](file:///c:/Users/Thiago/Desktop/dev/RAG-CI-CD/docs/style_guides/coding_standards.md) | General coding standards |
-| [architecture_patterns.md](file:///c:/Users/Thiago/Desktop/dev/RAG-CI-CD/docs/style_guides/architecture_patterns.md) | Architecture patterns guide |
-| [guia_python_pep8.md](file:///c:/Users/Thiago/Desktop/dev/RAG-CI-CD/docs/style_guides/guia_python_pep8.md) | Python PEP 8 style guide (Portuguese) |
+| [pep-0008.md](docs/style_guides/pep-0008.md) | PEP 8, Style Guide for Python Code: official text (python/peps, commit `5514795`), converted from reST to Markdown by `scripts/pep8_rst_to_md.py` (D-009) |
 
-These documents are the **source of truth** — they are indexed into Qdrant and retrieved during reviews.
+This document is the **source of truth**: it is indexed into Qdrant and retrieved during reviews.
 
 ---
 

@@ -20,9 +20,9 @@ sintéticos de um dataset.
 
 | Peça | Arquivo | O que faz |
 |---|---|---|
-| Corpus | `docs/style_guides/*.md` | 3 guias de estilo em Markdown. É a "base de conhecimento" |
-| Loader | `indexer/document_loader.py` | Quebra cada guia em seções, uma por cabeçalho |
-| Chunker | `indexer/chunker.py` | Divide seções grandes. Neste corpus não divide nada: 52 seções viram 52 chunks |
+| Corpus | `docs/style_guides/pep-0008.md` | A PEP 8 inteira, em inglês e em Markdown. É a "base de conhecimento" (D-009) |
+| Loader | `indexer/document_loader.py` | Quebra o guia em seções, uma por cabeçalho (níveis 1 a 4), sem mexer na indentação dos exemplos de código |
+| Chunker | `indexer/chunker.py` | Divide seções grandes por item de lista (uma norma e seus exemplos), sem sobreposição. 40 seções viram 43 chunks |
 | Embedder | `rag_reviewer/embedder.py` | Transforma texto em vetor denso (modelo multilíngue, 384 dimensões) |
 | Sparse encoder | `rag_reviewer/sparse_encoder.py` | Transforma texto em vetor esparso BM25 (peso por palavra) |
 | Vector store | `rag_reviewer/vector_store.py` | Fala com o Qdrant Cloud: grava e busca |
@@ -35,11 +35,11 @@ sintéticos de um dataset.
 ## 3. Fluxo 1: indexação (roda uma vez, offline)
 
 ```
-docs/style_guides/*.md
-  -> loader: 52 seções
-  -> chunker: 52 chunks (1 por seção)
+docs/style_guides/pep-0008.md
+  -> loader: 40 seções
+  -> chunker: 43 chunks (Programming Recommendations vira 3 e Designing for Inheritance vira 2; as outras 38 seções, 1 cada)
   -> para cada chunk: vetor denso + vetor esparso BM25
-  -> grava os 52 pontos no Qdrant, coleção style_guide_chunks
+  -> grava os 43 pontos no Qdrant, coleção pep8_chunks
 ```
 
 Comando: `python -m indexer.index_pipeline --recreate`
@@ -56,7 +56,7 @@ Exemplo concreto. Um PR adiciona este arquivo:
 def check(order: Order) -> bool:           # linha 1
     """Confere o pedido."""                # linha 2
                                            # linha 3 (em branco)
-    if order.paid == True:                 # linha 4  <- viola Seção 5
+    if order.paid == True:                 # linha 4  <- viola a PEP 8 (comparação com True)
         return True                        # linha 5
 ```
 
@@ -143,11 +143,11 @@ Arquivo: `evaluation/dataset/pilot_dataset.json`. Esquema:
 
 | Regra | Sub-regras | Exemplo de violação |
 |---|---|---|
-| Seção 5 do guia PEP 8 (comparações) | `booleano`, `nulo` | `if x == True:`, `if y != None:` |
-| Seção 2 (nomenclatura) | `nome_funcao`, `nome_classe`, `nome_proibido` | `def CalculateTax`, `class order_item`, `I = 3` |
-| `coding_standards.md` 4.1 (exceções) | `captura_generica`, `captura_silenciosa` | `except Exception: pass`, `except ValueError: pass` |
+| PEP 8, Programming Recommendations (comparações) | `booleano`, `nulo` | `if x == True:`, `if y != None:` |
+| PEP 8, Naming Conventions | `nome_funcao`, `nome_classe`, `nome_proibido` | `def CalculateTax`, `class order_item`, `I = 3` |
+| PEP 8, Programming Recommendations (`except:` nu) | `except_nu` | `except:` seguido de `pass` ou `continue` |
 
-- 132 linhas violam (positivas). 132 são "negativos difíceis": parecem
+- 118 linhas violam (positivas). 146 são "negativos difíceis": parecem
   violação mas não são (ex.: `if x is True:`). O resto é código comum.
 - 21 dos 75 PRs são de controle: não têm nenhuma violação.
 - D-008: todo o código fora das linhas rotuladas cumpre o corpus inteiro
@@ -192,11 +192,11 @@ e depois `python -m evaluation.retrieval.ablation` para a tabela.
 **Pergunta que responde:** "para cada linha que viola, a norma certa
 aparece entre os chunks que o Qdrant devolve?" Não chama o LLM.
 
-Para cada uma das 132 linhas positivas, faz a busca e olha se algum dos k
+Para cada uma das 118 linhas positivas, faz a busca e olha se algum dos k
 primeiros chunks contém a norma daquela linha (`norm_map.py` sabe
 reconhecer o texto de cada norma).
 
-- `recall@5`: fração das 132 linhas em que a norma veio entre os 5
+- `recall@5`: fração das 118 linhas em que a norma veio entre os 5
   primeiros.
 - `context_precision@5`: dos 5 chunks, quantos carregam a norma certa.
 

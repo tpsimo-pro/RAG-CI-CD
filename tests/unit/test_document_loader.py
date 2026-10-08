@@ -311,32 +311,79 @@ def test_cabecalho_apos_cerca_mista_sobrevive_no_loader(tmp_path):
     assert secoes == ["A", "B"]
 
 
-class TestCorpusRealSemSecoesFantasma:
-    """
-    Regressão (Ruling 8): trava no CI a invariante verificada manualmente
-    no Step 5 da Tarefa 4 — o corpus real de docs/style_guides não pode
-    mais produzir seções fantasma a partir de comentários dentro de blocos
-    de código cercados.
+def test_cerca_preserva_indentacao_e_espacos_multiplos(tmp_path):
+    md = tmp_path / "g.md"
+    md.write_text(
+        "## A\n\nTexto  com   espacos.\n\n"
+        "```python\n"
+        "def f():\n"
+        "    x      = 1\n"
+        "    return x\n"
+        "```\n",
+        encoding="utf-8",
+    )
 
-    Fix round 1: a ausência de fantasmas sozinha não pega o modo de falha
-    oposto (perder cabeçalho real por pareamento incorreto de ``` com ~~~),
-    então também travamos a contagem total de seções do corpus real.
-    """
+    texto = DocumentLoader().load(md)[0].text
 
-    def test_corpus_real_nao_produz_secoes_fantasma(self):
-        style_guides_dir = Path(__file__).parent.parent.parent / "docs" / "style_guides"
-        if not style_guides_dir.is_dir():
-            pytest.skip(f"diretório não encontrado: {style_guides_dir}")
+    assert "    x      = 1" in texto
+    assert "    return x" in texto
+    assert "Texto com espacos." in texto
 
-        docs = DocumentLoader().load_directory(style_guides_dir)
+
+def test_cabecalho_nivel_4_vira_secao(tmp_path):
+    md = tmp_path / "g.md"
+    md.write_text(
+        "## A\n\nCorpo de A.\n\n#### Sub\n\nCorpo de Sub.\n", encoding="utf-8"
+    )
+
+    secoes = [d.section for d in DocumentLoader().load(md)]
+
+    assert secoes == ["A", "Sub"]
+
+
+def test_secao_so_com_titulo_nao_vira_documento(tmp_path):
+    md = tmp_path / "g.md"
+    md.write_text(
+        "## Pai\n\n### Filho\n\nCorpo do filho.\n", encoding="utf-8"
+    )
+
+    secoes = [d.section for d in DocumentLoader().load(md)]
+
+    assert secoes == ["Filho"]
+
+
+class TestCorpusRealPep8:
+    """O corpus indexado e so a PEP 8, sem secoes fantasma nem vazias."""
+
+    @pytest.fixture(scope="class")
+    def docs(self):
+        corpus = Path(__file__).parent.parent.parent / "docs" / "style_guides"
+        return DocumentLoader().load_directory(corpus)
+
+    def test_corpus_e_so_a_pep8(self, docs):
+        assert {Path(d.source).name for d in docs} == {"pep-0008.md"}
+
+    def test_sem_secoes_fantasma(self, docs):
         fantasmas = [
             d.section
             for d in docs
-            if d.section.lower().startswith(("correto", "incorreto"))
-            or d.section in ("1. Stdlib", "2. Terceiros", "3. Internos")
+            if d.section.startswith(("Correct", "Wrong", "#"))
         ]
-
         assert fantasmas == []
-        # Não apenas "sem fantasmas": também "sem perdas" — o corpus real
-        # produz hoje exatamente 52 seções (61 no L0 menos as 9 fantasma).
-        assert len(docs) == 52
+
+    def test_toda_secao_tem_corpo(self, docs):
+        for d in docs:
+            corpo = d.text.split("\n\n", 1)[1] if "\n\n" in d.text else ""
+            assert corpo.strip(), d.section
+
+    def test_secoes_chave_presentes(self, docs):
+        secoes = {d.section for d in docs}
+        assert {
+            "Indentation",
+            "Maximum Line Length",
+            "Imports",
+            "Programming Recommendations",
+            "Class Names",
+            "Function and Variable Names",
+            "Names to Avoid",
+        } <= secoes
