@@ -190,10 +190,6 @@ class TestSplitByParagraph:
 
 # ── Testes: blocos cercados são atômicos (Tarefa 5) ──────────────────────────
 
-from indexer.document_loader import Document
-from indexer.chunker import RecursiveChunker
-
-
 def _conta_cercas(texto: str) -> int:
     return sum(1 for linha in texto.splitlines() if linha.strip().startswith("```"))
 

@@ -5,13 +5,13 @@ from evaluation.retrieval.metrics import (
     recall_at_k,
 )
 
-NORM = "pep8:secao-5:comparacao-booleana"
+NORM = "booleano"
 OUTRA = "outra:norma"
 
 
 def _outcome(*ranks: set[str]) -> RetrievalOutcome:
     return RetrievalOutcome(
-        gold=GoldLine(pr_id="PR-001", line="if x == True:", norm_key=NORM),
+        gold=GoldLine(pr_id="PR-001", filename="a.py", line="if x == True:", norm_key=NORM),
         ranked_norm_keys=list(ranks),
     )
 

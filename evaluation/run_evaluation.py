@@ -2,8 +2,8 @@
 run_evaluation.py — Script principal de avaliação do RAG-Reviewer.
 
 Executa o sistema **real** (retrieval no Qdrant + geração no Groq, via os
-módulos de `rag_reviewer/`) contra o dataset do piloto (comparações
-booleanas e com `None`, nomenclatura e `except:` nu da PEP 8; D-002, D-009)
+módulos de `rag_reviewer/`) contra o dataset do piloto (23 normas
+da PEP 8 em PRs de vários arquivos; D-002, D-009, D-010)
 e produz a matriz de confusão completa (TP/FP/FN/TN), as métricas derivadas
 definidas em `docs/DECISIONS.md` (D-001, D-003, D-005) e o mesmo conjunto
 recortado por regra.
@@ -77,64 +77,78 @@ _DEFAULT_REPETICOES = 1
 
 def _load_dataset(path: Path) -> list[dict]:
     """
-    Carrega e valida a forma mínima do dataset contra o contrato do schema.
+    Carrega e valida a forma mínima do dataset (schema v2, D-010).
 
-    Falha ruidosamente (ValueError) se algum PR ou linha adicionada não tiver
-    os campos obrigatórios — não há caminho silencioso para dados malformados.
+    Falha ruidosamente (ValueError) se algum PR, arquivo ou linha adicionada
+    não tiver os campos obrigatórios — não há caminho silencioso para dados
+    malformados.
     """
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, list) or not raw:
         raise ValueError(f"Dataset vazio ou em formato inválido: {path}")
 
     for pr in raw:
-        for required in ("pr_id", "filename", "patch", "added_lines"):
+        for required in ("pr_id", "files"):
             if required not in pr:
                 raise ValueError(
                     f"PR malformado em {path} (pr_id={pr.get('pr_id', '?')}): "
                     f"campo obrigatório '{required}' ausente."
                 )
-        for added_line in pr["added_lines"]:
-            for required in ("line", "viola"):
-                if required not in added_line:
+        if not pr["files"]:
+            raise ValueError(f"{pr['pr_id']}: PR sem arquivos.")
+        for arquivo in pr["files"]:
+            for required in ("filename", "status", "patch", "added_lines"):
+                if required not in arquivo:
                     raise ValueError(
-                        f"Linha adicionada malformada em {pr['pr_id']}: "
+                        f"Arquivo malformado em {pr['pr_id']}: "
                         f"campo obrigatório '{required}' ausente."
                     )
+            for added_line in arquivo["added_lines"]:
+                for required in ("line", "viola"):
+                    if required not in added_line:
+                        raise ValueError(
+                            f"Linha adicionada malformada em {pr['pr_id']}: "
+                            f"campo obrigatório '{required}' ausente."
+                        )
     return raw
 
 
-def _build_gold_lines(pr_data: dict) -> list[GoldLine]:
-    """Converte `added_lines` do dataset no gabarito tipado (GoldLine)."""
+def _build_gold_lines(pr_id: str, file_data: dict) -> list[GoldLine]:
+    """Converte `added_lines` de um arquivo do PR no gabarito tipado (GoldLine)."""
     return [
         GoldLine(
-            pr_id=pr_data["pr_id"],
+            pr_id=pr_id,
             line=al["line"],
             viola=bool(al["viola"]),
             regra=al.get("regra"),
             sub_regra=al.get("sub_regra"),
             hard_negative=bool(al.get("hard_negative", False)),
         )
-        for al in pr_data["added_lines"]
+        for al in file_data["added_lines"]
     ]
 
 
-def _build_file_diff(pr_data: dict) -> FileDiff:
+def _build_file_diff(file_data: dict) -> FileDiff:
     """
-    Constrói o FileDiff de produção a partir de um PR do dataset.
+    Constrói o FileDiff de produção a partir de um arquivo de um PR do dataset.
 
     As `added_lines` do FileDiff vêm diretamente do gabarito (D-001 define a
     unidade de avaliação como "os itens de added_lines de cada PR do
     dataset") — o mesmo texto que carrega o rótulo é o que alimenta o
     retriever e o LLM reais, garantindo que se avalia exatamente o que foi
-    rotulado.
+    rotulado. O `status` e a contagem de remoções vêm do patch, como no
+    `DiffCollector` do workflow real.
     """
-    added_lines = [al["line"] for al in pr_data["added_lines"]]
+    added_lines = [al["line"] for al in file_data["added_lines"]]
+    deletions = sum(
+        1 for ln in file_data["patch"].split("\n") if ln.startswith("-")
+    )
     return FileDiff(
-        filename=pr_data["filename"],
-        patch=pr_data.get("patch", ""),
-        status="modified",
+        filename=file_data["filename"],
+        patch=file_data["patch"],
+        status=file_data["status"],
         additions=len(added_lines),
-        deletions=0,
+        deletions=deletions,
         added_lines=added_lines,
     )
 
@@ -239,7 +253,8 @@ _CHECKPOINT_PATH = _PROJECT_ROOT / "evaluation" / ".eval_checkpoint.json"
 # `cites_correct_norm` (emenda de D-002): um checkpoint da versão 1 não
 # reconstrói um `LineResult` atual e é descartado em vez de quebrar a execução.
 # Subiu para 3 quando cada PR passou a guardar as detecções brutas do LLM.
-_CHECKPOINT_SCHEMA = 3
+# Subiu para 4 com o dataset de vários arquivos por PR (D-010).
+_CHECKPOINT_SCHEMA = 4
 
 # O caminho do dataset não basta como chave: a linha de base das Seções 5 e 2
 # roda num checkout antigo, com o mesmo caminho, outro conteúdo e outro prompt
@@ -348,30 +363,50 @@ def run_evaluation(
 
     for pr_data in dataset:
         pr_id = pr_data["pr_id"]
-        gold_lines = _build_gold_lines(pr_data)
 
         if pr_id in completed_prs:
             per_pr_reps = completed_prs[pr_id]
         else:
-            file_diff = _build_file_diff(pr_data)
-
+            # Um arquivo por chamada ao LLM, como o workflow real (D-010). A
+            # classificação (D-003) roda por arquivo, para linhas de texto
+            # igual em arquivos diferentes não colidirem; os resultados são
+            # somados sob o pr_id, que é a unidade do gate.
+            arquivos = [
+                (f, _build_file_diff(f), _build_gold_lines(pr_id, f))
+                for f in pr_data["files"]
+            ]
+            total_linhas = sum(len(g) for _, _, g in arquivos)
             console.log(
                 f"[cyan]-> Avaliando [bold]{pr_id}[/bold]:[/cyan] "
-                f"{pr_data.get('description', '')} ({len(gold_lines)} linha(s))"
+                f"{pr_data.get('description', '')} "
+                f"({len(arquivos)} arquivo(s), {total_linhas} linha(s))"
             )
 
-            context = _retrieve_context(retriever, file_diff)
+            contextos = [_retrieve_context(retriever, fd) for _, fd, _ in arquivos]
 
             per_pr_reps = []
             for rep in range(repeticoes):
-                detections = _review_with_backoff(llm, context) if context is not None else []
-                line_results, total_det, hallucinated = classify_lines(gold_lines, detections)
+                line_results: list[LineResult] = []
+                total_det = hallucinated = 0
+                detections_dicts: list[dict] = []
+                for (_, file_diff, gold_lines), context in zip(arquivos, contextos):
+                    detections = (
+                        _review_with_backoff(llm, context) if context is not None else []
+                    )
+                    lr, n_det, n_hall = classify_lines(gold_lines, detections)
+                    line_results.extend(lr)
+                    total_det += n_det
+                    hallucinated += n_hall
+                    detections_dicts.extend(
+                        {**dataclasses.asdict(d), "filename": file_diff.filename}
+                        for d in detections
+                    )
                 per_pr_reps.append(
                     {
                         "line_results": [_line_result_to_dict(r) for r in line_results],
                         "total_detections": total_det,
                         "hallucinated_detections": hallucinated,
-                        "detections": [dataclasses.asdict(d) for d in detections],
+                        "detections": detections_dicts,
                     }
                 )
                 _log_pr_repetition(rep, line_results)
@@ -478,9 +513,12 @@ def _print_summary(agg: AggregatedEvaluation) -> None:
 
 
 _ROTULO_REGRA = {
-    "pep8-recomendacoes": "PEP 8 Programming Recommendations — comparações",
-    "pep8-nomes": "PEP 8 Naming Conventions — nomenclatura",
-    "pep8-excecoes": "PEP 8 Programming Recommendations — except nu",
+    "pep8-recomendacoes": "Programming Recommendations",
+    "pep8-nomes": "Naming Conventions",
+    "pep8-layout": "Code Lay-out",
+    "pep8-imports": "Imports",
+    "pep8-espacos": "Whitespace",
+    "pep8-comentarios": "Comments",
 }
 
 
@@ -649,8 +687,8 @@ def _save_results(
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Avalia o RAG-Reviewer contra o dataset do piloto (PEP 8 — "
-            "comparações, nomenclatura e except nu), usando Qdrant "
+            "Avalia o RAG-Reviewer contra o dataset do piloto (23 normas "
+            "da PEP 8, PRs de vários arquivos), usando Qdrant "
             "e Groq reais."
         )
     )

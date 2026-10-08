@@ -20,7 +20,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 
-from evaluation.retrieval.gold import GoldLine, build_gold
+from evaluation.retrieval.gold import build_gold
 from evaluation.retrieval.metrics import (
     RetrievalOutcome,
     context_precision_at_k,
@@ -128,19 +128,21 @@ def run_retrieval_eval(
     store.assert_model_matches(settings.embedding_model)
     sparse_encoder = SparseEncoder() if hybrid else None
 
-    # Índice auxiliar: pr_id -> (filename, todas as linhas adicionadas)
-    por_pr = {
-        pr["pr_id"]: (pr["filename"], [al["line"] for al in pr["added_lines"]])
+    # Índice auxiliar: (pr_id, filename) -> todas as linhas adicionadas do arquivo
+    por_arquivo = {
+        (pr["pr_id"], f["filename"]): [al["line"] for al in f["added_lines"]]
         for pr in dataset
+        for f in pr["files"]
     }
 
-    # Cache por PR quando a consulta é por arquivo — a mesma consulta serve
-    # todas as linhas positivas daquele PR.
-    cache_arquivo: dict[str, list[dict]] = {}
+    # Cache por arquivo quando a consulta é por arquivo — a mesma consulta
+    # serve todas as linhas positivas daquele arquivo.
+    cache_arquivo: dict[tuple[str, str], list[dict]] = {}
     outcomes: list[RetrievalOutcome] = []
 
     for g in gold:
-        filename, linhas = por_pr[g.pr_id]
+        chave_arquivo = (g.pr_id, g.filename)
+        linhas = por_arquivo[chave_arquivo]
         if hybrid:
             chunks = _retrieve_for_line_hybrid(
                 embedder, sparse_encoder, store, g.line, settings.top_k_chunks
@@ -150,16 +152,16 @@ def run_retrieval_eval(
                 embedder, store, g.line, settings.top_k_chunks, settings.score_threshold
             )
         else:
-            if g.pr_id not in cache_arquivo:
-                cache_arquivo[g.pr_id] = _retrieve_for_file(
+            if chave_arquivo not in cache_arquivo:
+                cache_arquivo[chave_arquivo] = _retrieve_for_file(
                     embedder,
                     store,
                     linhas,
-                    filename,
+                    g.filename,
                     settings.top_k_chunks,
                     settings.score_threshold,
                 )
-            chunks = cache_arquivo[g.pr_id]
+            chunks = cache_arquivo[chave_arquivo]
 
         outcomes.append(
             RetrievalOutcome(

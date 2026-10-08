@@ -38,7 +38,7 @@ def test_citacao_da_secao_do_corpus_real_e_reconhecida():
     """A citação sai do contexto `[Fonte: ... | Seção: ...]` da PEP 8."""
     ref = r"docs\style_guides\pep-0008.md | Seção: Programming Recommendations"
     assert cites_norm_of("pep8-recomendacoes", ref)
-    assert cites_norm_of("pep8-excecoes", ref)
+    assert cites_norm_of("pep8-recomendacoes", ref)
 
 
 def test_nomenclatura_aceita_secao_e_subsecoes_de_nomes():
@@ -449,11 +449,11 @@ class TestPerRule:
 
     def test_fp_logo_abaixo_de_except_violador_e_erro_de_localizacao(self):
         results = [
-            _line_result("PR-1", "FN", regra="pep8-excecoes", sub_regra="except_nu"),
+            _line_result("PR-1", "FN", regra="pep8-recomendacoes", sub_regra="except_nu"),
             _line_result("PR-1", "FP"),  # o `pass` do bloco violador
-            _line_result("PR-1", "TN", viola=False, regra="pep8-excecoes"),  # except correto
+            _line_result("PR-1", "TN", viola=False, regra="pep8-recomendacoes"),  # except correto
             _line_result("PR-1", "FP"),  # corpo de bloco que nao viola
-            _line_result("PR-2", "FN", regra="pep8-excecoes", sub_regra="except_nu"),
+            _line_result("PR-2", "FN", regra="pep8-recomendacoes", sub_regra="except_nu"),
             _line_result("PR-3", "FP"),  # primeira linha de outro PR
             _line_result("PR-3", "TP", regra="pep8-recomendacoes", sub_regra="nulo"),
             _line_result("PR-3", "FP"),  # abaixo de positiva de outra regra
@@ -643,4 +643,4 @@ class TestCheckTargets:
     ],
 )
 def test_cites_norm_of_regra_de_excecao(ref, esperado):
-    assert cites_norm_of("pep8-excecoes", ref) is esperado
+    assert cites_norm_of("pep8-recomendacoes", ref) is esperado
