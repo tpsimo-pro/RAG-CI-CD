@@ -386,3 +386,21 @@ class TestArquivoModificado:
         arq["source_after"] = arq["source_after"].replace("value = 0", "value = 9")
         _, erros = _validar(arq)
         assert any("nao bate com source_after" in x for x in erros)
+
+
+def test_texto_igual_positivo_e_negativo_no_arquivo_e_erro():
+    e = _corpo_limpo()
+    e[4] = _linha("    if value == None:", "nulo", "pep8-recomendacoes")
+    e[5:5] = [
+        _linha("        pass"),
+        _linha("    if value == None:"),
+        _linha("        pass"),
+    ]
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("positivo e negativo ao mesmo tempo" in x for x in erros)
+
+
+def test_dataset_real_passa_no_validador(capsys):
+    from evaluation.dataset.validate_pilot_dataset import main
+
+    assert main() == 0, capsys.readouterr().out

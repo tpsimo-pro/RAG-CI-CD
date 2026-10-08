@@ -340,6 +340,17 @@ def validar_arquivo(
     for msg in block_duplicates(fonte, {i: rotulos_exc[i] for i in rotulos_exc if i in alvo}):
         fail(errors, f"{loc0}: {msg}")
 
+    # D-003: classify_lines agrupa linhas de texto igual no arquivo; um texto
+    # positivo e negativo ao mesmo tempo tornaria o rotulo indecidivel.
+    rotulos_por_texto: dict[str, set[bool]] = defaultdict(set)
+    for e in added:
+        texto = " ".join(e["line"].split())
+        if texto:
+            rotulos_por_texto[texto].add(e["viola"])
+    for texto, rotulos in rotulos_por_texto.items():
+        if len(rotulos) > 1:
+            fail(errors, f"{loc0}: texto positivo e negativo ao mesmo tempo: {texto!r}")
+
     positivas: set[str] = set()
     for i, (src_idx, e) in enumerate(zip(mapa, added)):
         loc = f"{loc0}[{i}]"
