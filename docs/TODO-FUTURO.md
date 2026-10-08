@@ -57,7 +57,7 @@ externa.
 
 ---
 
-## F-009 — Workflow: sinalizar ambiguidade da norma
+## F-004 — Workflow: sinalizar ambiguidade da norma
 
 Em D-010 três linhas do dataset ficaram como ambíguas (literal global em
 minúsculas, como `retry_limit = 3`): o texto da PEP 8 não diz se é uma

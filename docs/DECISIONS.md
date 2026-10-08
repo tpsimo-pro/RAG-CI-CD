@@ -1048,9 +1048,23 @@ Fora do dataset, sem alteração e como limitação registrada: (a) 6 FPs e 2 FN
 são falhas do modelo (aceita `except Exception:` e o `except:` tolerado como
 violação, não conta colunas de forma confiável); (b) 15 FNs são falta da norma no
 contexto de 8 chunks. Aumentar o corte de 8 chunks foi descartado porque
-estoura a cota diária da Groq. Um teste sem LLM de chunks menores (256 e 128
-palavras) mede se a norma chega mais ao contexto sem gastar mais tokens; é
-exploratório, porque ajusta o sistema no mesmo dataset em que depois se avalia.
+estoura a cota diária da Groq. Em seu lugar, um teste sem LLM de chunks menores
+(exploratório, porque ajusta o sistema no mesmo dataset em que depois se avalia)
+mediu, no caminho de produção, em quantas das 98 linhas positivas a norma chega
+ao contexto de 8 chunks e quantas palavras de contexto cada arquivo carrega
+(`evaluation/retrieval/context_coverage.py`):
+
+| `chunk_size` | Linhas com a norma no contexto | Palavras de contexto por arquivo |
+|---|---|---|
+| 512 (atual) | 53 de 98 (54%) | 1.835 |
+| 256 | 37 de 98 (38%) | 1.102 |
+| 128 | 28 de 98 (29%) | 710 |
+
+Chunks menores gastam menos tokens, mas perdem mais cobertura do que economizam.
+O `chunk_size` fica em 512 e a recuperação segue como limitação registrada. Das
+45 linhas positivas sem a norma no contexto (com 512), só uma parte vira FN, o
+que sugere que o modelo também acerta por conhecimento prévio da PEP 8; a
+rodada 2 mede isso.
 
 ---
 
