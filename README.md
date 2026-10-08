@@ -10,10 +10,10 @@ Validação ponta a ponta de um pipeline RAG que detecta violações de três re
 
 | Item | Definição |
 |---|---|
-| Regras | Três regras da PEP 8 (D-002, D-009): comparações (`== True`, `== False`, `== None` e `!= None` são proibidos; use `is` / `is not` com `None`), nomenclatura (funções em `snake_case`, classes em `CapWords`, `l`, `O` e `I` proibidos como nome) e `except:` nu (só é tolerado se o handler registra o traceback ou relança com `raise`) |
+| Regras | 23 normas da PEP 8 em 6 famílias (D-002, D-009, D-010): comparações e `except:` nu (Programming Recommendations), nomenclatura (Naming Conventions), 79 colunas e linhas em branco (Code Lay-out), imports, espaços em expressões e comentário inline. Catálogo em `evaluation/dataset/norms.py` |
 | Unidade de avaliação | A linha adicionada (D-001) |
 | Corpus indexado | A PEP 8 completa, em inglês, em `docs/style_guides/pep-0008.md`: 40 seções, 43 chunks (D-009) |
-| Dataset | 75 PRs sintéticos, 2025 linhas adicionadas, com código conforme a PEP 8 fora a violação rotulada (D-008, D-009). 118 positivas (26 booleanas, 26 de nulos, 16 por sub-regra de nomenclatura, 18 de `except:` nu) e 1907 negativas, das quais 146 são negativos difíceis. 54 PRs com violação e 21 de controle. Esquema em `evaluation/dataset/SCHEMA.md` |
+| Dataset | 25 PRs sintéticos de 1 a 3 arquivos (35 arquivos: 21 novos e 14 modificados, com `patch` de hunks), 908 linhas adicionadas, ensaio do workflow do GitHub (D-010). 98 linhas positivas, 74 negativos difíceis, 3 ambíguas. 20 PRs com violação e 5 limpos. O ruff é o oráculo do rótulo. Esquema em `evaluation/dataset/SCHEMA.md` |
 | LLM | `qwen/qwen3.8-27b` via Groq, temperatura 0.0 (D-005, D-006) |
 | Embedding | `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensões) mais BM25 esparso (ADR-002, ADR-004) |
 | Banco de vetores | Qdrant (ADR-001) |
@@ -45,54 +45,45 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Todos os resultados desta seção são da rodada de D-009: corpus da PEP 8, dataset de 75 PRs, três regras da PEP 8. Relatório completo em `docs/RELATORIO-RESULTADOS.md`, que mantém como anexo a rodada anterior (D-008, corpus de três guias). As duas rodadas não são comparáveis um a um: mudaram o corpus, as regras de exceção e o prompt.
+> Os resultados desta seção são da **rodada 1 de D-010** (dataset realista de 25 PRs e 35 arquivos, 23 normas da PEP 8). Depois dela, 15 dos 40 erros se mostraram erros de rótulo do dataset e foram corrigidos; a **rodada 2**, com o dataset corrigido, ainda não foi rodada (a cota diária da Groq estava esgotada). Relatório completo em `docs/RELATORIO-RESULTADOS.md`, que mantém como anexos as rodadas de D-009 (75 PRs, 6 normas) e D-008. Os números não são comparáveis entre rodadas: mudam dataset, normas e gabarito.
 >
-> A avaliação de detecção reporta as métricas **por regra** e o recall **por sub-regra** (`per_rule` e `per_sub_rule_recall` em `results_pep8.json`). O recorte de uma regra são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a regra alguma e só entram na matriz global, então a precisão por regra não é comparável à global.
+> A avaliação reporta métricas **por família** (`per_rule`) e o recall **por norma** (`per_sub_rule_recall`) em `results_realista.json`. O recorte de uma família são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a família alguma e só entram na matriz global.
 
 ### Recuperação (sem LLM)
 
-`recall@k` é a fração das 118 linhas positivas cuja norma correta aparece entre os k primeiros chunks recuperados **para aquela linha**. `context_precision@5` é a fração dos chunks recuperados que carregam a norma correta.
+`recall@k` é a fração das 98 linhas positivas cuja norma correta aparece entre os k primeiros chunks recuperados **para aquela linha**. `context_precision@5` é a fração dos chunks recuperados que carregam a norma correta.
 
 | Config | recall@1 | recall@3 | recall@5 | context_precision@5 |
 |---|---|---|---|---|
-| Consulta por arquivo, multilíngue, só denso | 0.0169 | 0.0169 | 0.0169 | 0.0169 |
-| Consulta por linha, multilíngue, só denso | 0.0424 | 0.0763 | 0.0763 | 0.0458 |
-| Busca híbrida denso + BM25 com RRF, multilíngue (produção) | 0.2966 | 0.6186 | 0.7373 | 0.1475 |
-| Busca híbrida, MiniLM em inglês | 0.4322 | 0.6610 | 0.7288 | 0.1458 |
+| Só denso, multilíngue | 0.1327 | 0.1939 | 0.1939 | 0.0827 |
+| Busca híbrida denso + BM25 com RRF, multilíngue (produção) | 0.3367 | 0.5816 | 0.6837 | 0.1367 |
+| Busca híbrida, MiniLM em inglês | 0.3469 | 0.5714 | 0.6327 | 0.1265 |
 
-Critério do plano: `recall@5 >= 0.95`, não atingido (em D-008, o híbrido multilíngue deu 0.84). A busca híbrida recupera 100% das linhas de comparação com booleano e de `except:` nu, 77% das de `None`, e 0% das de nome de função: a norma é prosa e a consulta é código sem palavra em comum. O `recall@k` mede cada linha isolada, sem a união por arquivo e o corte em 8 chunks do `Retriever`. O chunk de 512 palavras foi o melhor entre os testados (256, 128 e 64 deram recall@5 menor).
+Critério do plano: `recall@5 >= 0.95`, não atingido. O LLM não recebe o top-5 por linha, e sim o contexto de 8 chunks por arquivo. Nele, a norma da linha positiva está presente em 54% das linhas (`evaluation/retrieval/context_coverage.py`); com chunks de 256 e de 128 palavras a cobertura cai para 38% e 29%, então o `chunk_size` fica em 512 (D-010).
 
-### Detecção (1 repetição, temperatura 0.0)
+### Detecção, rodada 1 (1 repetição, temperatura 0.0)
 
 | Métrica | Valor | Meta mínima | Situação |
 |---|---|---|---|
-| Precisão | 0.9583 | 0.70 | atingida |
-| Recall | 0.9746 | 0.65 | atingida |
-| F1-Score | 0.9664 | 0.67 | atingida |
+| Precisão | 0.8021 | 0.70 | atingida |
+| Recall | 0.7857 | 0.65 | atingida |
+| F1-Score | 0.7938 | 0.67 | atingida |
 
-Metas de `RAG-Reviewer_Planejamento.md`, seção 15.3. Uma repetição, conforme D-005. Em D-008: 0.8722, 0.8788, 0.8755.
+Metas de `RAG-Reviewer_Planejamento.md`, seção 15.3. Uma repetição, conforme D-005.
 
-Matriz de confusão por linha (2.025 linhas):
+Matriz de confusão por linha (796 linhas): TP = 77, FP = 19, FN = 21, TN = 679. Gate por PR (25 PRs): TP = 19, FP = 5, FN = 1, TN = 0, ou seja, os 5 PRs limpos foram bloqueados. Alucinação de localização 0.0. Precisão da referência normativa 0.78.
 
-| | Previsto positivo | Previsto negativo |
-|---|---|---|
-| **Real positivo** | TP = 115 | FN = 3 |
-| **Real negativo** | FP = 5 | TN = 1902 |
+Por família, F1: espaços 0.96, nomes 0.91, imports 0.87, recomendações 0.82, layout 0.57, comentários 0.29. Por norma, 13 das 23 têm recall 100% e `import_ordem` (0 de 4, rótulo que se mostrou errado), `comentario_inline` (1 de 6), `lambda_atribuido` e `linha_longa` (1 de 4 cada) são as mais fracas.
 
-Por regra: recomendações (comparações) com F1 1.0, nomes com F1 0.98, `except:` nu com F1 0.84. Recall por sub-regra: 1.0 em `booleano`, `nulo`, `nome_classe` e `nome_proibido`; 0.94 em `nome_funcao`; 0.89 em `except_nu` (16 de 18).
-
-Matriz por PR (75 PRs, 54 com violação e 21 de controle): TP = 52, FP = 3, FN = 2, TN = 18.
-
-Taxa de alucinação 0.0. Precisão da referência normativa 0.9478. Resultado completo em `evaluation/results_pep8.json`.
+Origem dos 40 erros, lidos contra o texto da PEP 8 e o contexto entregue ao LLM: 15 são erro de rótulo do dataset (docstring pública exigida pela PEP 8 e não rotulada, dois negativos que a PEP 8 lista como errados, uma norma de ordem alfabética que a PEP 8 não exige, literais globais ambíguos), 15 são norma ausente do contexto de 8 chunks, 8 são falhas do modelo (aceita `except Exception:` e o `except:` tolerado como violação, não conta colunas) e 2 são acusações duplas benignas.
 
 ### Limitações
 
-- O dataset é sintético e escrito pelo autor, o que ameaça a validade externa (D-004).
-- A PEP 8 é conhecida pelos LLMs. O recall de detecção (0.97) supera o de recuperação (0.74), e não há linha de base sem recuperação, então não se separa a contribuição do RAG da do conhecimento prévio do modelo.
-- Quatro dos cinco FPs são de exceção: `except Exception:`, que a PEP 8 recomenda, e os dois casos em que ela tolera o `except:` nu (o handler registra o traceback ou relança).
-- Parte da melhora sobre D-008 vem de um corpus mais estreito: normas fora do piloto, que geravam FPs, deixaram de estar no corpus.
-- `except_nu` tem 18 positivas; os recortes por sub-regra são pequenos.
-- Quatro de cada cinco chunks recuperados não carregam a norma correta (`context_precision@5` = 0.15 na busca híbrida).
+- O dataset é sintético e escrito pelo autor, o que ameaça a validade externa (D-004). Os erros de rótulo só foram achados depois de ver o resultado; a correção seguiu o texto da PEP 8 e foi registrada em D-010.
+- Cerca de 4 positivas por norma: a cobertura por norma é indicação, não estatística.
+- A norma chega ao LLM em apenas 54% das linhas positivas; a recuperação é o principal limite do recall.
+- A PEP 8 é conhecida pelo LLM, e não há linha de base sem recuperação para separar a contribuição do RAG do conhecimento prévio do modelo.
+- Não são medidos a `suggestion` de correção, a `severity` e o comentário publicado no PR; o gate conta qualquer sinalização como bloqueio.
 
 ---
 
@@ -210,7 +201,8 @@ RAG-CI-CD/
 |   |-- metrics.py            Matriz de confusão, Precisão, Recall, F1
 |   |-- run_evaluation.py     Avaliação de detecção
 |   |-- results.json          Resultado oficial de D-008 (corpus de três guias)
-|   `-- results_pep8.json     Resultado oficial de D-009 (PEP 8)
+|   |-- results_pep8.json     Resultado oficial de D-009 (PEP 8)
+|   `-- results_realista.json Resultado da rodada 1 de D-010 (dataset realista)
 |-- scripts/                  Conversão do reST da PEP 8 em Markdown
 |-- tests/unit/               Testes unitários
 |-- docs/
@@ -218,7 +210,7 @@ RAG-CI-CD/
 |   |-- adr/                  ADR-001 a ADR-004
 |   |-- agent-reports/        Relatórios da refação e da ablação
 |   |-- superpowers/          Spec e plano da refação da camada de RAG
-|   |-- DECISIONS.md          Decisões D-001 a D-009
+|   |-- DECISIONS.md          Decisões D-001 a D-010
 |   `-- TODO-FUTURO.md        Backlog
 |-- .github/workflows/
 |   `-- keep_alive.yml        Consulta periódica ao Qdrant Cloud

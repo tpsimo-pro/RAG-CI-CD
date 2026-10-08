@@ -1,58 +1,68 @@
 # Status do projeto
 
-Atualizado em 2026-10-08. Branch `feat/corpus-pep8`, empilhada em
-`feat/dataset-conforme-corpus` (PR #12 aberto para a `main`, não mesclado).
-Nada desta rodada final foi commitado: o working tree tem o relatório, o
-STATUS, o README e `evaluation/results_pep8.json`.
+Atualizado em 2026-10-08. Branch `feat/dataset-realista`, a partir da `main`
+com D-009 mesclado (PR #13). Ainda sem PR aberto para esta branch.
 
 Fluxo do sistema e das avaliações: `docs/GUIA-DO-PROJETO.md`.
-Resultados: `docs/RELATORIO-RESULTADOS.md`.
+Resultados: `docs/RELATORIO-RESULTADOS.md`. Decisões: `docs/DECISIONS.md`.
 
 ## Onde estamos
 
-D-009 concluída. O corpus indexado é só a PEP 8 completa, em inglês, sem chunks
-redundantes. A avaliação oficial no corpus novo atingiu as três metas do TCC:
-Precisão 0,96, Recall 0,97, F1 0,97 (D-008: 0,87, 0,88, 0,88). A comparação
-não é um a um: mudaram o corpus, as regras de exceção e o prompt. Ver a seção 7
-do relatório.
+D-010 implementado: dataset realista de 25 PRs e 35 arquivos (21 novos, 14
+modificados), 23 normas da PEP 8, ensaio do workflow do GitHub. A **rodada 1**
+da avaliação oficial deu P 0,80, R 0,79, F1 0,79 (metas atingidas). A
+investigação dos 40 erros achou 15 erros de rótulo do dataset; foram corrigidos
+(D-010, "Revisão após a primeira rodada") e o dataset corrigido ainda **não foi
+reavaliado**: falta a **rodada 2**.
 
 ## Feito nesta branch
 
 | O quê | Commit |
 |---|---|
-| Spec e corpus: `pep-0008.md` no lugar dos três guias; carregador e chunker corrigidos | `e4057e8`, `339e75a` |
-| Gabarito e citação de normas apontam a PEP 8 | `36209f9` |
-| Dataset, validador e conformidade reapontados; `except_nu` no lugar de `captura_*` | `88f94db` |
-| Prompts e SCHEMA | `33e10c4` |
-| D-009, README, guia, arquitetura, ablação de recuperação | `151880b` |
-| Avaliação oficial, relatório, STATUS e README com resultados | não commitado |
+| Spec do dataset realista | `169058e` |
+| Catálogo único das 23 normas, com teste contra o ruff e o corpus | `975ce0a` |
+| Validador v2 (ruff como oráculo, patch com hunks) | `5b55d76` |
+| Harness para PRs de vários arquivos | `a92ea49` |
+| Dataset de 25 PRs, 35 arquivos | `bb7d405` |
+| Dataset corrigido (docstrings, `import_ordem`, negativos, ambiguidade) | `9adc83a` |
+| SCHEMA v2, D-010 com a revisão dos rótulos | `cad91fe` |
+| Cobertura do contexto entregue ao LLM e teste de chunks menores | `2eaa103` |
+| Relatório da rodada 1, README, STATUS | não commitado |
+
+## Falta
+
+1. **Rodada 2** da avaliação oficial com o dataset corrigido
+   (`python -m evaluation.run_evaluation --output evaluation/results_realista_r2.json`
+   com `QDRANT_COLLECTION=pep8_chunks`). Custa cerca de 130 mil tokens e a cota
+   diária da Groq (200 mil, zera às 00:00 UTC) estava esgotada no dia 08/10 até
+   as 20:00 no horário local. Rodar com memória livre: o processo foi encerrado
+   pelo sistema por memória baixa em 3 execuções.
+2. Cruzar `context_coverage` com as detecções da rodada 2 (a norma no contexto
+   contra a norma ausente), para medir quanto o modelo depende do contexto.
+3. Acrescentar a rodada 2 ao relatório e abrir o PR.
 
 ## Decisões em aberto
 
-- **Linha de base sem recuperação.** O recall de detecção (0,97) é maior que o
-  recall@5 de recuperação (0,74). Sem medir o mesmo prompt sem os chunks, não
-  se separa o que o RAG contribui do que o modelo já sabe da PEP 8.
-- **`except:` nu.** 4 dos 5 FPs da rodada: `except Exception:` (que a PEP 8
-  recomenda) e os dois casos tolerados do `except:` nu. Ajustar prompt ou
-  corpus exige nova rodada.
-- **Modelo de embedding.** O MiniLM em inglês dá recall@1 de 0,43 contra 0,30
-  do multilíngue, com recall@5 igual. ADR-002 e ADR-004 têm uma nota de
-  D-009, mas ainda citam os números do corpus antigo.
-- **Coleção do Qdrant.** O padrão passou a `pep8_chunks` em `config.py` e
-  `.env.example`. O `.env` local do autor ainda aponta `style_guide_chunks`
-  (corpus antigo, 52 pontos, mantida para a PR #12).
-- **Ampliação do dataset.** Ao incluir outras normas da PEP 8, limitar a cerca
-  de 50 PRs por rodada ou reduzir os tokens por chamada: 75 PRs não cabem na
-  cota diária de 200 mil tokens da Groq.
-- **Makefile.** `make eval-retrieval` mede a configuração antiga (sem
-  `--per-line --hybrid`), e `make docker-qdrant` não é usado.
+- **Linha de base sem recuperação.** Sem ela não se separa a contribuição do RAG
+  do conhecimento prévio do modelo sobre a PEP 8.
+- **Falhas do modelo no `except`.** `except Exception:` e o `except:` tolerado
+  (com `logger.exception` ou `raise`) são acusados como violação. Ajustar prompt
+  ou corpus exige nova rodada.
+- **Ambiguidade no workflow.** O modelo deve sinalizar casos ambíguos da norma
+  (`docs/TODO-FUTURO.md`, F-004).
+- **Modelo de embedding.** ADR-002 e ADR-004 têm uma nota de D-009, mas ainda citam
+  números do corpus antigo.
+- **`requirements-dev.txt`.** O autor tem uma alteração local pedindo ruff 0.16.10;
+  o `.venv` usa 0.4.9, e os códigos do catálogo são verificados contra o instalado.
+- **Seu `.env` local** ainda aponta `QDRANT_COLLECTION=style_guide_chunks` (corpus
+  antigo); a coleção atual é `pep8_chunks`.
 
 ## Limitações conhecidas
 
-- Dataset sintético escrito pelo autor (D-004).
-- Uma repetição por rodada (D-005).
-- `except_nu` tem 18 positivas, `nome_funcao` falha 1 de 16.
-- Nome de função tem recall@5 de recuperação 0,00: a norma é prosa e a
-  consulta é código.
+- Dataset sintético escrito pelo autor (D-004); erros de rótulo achados depois do
+  resultado, corrigidos com base no texto da PEP 8.
+- Uma repetição por rodada (D-005); cerca de 4 positivas por norma.
+- A norma chega ao LLM em 54% das linhas positivas; a recuperação limita o recall.
+- A `suggestion` e a `severity` não são medidas.
 - Um teste, `test_embedder.py::TestImportError`, falha por causa do ambiente
   local (já falhava antes de D-009).

@@ -276,30 +276,23 @@ Metas do TCC: Precisão >= 0,70, Recall >= 0,65, F1 >= 0,67.
 
 | Quando | O quê | Resultado |
 |---|---|---|
-| 29/09 | Avaliação oficial com o bug do retriever (`b2eddf4`) | P 0,79 · R 0,64 · F1 0,71. Recall abaixo da meta |
-| 29/09 | Bug achado: a norma certa não chegava ao LLM | Corrigido em `fb05820`. Norma no contexto: 25 de 54 PRs violadores -> 47 de 54 |
-| 29/09 | Ablação L0 a L4 refeita no dataset atual (`74fb75a`) | L4 com recall@5 de 0,84. Falhas só em nomenclatura |
+| 07/10 | Avaliação oficial de D-009 (corpus da PEP 8, 75 PRs) | P 0,96 · R 0,97 · F1 0,97 |
+| 08/10 | Dataset realista (D-010): 25 PRs, 35 arquivos, 23 normas. Rodada 1 | P 0,80 · R 0,79 · F1 0,79 |
+| 08/10 | 40 erros investigados contra o texto da PEP 8 | 15 erros de rótulo do dataset, corrigidos |
 
 **Falta, nesta ordem:**
 
-1. Rodar a avaliação de detecção com o retriever corrigido (1 cota
-   diária do Groq).
-2. Escrever a subseção "Resultado" em D-008, comparando com a rodada de
-   `b2eddf4`.
-3. Atualizar os números de detecção no README.
-4. Enviar a branch e abrir o PR para a `main`.
-
-**Decisão em aberto:** o modelo em inglês superou o multilíngue na
-ablação nova (0,89 contra 0,84). Manter o multilíngue ou trocar muda o
-ADR-002 e exige reindexar a coleção antes do passo 1.
-
----
+1. Rodar a rodada 2 da avaliação de detecção com o dataset corrigido (1 cota
+   diária do Groq, que zera às 00:00 UTC).
+2. Cruzar a cobertura do contexto com as detecções, para medir quanto o modelo
+   depende do que o retriever entrega.
+3. Acrescentar a rodada 2 ao relatório e abrir o PR.
 
 ## 8. Onde cada decisão está escrita
 
 | Assunto | Documento |
 |---|---|
-| Decisões do piloto (D-001 a D-008) | `docs/DECISIONS.md` |
+| Decisões do piloto (D-001 a D-010) | `docs/DECISIONS.md` |
 | Por que o RAG básico falhou e como foi refeito | `docs/superpowers/specs/2026-09-01-refacao-camada-rag-design.md` |
 | Qdrant, embedding, LLM, busca híbrida | `docs/adr/ADR-001` a `ADR-004` |
 | Formato do dataset | `evaluation/dataset/SCHEMA.md` |
