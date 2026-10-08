@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import subprocess
 import sys
 
@@ -80,9 +81,37 @@ def tolerated_bare_excepts(code: str) -> set[int]:
     return tolerated
 
 
+_UPPER = re.compile(r"^_?[A-Z][A-Z0-9_]*$")
+_SNAKE = re.compile(r"^_{0,2}[a-z][a-z0-9_]*_{0,2}$")
+
+
+def _is_literal(node: ast.expr | None) -> bool:
+    if isinstance(node, ast.Constant):
+        return True
+    return isinstance(node, ast.Tuple) and all(_is_literal(e) for e in node.elts)
+
+
 def ast_findings(code: str) -> list[tuple[int, str]]:
+    tree = ast.parse(code)
     out: list[tuple[int, str]] = []
-    for node in ast.walk(ast.parse(code)):
+    # PEP 8: constantes de modulo em MAIUSCULAS. Vale o literal atribuido a
+    # um nome que nao e MAIUSCULO nem snake_case (CapWords ou mixedCase);
+    # variavel global em snake_case e legitima pela propria PEP 8.
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            alvo, valor = node.targets[0], node.value
+        elif isinstance(node, ast.AnnAssign):
+            alvo, valor = node.target, node.value
+        else:
+            continue
+        if (
+            isinstance(alvo, ast.Name)
+            and _is_literal(valor)
+            and not _UPPER.match(alvo.id)
+            and not _SNAKE.match(alvo.id)
+        ):
+            out.append((node.lineno - 1, "constante_maiuscula"))
+    for node in ast.walk(tree):
         if isinstance(node, ast.Name) and node.id in _FORBIDDEN_NAMES:
             if not isinstance(node.ctx, ast.Store):
                 out.append((node.lineno - 1, "uso-nome-proibido"))
