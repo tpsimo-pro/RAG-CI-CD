@@ -76,6 +76,7 @@ class LLMClient:
         model: str | None = None,
         max_tokens: int = 900,
         temperature: float | None = None,
+        sem_recuperacao: bool = False,
     ) -> None:
         """
         Inicializa o cliente.
@@ -86,6 +87,9 @@ class LLMClient:
             temperature: Temperatura de amostragem (0–2). Usa LLM_TEMPERATURE
                 do .env se None. A avaliação do TCC força ``0.0`` (D-005) para
                 minimizar a variância entre execuções.
+            sem_recuperacao: Usa os prompts da linha de base sem RAG
+                (``*_sem_rag.txt``), que não citam trechos recuperados. Só a
+                avaliação usa isso; o sistema em produção sempre recupera.
         """
         settings = get_settings()
         self._api_key = settings.groq_api_key
@@ -96,8 +100,9 @@ class LLMClient:
         )
         self._client = None  # lazy — importado em _get_client()
 
-        self._system_prompt = self._load_prompt("system_prompt.txt")
-        self._review_template = self._load_prompt("review_template.txt")
+        sufixo = "_sem_rag" if sem_recuperacao else ""
+        self._system_prompt = self._load_prompt(f"system_prompt{sufixo}.txt")
+        self._review_template = self._load_prompt(f"review_template{sufixo}.txt")
 
     # ── Propriedades ──────────────────────────────────────────────────────
 
