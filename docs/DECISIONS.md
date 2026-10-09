@@ -1127,6 +1127,10 @@ corpus, os prompts e o retriever são os da `main`.
 | `rag_reviewer/diff_parser.py` | `PullRequestDiff`, `DiffCollector.collect/_paginate/_parse_files` | Lista os arquivos do PR pela API (com paginação), descarta deletados, binários, sem patch e não `.py`, e monta cada `FileDiff` |
 | `requirements.txt` | `requests` | Cliente HTTP da API do GitHub |
 | `rag_reviewer/retriever.py` | `Retriever.retrieve_for_diff` | Aplica a recuperação por arquivo a todos os arquivos do PR e descarta os sem linhas adicionadas ou sem contexto |
+| `rag_reviewer/github_publisher.py` | `GitHubPublisher.publish`, `_create_review` | Uma review `COMMENT` com comentários inline; se a API devolver 422, refaz só com o sumário |
+| `rag_reviewer/github_publisher.py` | `_find_diff_position(..., usadas)` | Posição exata da linha no diff; linhas repetidas vão a posições diferentes; igualdade vence substring |
+| `rag_reviewer/github_publisher.py` | `_existing_comments`, `_build_review_comments` | Não repete comentário já publicado (o Action roda a cada push); sem posição vai ao sumário |
+| `rag_reviewer/github_publisher.py` | `_format_inline_comment`, `_build_summary_body` | Texto do comentário (severidade, norma, como corrigir, ambiguidade) e sumário por severidade, sem emojis |
 
 ---
 
