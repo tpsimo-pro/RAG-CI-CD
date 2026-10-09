@@ -1175,6 +1175,8 @@ corpus, os prompts e o retriever são os da `main`.
 | `tests/integration/test_rag_pipeline.py`, `Makefile` | `test-integration` | Fluxo ponta a ponta com GitHub, Qdrant e Groq simulados |
 | `arquitetura.md`, `README.md`, `docs/` | `CRITICAL`, `BLOCK_ON_CRITICAL` e `request_changes` removidos; seção do workflow | A documentação descreve a review `COMMENT`, sem bloqueio, e o fluxo do Action |
 | `.github/workflows/rag_reviewer.yml` | job `review` | Roda o revisor no `pull_request` (opened, synchronize, reopened) em `.py`; torch só CPU, cache do modelo, cancela a execução anterior do mesmo PR; `QDRANT_COLLECTION=pep8_chunks` |
+| `scripts/montar_prs_demo.py` | `reconstruir_antes`, `main` | Monta as branches dos PRs de teste: `demo/base` com o estado anterior dos arquivos modificados (desfaz o patch sobre `source_after`; round-trip conferido nos 14 modificados do dataset) e `demo/<pr>` com o estado depois |
+| `scripts/conferir_prs_demo.py` | `texto_da_linha`, `main` | Confere as reviews dos PRs de teste contra o gabarito do dataset usando o campo `line` da API, independente da contagem de `position` do publisher |
 
 ---
 
