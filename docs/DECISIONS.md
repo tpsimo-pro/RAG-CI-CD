@@ -1064,8 +1064,45 @@ Chunks menores gastam menos tokens, mas perdem mais cobertura do que economizam.
 O `chunk_size` fica em 512 e a recuperação segue como limitação registrada. Das
 45 linhas positivas sem a norma no contexto (com 512), só uma parte vira FN, o
 que sugere que o modelo também acerta por conhecimento prévio da PEP 8; a
-a rodada 2 mediu isso: com a norma no contexto o recall foi 0,87 (46 de 53),
+rodada 2 mediu isso: com a norma no contexto o recall foi 0,87 (46 de 53),
 sem ela 0,69 (31 de 45).
+
+### Rodada 2 (2026-10-09)
+
+Dataset corrigido (25 PRs, 35 arquivos, 98 positivas, 74 negativos difíceis, 3
+ambíguas), mesmo pipeline, mesmo modelo, 1 repetição. Resultado em
+`evaluation/results_realista_r2.json`, relatório na seção 0 de
+`docs/RELATORIO-RESULTADOS.md`.
+
+- **Números.** P 0,8556, R 0,7857, F1 0,8191 (rodada 1: 0,8021, 0,7857,
+  0,7938). Metas atingidas. Matriz: TP 77, FP 13, FN 21, TN 794. Gate por PR:
+  TP 19, FP 4, FN 1, TN 1. Precisão da referência normativa 0,7403.
+- **Ambíguas.** 3 linhas, fora da matriz; o modelo sinalizou 2 (`retry_limit`,
+  `default_name`). A decisão de tratá-las como ambiguidade se mantém.
+- **Dependência do contexto.** Com a norma entre os 8 chunks entregues, o recall
+  foi 0,868 (46 de 53); sem ela, 0,689 (31 de 45). O RAG ajuda, mas o modelo
+  detecta a maioria das positivas mesmo sem a norma no contexto. Sem uma linha de
+  base sem recuperação não se separa a contribuição do corpus do conhecimento
+  prévio do modelo; segue em aberto. Dados em
+  `evaluation/retrieval/context_coverage_d010.json`.
+- **Pontos fracos.** `pep8-layout` (recall 0,375), `import_ordem` 0/4,
+  `lambda_atribuido` 1/4, `linha_longa` 1/4, `linhas_em_branco` 2/4,
+  `comentario_inline` 3/6. Os 13 FPs incluem 2 corpos de método, 3 strings
+  longas, 2 `except Exception`, 2 `except:` tolerados e 4 linhas isoladas; as 4
+  isoladas e as 3 longas não foram investigadas.
+- **Correção do parser.** A primeira execução caiu no PR-011: o modelo emitiu uma
+  vírgula sobrando antes de `}` numa resposta cortada em `max_tokens` (900), e
+  `LLMClient._recover_truncated` rejeitava o JSON. A função agora remove a
+  vírgula sobrando antes de `}` ou `]` em outra linha (nunca dentro de string
+  JSON), com teste. A mudança só atua onde a execução antes falhava, então os 10
+  PRs já avaliados são equivalentes. O corte em 900 tokens segue valendo; uma
+  resposta com muitas violações ainda perde as últimas (comportamento herdado de
+  D-009, não alterado).
+- **Cota da Groq.** Eu afirmei que a cota diária zerava às 00:00 UTC (20:00
+  local) sem verificar. Não zerou: o erro 429 dizia "tente de novo em 21 min"
+  com 199.106 de 200.000 tokens usados, o que indica janela deslizante. A rodada
+  terminou no dia seguinte, retomada do checkpoint (a invalidação do checkpoint
+  depende do hash do dataset e dos prompts, não do código do cliente).
 
 ---
 
