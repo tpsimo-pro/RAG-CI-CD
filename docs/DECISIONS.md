@@ -1106,6 +1106,26 @@ ambíguas), mesmo pipeline, mesmo modelo, 1 repetição. Resultado em
 
 ---
 
+## D-011 — Workflow do GitHub: o RAG-Reviewer revisando PRs reais
+
+Spec: `docs/superpowers/specs/2026-10-09-workflow-github-design.md`. Plano:
+`docs/superpowers/plans/2026-10-09-workflow-github.md`. Branch
+`feat/workflow-github`. O PR nunca é bloqueado (a PEP 8 é estilo): toda review sai
+como `COMMENT` e `CRITICAL` deixou de existir. O modelo marca `ambiguous` quando o
+texto da PEP 8 não decide o caso (F-004). Da `main-completa` entrou só o que é
+workflow (coleta do diff, publisher, orquestrador, entrada do Action e o YAML); o
+corpus, os prompts e o retriever são os da `main`.
+
+### Registro da implementação
+
+| Arquivo | Função / elemento | Para que serve |
+|---|---|---|
+| `rag_reviewer/llm_client.py` | `_VALID_SEVERITIES`, `Violation.ambiguous`, `_parse_single_violation` | Severidade só HIGH/MEDIUM/LOW; o campo `ambiguous` (só o booleano `true` vale) força LOW |
+| `rag_reviewer/prompts/system_prompt.txt`, `review_template.txt` | regra 6, schema, parágrafo da Tarefa | Sem CRITICAL; o modelo marca a ambiguidade |
+| `rag_reviewer/config.py` | remoção de `block_on_critical` | O Action nunca bloqueia |
+
+---
+
 ## Pendências (decisões ainda não tomadas)
 
 - **P-004 — Remoção da avaliação humana do planejamento.** Retirar §15.4

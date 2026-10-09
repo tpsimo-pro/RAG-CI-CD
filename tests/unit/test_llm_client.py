@@ -117,11 +117,8 @@ class TestViolation:
         assert v.line_content == "x = 1"
 
     def test_valid_severities_set(self):
-        assert "CRITICAL" in _VALID_SEVERITIES
-        assert "HIGH" in _VALID_SEVERITIES
-        assert "MEDIUM" in _VALID_SEVERITIES
-        assert "LOW" in _VALID_SEVERITIES
-        assert len(_VALID_SEVERITIES) == 4
+        assert _VALID_SEVERITIES == frozenset({"HIGH", "MEDIUM", "LOW"})
+        assert "CRITICAL" not in _VALID_SEVERITIES
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -311,9 +308,14 @@ class TestParseSingleViolation:
 
     def test_severity_normalized_to_uppercase(self):
         client = make_llm_client()
-        d = make_violation_dict(severity="critical")
+        d = make_violation_dict(severity="high")
         v = client._parse_single_violation(d)
-        assert v.severity == "CRITICAL"
+        assert v.severity == "HIGH"
+
+    def test_critical_is_no_longer_valid_and_defaults_to_low(self):
+        client = make_llm_client()
+        v = client._parse_single_violation(make_violation_dict(severity="CRITICAL"))
+        assert v.severity == "LOW"
 
     def test_invalid_severity_defaults_to_low(self):
         client = make_llm_client()
@@ -431,3 +433,39 @@ class TestLLMClientReview:
 
         violations = client.review(make_context())
         assert violations == []
+
+
+class TestAmbiguous:
+    def test_ambiguous_true_forces_low(self):
+        client = make_llm_client()
+        d = make_violation_dict(severity="HIGH")
+        d["ambiguous"] = True
+        v = client._parse_single_violation(d)
+        assert v.ambiguous is True
+        assert v.severity == "LOW"
+
+    def test_ambiguous_absent_defaults_to_false(self):
+        client = make_llm_client()
+        v = client._parse_single_violation(make_violation_dict())
+        assert v.ambiguous is False
+
+    @pytest.mark.parametrize("valor", [False, "false", "true", 1, None])
+    def test_only_boolean_true_is_ambiguous(self, valor):
+        client = make_llm_client()
+        d = make_violation_dict()
+        d["ambiguous"] = valor
+        assert client._parse_single_violation(d).ambiguous is False
+
+
+class TestPromptsDaProducao:
+    _PASTA = Path(__file__).resolve().parents[2] / "rag_reviewer" / "prompts"
+
+    def test_prompts_nao_citam_critical_nem_normas_organizacionais(self):
+        for nome in ("system_prompt.txt", "review_template.txt"):
+            texto = (self._PASTA / nome).read_text(encoding="utf-8")
+            assert "CRITICAL" not in texto
+            assert "organizacion" not in texto.lower()
+
+    def test_template_pede_o_campo_ambiguous(self):
+        texto = (self._PASTA / "review_template.txt").read_text(encoding="utf-8")
+        assert '"ambiguous"' in texto
