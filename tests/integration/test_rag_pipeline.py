@@ -262,7 +262,6 @@ class TestRAGReviewerIntegration:
 
         assert len(violations) == 1
         mock_publisher.publish.assert_called_once()
-        _, kwargs_or_args = mock_publisher.publish.call_args_list[0], None
         call_args = mock_publisher.publish.call_args
         assert call_args[0][0] == violations  # primeiro argumento = violations
 

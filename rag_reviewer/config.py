@@ -60,7 +60,7 @@ class Settings(BaseSettings):
         populate_by_name=True,
         env_file=str(_ENV_FILE),  # caminho absoluto — independente do cwd
         env_file_encoding="utf-8",
-        extra="ignore",  # um .env com variável antiga (ex.: BLOCK_ON_CRITICAL) não derruba o sistema
+        extra="ignore",  # variável antiga no .env (ex.: BLOCK_ON_CRITICAL) não derruba
     )
 
 
