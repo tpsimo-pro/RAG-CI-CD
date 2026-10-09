@@ -1124,6 +1124,8 @@ corpus, os prompts e o retriever são os da `main`.
 | `rag_reviewer/prompts/system_prompt.txt`, `review_template.txt` | regra 6, schema, parágrafo da Tarefa | Sem CRITICAL; o modelo marca a ambiguidade |
 | `rag_reviewer/config.py` | remoção de `block_on_critical` | O Action nunca bloqueia |
 | `rag_reviewer/config.py` | `extra="ignore"` em `Settings` | Um `.env` com `BLOCK_ON_CRITICAL` (já removida) não derruba a configuração |
+| `rag_reviewer/diff_parser.py` | `PullRequestDiff`, `DiffCollector.collect/_paginate/_parse_files` | Lista os arquivos do PR pela API (com paginação), descarta deletados, binários, sem patch e não `.py`, e monta cada `FileDiff` |
+| `requirements.txt` | `requests` | Cliente HTTP da API do GitHub |
 
 ---
 
