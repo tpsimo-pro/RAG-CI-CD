@@ -62,8 +62,7 @@ detecções, 98 positivas):
 Com a norma no contexto o recall é 17 pontos maior, então o RAG contribui. Mas
 69% das positivas sem a norma no contexto foram detectadas mesmo assim, o que
 mostra que o modelo conhece a PEP 8 e que parte do acerto não vem do corpus.
-Separar de fato as duas fontes pede uma linha de base sem recuperação (ainda em
-aberto). Dados em `evaluation/retrieval/context_coverage_d010.json`.
+A seção 0.1 separa as duas fontes com uma linha de base sem recuperação. Dados em `evaluation/retrieval/context_coverage_d010.json`.
 
 **Execução.** A rodada 2 caiu uma vez por erro de parsing: o modelo emitiu uma
 vírgula sobrando antes de `}` numa resposta cortada em 900 tokens, e a
@@ -72,6 +71,52 @@ recuperação de resposta truncada a rejeitava. Corrigido em `_recover_truncated
 já avaliados não mudam. A rodada foi retomada do checkpoint. A cota diária da
 Groq não resetou às 20:00 locais como se supunha: a janela se comportou como
 deslizante, e a rodada terminou no dia seguinte.
+
+## 0.1 Linha de base sem recuperação
+
+Mesma rodada, mesmo dataset corrigido, mesmo modelo e métrica, mas o LLM recebe só
+as linhas adicionadas, sem chunks da PEP 8 (`--sem-recuperacao`, prompts
+`*_sem_rag.txt`). Resultado em `evaluation/results_realista_sem_rag.json`.
+
+| | Sem RAG | Com RAG (rodada 2) | Diferença |
+|---|---|---|---|
+| Precisão | 0,7660 | 0,8556 | +0,090 |
+| Recall | 0,7347 | 0,7857 | +0,051 |
+| F1 | 0,7500 | 0,8191 | +0,069 |
+| FP / FN (linhas) | 22 / 26 | 13 / 21 | |
+| Precisão da referência normativa | 0,6667 | 0,7403 | |
+| Gate por PR (TP/FP/FN/TN) | 20/5/0/0 | 19/4/1/1 | |
+
+Sem RAG o modelo já alcança F1 0,75 e as metas mínimas: o conhecimento prévio da
+PEP 8 explica a maior parte do resultado. O RAG acrescenta cerca de 7 pontos de F1,
+sobretudo em precisão (menos 9 FPs), e sem ele nenhum PR limpo passou no gate.
+
+Por família (F1, sem RAG contra com RAG): `pep8-comentarios` 0,91 contra 0,67;
+`pep8-recomendacoes` 0,87 contra 0,84; `pep8-layout` 0,46 contra 0,43;
+`pep8-espacos` 0,96 contra 0,92; `pep8-nomes` 0,82 contra 0,94;
+`pep8-imports` 0,74 contra 0,87. O RAG ajudou em nomes e imports (`import_topo`
+4 contra 1 positivas detectadas, `erro_sufixo` 3 contra 0, `tipo_isinstance` 3
+contra 1) e piorou em comentários e em `lambda_atribuido` (1 contra 3 de 4),
+`comentario_inline` (3 contra 5 de 6) e `linhas_em_branco` (2 contra 3 de 4).
+
+Cruzando com a cobertura do contexto (recall nas 98 positivas):
+
+| Norma no contexto de 8 chunks | Positivas | Com RAG | Sem RAG |
+|---|---|---|---|
+| Sim | 53 | 46 (0,868) | 35 (0,660) |
+| Não | 45 | 31 (0,689) | 37 (0,822) |
+
+Quando a norma chega ao LLM, o RAG soma 11 detecções. Quando não chega, o RAG
+**perde** 6: o prompt com RAG manda ignorar o que não está nos trechos fornecidos,
+e um contexto sem a norma certa faz o modelo deixar passar o que sabia. A
+recuperação incompleta (norma presente em 54% das positivas) custa, portanto,
+duas vezes: a norma ausente não ajuda e ainda inibe o conhecimento prévio.
+
+Limitações: uma repetição e ~4 positivas por norma; as diferenças por norma
+(1 a 3 linhas) são indicação, não estatística. Os prompts diferem em três pontos
+(tiram a seção de trechos, a frase "fornecidas como contexto" e a regra de
+ignorar o que não está no contexto), então parte da diferença pode vir da redação
+e não só da recuperação. O resultado vale para este modelo, que conhece a PEP 8.
 
 ## 1. Resultado principal (rodada 1)
 
@@ -175,8 +220,7 @@ teto diário de 200 mil. O processo foi encerrado uma vez pelo sistema por memó
 - Uma repetição, dataset sintético escrito pelo autor (D-004).
 - A recuperação é o principal limite do recall: em 45 das 98 positivas a norma
   não chega ao LLM.
-- A PEP 8 é conhecida pelo LLM; sem uma linha de base sem recuperação não se
-  separa a contribuição do RAG da do conhecimento prévio.
+- A PEP 8 é conhecida pelo LLM; a linha de base sem recuperação (seção 0.1) mostra que o RAG acrescenta cerca de 7 pontos de F1 sobre o conhecimento prévio.
 
 ## 7. Como ler a comparação com D-009
 
@@ -206,7 +250,7 @@ mais pessimista possível frente ao workflow real.
 
 ## 9. Próximos passos
 
-- Medir a contribuição do RAG com uma linha de base sem recuperação.
+- Reduzir o custo da recuperação incompleta: aumentar a cobertura da norma no contexto ou relaxar a regra de ignorar o que não está nos trechos (seção 0.1).
 - Ajustar o prompt ou o corpus para `except:` tolerado e `except Exception:`.
 - No workflow, fazer o modelo sinalizar ambiguidade (`docs/TODO-FUTURO.md`, F-004).
 - Medir a `suggestion` aplicando a correção e rodando o ruff (fora do escopo
