@@ -1,18 +1,77 @@
 # Relatório de resultados: avaliação oficial de D-010 (dataset realista)
 
-Rodada 1 de 2026-10-08, branch `feat/dataset-realista`. Corpus: a PEP 8 em
-inglês (43 chunks, coleção `pep8_chunks`). Dataset de 25 PRs e 35 arquivos
+Rodadas de 2026-10-08 e 2026-10-09, branch `feat/dataset-realista`. Corpus: a PEP 8
+em inglês (43 chunks, coleção `pep8_chunks`). Dataset de 25 PRs e 35 arquivos
 (D-010): 21 arquivos novos e 14 modificados, 23 normas da PEP 8 misturadas,
 5 PRs limpos. LLM `qwen/qwen3.8-27b`, temperatura 0.0, 1 repetição, uma chamada
-por arquivo. Resultado completo em `evaluation/results_realista.json`.
+por arquivo. Resultados completos em `evaluation/results_realista.json`
+(rodada 1) e `evaluation/results_realista_r2.json` (rodada 2).
 
-Esta é a **rodada 1**, com o dataset como foi escrito. Depois dela os erros foram
+A **rodada 1** usou o dataset como foi escrito. Depois dela os erros foram
 investigados contra o texto da PEP 8 e 15 deles se mostraram erros de rótulo do
-dataset (D-010, "Revisão após a primeira rodada"). O dataset corrigido deve ser
-reavaliado na rodada 2, que ainda não foi rodada: a cota diária da Groq estava
-esgotada. Os números abaixo **não** valem para o dataset atual; valem para o
-dataset da rodada 1. O objetivo do dataset é ensaiar o workflow do GitHub
-(seção 8), e os resultados **não são comparáveis** com D-009.
+dataset (D-010, "Revisão após a primeira rodada"). A **rodada 2** reavalia o
+dataset corrigido e é a que vale para o dataset atual; as seções 1 a 4 são da
+rodada 1 e ficam como registro. O objetivo do dataset é ensaiar o workflow do
+GitHub (seção 8), e os resultados **não são comparáveis** com D-009.
+
+## 0. Rodada 2 (dataset corrigido)
+
+| Métrica | Rodada 1 | Rodada 2 | Meta mínima |
+|---|---|---|---|
+| Precisão | 0,8021 | 0,8556 | 0,70 |
+| Recall | 0,7857 | 0,7857 | 0,65 |
+| F1 | 0,7938 | 0,8191 | 0,67 |
+
+As três metas foram atingidas. Matriz por linha (905 linhas, fora as 3
+ambíguas): TP = 77, FP = 13, FN = 21, TN = 794. Gate por PR: TP = 19, FP = 4,
+FN = 1, TN = 1 (um PR limpo passou; na rodada 1 nenhum passou). Alucinação de
+localização 0,0. Precisão da referência normativa 0,7403.
+
+Ambíguas (literais globais em minúsculas): 3, e o modelo sinalizou 2
+(`retry_limit`, `default_name`); `retries` não foi sinalizada.
+
+| Família | TP/FP/FN/TN | Precisão | Recall | F1 |
+|---|---|---|---|---|
+| `pep8-nomes` | 24/0/3/22 | 1,0000 | 0,8889 | 0,9412 |
+| `pep8-espacos` | 11/1/1/8 | 0,9167 | 0,9167 | 0,9167 |
+| `pep8-imports` | 13/0/4/4 | 1,0000 | 0,7647 | 0,8667 |
+| `pep8-recomendacoes` | 23/4/5/26 | 0,8519 | 0,8214 | 0,8364 |
+| `pep8-comentarios` | 3/0/3/3 | 1,0000 | 0,5000 | 0,6667 |
+| `pep8-layout` | 3/3/5/3 | 0,5000 | 0,3750 | 0,4286 |
+
+Normas com recall abaixo de 1 (4 a 7 positivas cada, é indicação): `import_ordem`
+0/4, `lambda_atribuido` 1/4, `linha_longa` 1/4, `linhas_em_branco` 2/4,
+`comentario_inline` 3/6, `constante_maiuscula` 5/7, e 3/4 em `erro_sufixo`,
+`espaco_antes_virgula`, `not_is` e `tipo_isinstance`. As outras 14 normas
+tiveram recall 1,00.
+
+Os 13 FPs: 2 corpos de método (`return this.price ...`, `return klass(...)`),
+3 linhas de string longa em `pep8-layout`, 2 `except Exception as ...:`, 2
+`except:` tolerados, e 4 linhas isoladas (`LoadFile(...)`,
+`sys.stdout.write(...)`, `def __init__(self, sku, qty):`, `round(..., ndigits=2)`).
+Essas 4 e as 3 linhas longas não foram investigadas uma a uma nesta rodada.
+
+**Dependência do contexto recuperado** (`context_coverage` cruzado com as
+detecções, 98 positivas):
+
+| Norma no contexto de 8 chunks | Positivas | Detectadas | Recall |
+|---|---|---|---|
+| Sim | 53 | 46 | 0,868 |
+| Não | 45 | 31 | 0,689 |
+
+Com a norma no contexto o recall é 17 pontos maior, então o RAG contribui. Mas
+69% das positivas sem a norma no contexto foram detectadas mesmo assim, o que
+mostra que o modelo conhece a PEP 8 e que parte do acerto não vem do corpus.
+Separar de fato as duas fontes pede uma linha de base sem recuperação (ainda em
+aberto). Dados em `evaluation/retrieval/context_coverage_d010.json`.
+
+**Execução.** A rodada 2 caiu uma vez por erro de parsing: o modelo emitiu uma
+vírgula sobrando antes de `}` numa resposta cortada em 900 tokens, e a
+recuperação de resposta truncada a rejeitava. Corrigido em `_recover_truncated`
+(com teste); a correção só age onde a execução antes falhava, então os 10 PRs
+já avaliados não mudam. A rodada foi retomada do checkpoint. A cota diária da
+Groq não resetou às 20:00 locais como se supunha: a janela se comportou como
+deslizante, e a rodada terminou no dia seguinte.
 
 ## 1. Resultado principal (rodada 1)
 
@@ -72,8 +131,7 @@ Observações:
 
 - No dataset já corrigido, a norma está no contexto entregue ao LLM em 53 das
   98 positivas (54%). Mesmo sem a norma no contexto, parte das linhas foi detectada, o que sugere que o modelo acerta
-  também por conhecimento prévio da PEP 8. Essa parte será medida na rodada 2,
-  juntando `context_coverage` com as detecções.
+  também por conhecimento prévio da PEP 8. Essa parte foi medida na rodada 2 (seção 0).
 - O modelo não conta colunas de forma confiável: acusou linhas de 76 e 79
   colunas e deixou passar linhas longas de verdade (`linha_longa` 1/4).
 - O ruff acusa todo `except:` nu, e a PEP 8 tolera os que registram o traceback ou
@@ -112,8 +170,7 @@ teto diário de 200 mil. O processo foi encerrado uma vez pelo sistema por memó
 
 ## 6. Limitações
 
-- Os números são da rodada 1; o dataset foi corrigido depois (seção 3). A rodada 2
-  é necessária para ter o número do dataset atual.
+- As seções 1 a 4 são da rodada 1; o dataset atual é o da rodada 2 (seção 0).
 - Cerca de 4 positivas por norma: a cobertura por norma é indicação.
 - Uma repetição, dataset sintético escrito pelo autor (D-004).
 - A recuperação é o principal limite do recall: em 45 das 98 positivas a norma
@@ -149,10 +206,7 @@ mais pessimista possível frente ao workflow real.
 
 ## 9. Próximos passos
 
-- Rodar a rodada 2, com o dataset corrigido, quando a cota da Groq renovar
-  (cerca de 130 mil tokens).
-- Medir a contribuição do RAG: cruzar `context_coverage` com as detecções
-  (a norma no contexto contra a norma ausente).
+- Medir a contribuição do RAG com uma linha de base sem recuperação.
 - Ajustar o prompt ou o corpus para `except:` tolerado e `except Exception:`.
 - No workflow, fazer o modelo sinalizar ambiguidade (`docs/TODO-FUTURO.md`, F-004).
 - Medir a `suggestion` aplicando a correção e rodando o ruff (fora do escopo

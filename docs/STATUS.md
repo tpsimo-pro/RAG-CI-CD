@@ -1,6 +1,6 @@
 # Status do projeto
 
-Atualizado em 2026-10-08. Branch `feat/dataset-realista`, a partir da `main`
+Atualizado em 2026-10-09. Branch `feat/dataset-realista`, a partir da `main`
 com D-009 mesclado (PR #13). Ainda sem PR aberto para esta branch.
 
 Fluxo do sistema e das avaliações: `docs/GUIA-DO-PROJETO.md`.
@@ -10,10 +10,11 @@ Resultados: `docs/RELATORIO-RESULTADOS.md`. Decisões: `docs/DECISIONS.md`.
 
 D-010 implementado: dataset realista de 25 PRs e 35 arquivos (21 novos, 14
 modificados), 23 normas da PEP 8, ensaio do workflow do GitHub. A **rodada 1**
-da avaliação oficial deu P 0,80, R 0,79, F1 0,79 (metas atingidas). A
-investigação dos 40 erros achou 15 erros de rótulo do dataset; foram corrigidos
-(D-010, "Revisão após a primeira rodada") e o dataset corrigido ainda **não foi
-reavaliado**: falta a **rodada 2**.
+da avaliação oficial deu P 0,80, R 0,79, F1 0,79. A investigação dos 40 erros
+achou 15 erros de rótulo do dataset; foram corrigidos (D-010, "Revisão após a
+primeira rodada") e a **rodada 2**, com o dataset corrigido, deu **P 0,86, R 0,79,
+F1 0,82** (metas atingidas; gate TP 19, FP 4, FN 1, TN 1). Com a norma no
+contexto o recall é 0,87; sem ela, 0,69.
 
 ## Feito nesta branch
 
@@ -28,18 +29,13 @@ reavaliado**: falta a **rodada 2**.
 | SCHEMA v2, D-010 com a revisão dos rótulos | `cad91fe` |
 | Cobertura do contexto entregue ao LLM e teste de chunks menores | `2eaa103` |
 | Relatório da rodada 1, README, STATUS | `365016e` |
+| Rodada 2, parsing de JSON truncado, relatório | este commit |
 
 ## Falta
 
-1. **Rodada 2** da avaliação oficial com o dataset corrigido
-   (`python -m evaluation.run_evaluation --output evaluation/results_realista_r2.json`
-   com `QDRANT_COLLECTION=pep8_chunks`). Custa cerca de 130 mil tokens e a cota
-   diária da Groq (200 mil, zera às 00:00 UTC) estava esgotada no dia 08/10 até
-   as 20:00 no horário local. Rodar com memória livre: o processo foi encerrado
-   pelo sistema por memória baixa em 3 execuções.
-2. Cruzar `context_coverage` com as detecções da rodada 2 (a norma no contexto
-   contra a norma ausente), para medir quanto o modelo depende do contexto.
-3. Acrescentar a rodada 2 ao relatório e abrir o PR.
+Abrir o PR de `feat/dataset-realista`. Os FPs da rodada 2 sem causa registrada
+(`LoadFile(...)`, `sys.stdout.write(...)`, `def __init__(self, sku, qty):`,
+`round(..., ndigits=2)` e 3 linhas longas) não foram investigados.
 
 ## Decisões em aberto
 

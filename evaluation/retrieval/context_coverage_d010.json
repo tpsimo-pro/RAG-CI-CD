@@ -1,0 +1,786 @@
+[
+  {
+    "pr_id": "PR-001",
+    "filename": "app/permissions.py",
+    "line": "    if user.is_admin == True:",
+    "sub_regra": "booleano",
+    "no_contexto": true,
+    "palavras_contexto": 1975
+  },
+  {
+    "pr_id": "PR-001",
+    "filename": "app/permissions.py",
+    "line": "    if account.suspended_at != None:",
+    "sub_regra": "nulo",
+    "no_contexto": false,
+    "palavras_contexto": 1975
+  },
+  {
+    "pr_id": "PR-001",
+    "filename": "app/permissions.py",
+    "line": "def NotifyOwner(account, message):",
+    "sub_regra": "nome_funcao",
+    "no_contexto": false,
+    "palavras_contexto": 1975
+  },
+  {
+    "pr_id": "PR-002",
+    "filename": "app/payments/charge.py",
+    "line": "class PaymentFailure(Exception):",
+    "sub_regra": "erro_sufixo",
+    "no_contexto": true,
+    "palavras_contexto": 2151
+  },
+  {
+    "pr_id": "PR-002",
+    "filename": "app/payments/charge.py",
+    "line": "class GatewayTimeout(Exception):",
+    "sub_regra": "erro_sufixo",
+    "no_contexto": true,
+    "palavras_contexto": 2151
+  },
+  {
+    "pr_id": "PR-002",
+    "filename": "app/payments/charge.py",
+    "line": "        delay = attempt * 2 # espera antes de tentar de novo",
+    "sub_regra": "comentario_inline",
+    "no_contexto": false,
+    "palavras_contexto": 2151
+  },
+  {
+    "pr_id": "PR-002",
+    "filename": "app/payments/charge.py",
+    "line": "        except:",
+    "sub_regra": "except_nu",
+    "no_contexto": true,
+    "palavras_contexto": 2151
+  },
+  {
+    "pr_id": "PR-003",
+    "filename": "app/cart/models.py",
+    "line": "class cart_item:",
+    "sub_regra": "nome_classe",
+    "no_contexto": true,
+    "palavras_contexto": 1871
+  },
+  {
+    "pr_id": "PR-003",
+    "filename": "app/cart/models.py",
+    "line": "    def subtotal(this):",
+    "sub_regra": "self_cls",
+    "no_contexto": true,
+    "palavras_contexto": 1871
+  },
+  {
+    "pr_id": "PR-003",
+    "filename": "app/cart/models.py",
+    "line": "    def from_row(klass, row):",
+    "sub_regra": "self_cls",
+    "no_contexto": true,
+    "palavras_contexto": 1871
+  },
+  {
+    "pr_id": "PR-003",
+    "filename": "app/cart/totals.py",
+    "line": "    discount=coupon.rate * total if coupon else 0",
+    "sub_regra": "espaco_operador",
+    "no_contexto": true,
+    "palavras_contexto": 1639
+  },
+  {
+    "pr_id": "PR-003",
+    "filename": "app/cart/totals.py",
+    "line": "    label = \"Total do carrinho com desconto aplicado e impostos incluidos ao cliente\"",
+    "sub_regra": "linha_longa",
+    "no_contexto": false,
+    "palavras_contexto": 1639
+  },
+  {
+    "pr_id": "PR-004",
+    "filename": "app/reports/export.py",
+    "line": "import os, sys",
+    "sub_regra": "import_unico",
+    "no_contexto": true,
+    "palavras_contexto": 2020
+  },
+  {
+    "pr_id": "PR-004",
+    "filename": "app/reports/export.py",
+    "line": "import io, re",
+    "sub_regra": "import_unico",
+    "no_contexto": true,
+    "palavras_contexto": 2020
+  },
+  {
+    "pr_id": "PR-004",
+    "filename": "app/reports/export.py",
+    "line": "from csv import *",
+    "sub_regra": "import_estrela",
+    "no_contexto": true,
+    "palavras_contexto": 2020
+  },
+  {
+    "pr_id": "PR-004",
+    "filename": "app/reports/export.py",
+    "line": "import json",
+    "sub_regra": "import_topo",
+    "no_contexto": true,
+    "palavras_contexto": 2020
+  },
+  {
+    "pr_id": "PR-004",
+    "filename": "app/reports/export.py",
+    "line": "def write_manifest(path, rows):",
+    "sub_regra": "linhas_em_branco",
+    "no_contexto": false,
+    "palavras_contexto": 2020
+  },
+  {
+    "pr_id": "PR-005",
+    "filename": "app/orders/filters.py",
+    "line": "        if not order.owner is None:",
+    "sub_regra": "not_is",
+    "no_contexto": false,
+    "palavras_contexto": 1616
+  },
+  {
+    "pr_id": "PR-005",
+    "filename": "app/orders/filters.py",
+    "line": "    return type(first) == type(second)",
+    "sub_regra": "tipo_isinstance",
+    "no_contexto": false,
+    "palavras_contexto": 1616
+  },
+  {
+    "pr_id": "PR-005",
+    "filename": "app/orders/filters.py",
+    "line": "format_total = lambda order: f\"{order.total:.2f}\"",
+    "sub_regra": "lambda_atribuido",
+    "no_contexto": false,
+    "palavras_contexto": 1616
+  },
+  {
+    "pr_id": "PR-006",
+    "filename": "app/notify/mailer.py",
+    "line": "    headers = {\"Subject\": subject}; text = body.strip()",
+    "sub_regra": "instrucoes_compostas",
+    "no_contexto": true,
+    "palavras_contexto": 2401
+  },
+  {
+    "pr_id": "PR-006",
+    "filename": "app/notify/mailer.py",
+    "line": "    server.sendmail( sender, recipients, text )",
+    "sub_regra": "espaco_parenteses",
+    "no_contexto": true,
+    "palavras_contexto": 2401
+  },
+  {
+    "pr_id": "PR-006",
+    "filename": "app/notify/mailer.py",
+    "line": "    status = \"ok\"; count = len(recipients)",
+    "sub_regra": "instrucoes_compostas",
+    "no_contexto": true,
+    "palavras_contexto": 2401
+  },
+  {
+    "pr_id": "PR-006",
+    "filename": "app/notify/mailer.py",
+    "line": "    log = [sender , recipients]",
+    "sub_regra": "espaco_antes_virgula",
+    "no_contexto": true,
+    "palavras_contexto": 2401
+  },
+  {
+    "pr_id": "PR-006",
+    "filename": "app/notify/templates.py",
+    "line": "    text = FAREWELL.format(name=name) #despedida",
+    "sub_regra": "comentario_inline",
+    "no_contexto": false,
+    "palavras_contexto": 1295
+  },
+  {
+    "pr_id": "PR-007",
+    "filename": "app/api/limits.py",
+    "line": "MaxRequests = 100",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": false,
+    "palavras_contexto": 2334
+  },
+  {
+    "pr_id": "PR-007",
+    "filename": "app/api/limits.py",
+    "line": "windowSeconds = 60",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": false,
+    "palavras_contexto": 2334
+  },
+  {
+    "pr_id": "PR-007",
+    "filename": "app/api/limits.py",
+    "line": "    I = limit - used",
+    "sub_regra": "nome_proibido",
+    "no_contexto": false,
+    "palavras_contexto": 2334
+  },
+  {
+    "pr_id": "PR-007",
+    "filename": "app/api/limits.py",
+    "line": "    if client.blocked == False:",
+    "sub_regra": "booleano",
+    "no_contexto": true,
+    "palavras_contexto": 2334
+  },
+  {
+    "pr_id": "PR-007",
+    "filename": "app/api/limits.py",
+    "line": "    O = start",
+    "sub_regra": "nome_proibido",
+    "no_contexto": false,
+    "palavras_contexto": 2334
+  },
+  {
+    "pr_id": "PR-008",
+    "filename": "app/etl/loader.py",
+    "line": "import requests",
+    "sub_regra": "import_ordem",
+    "no_contexto": true,
+    "palavras_contexto": 2494
+  },
+  {
+    "pr_id": "PR-008",
+    "filename": "app/etl/loader.py",
+    "line": "def LoadFile(path):",
+    "sub_regra": "nome_funcao",
+    "no_contexto": false,
+    "palavras_contexto": 2494
+  },
+  {
+    "pr_id": "PR-008",
+    "filename": "app/etl/loader.py",
+    "line": "def parse_row(row):",
+    "sub_regra": "linhas_em_branco",
+    "no_contexto": true,
+    "palavras_contexto": 2494
+  },
+  {
+    "pr_id": "PR-008",
+    "filename": "app/etl/saver.py",
+    "line": "import json, os",
+    "sub_regra": "import_unico",
+    "no_contexto": true,
+    "palavras_contexto": 2011
+  },
+  {
+    "pr_id": "PR-009",
+    "filename": "app/config/reader.py",
+    "line": "        except:",
+    "sub_regra": "except_nu",
+    "no_contexto": false,
+    "palavras_contexto": 1923
+  },
+  {
+    "pr_id": "PR-009",
+    "filename": "app/config/reader.py",
+    "line": "    if section == None:",
+    "sub_regra": "nulo",
+    "no_contexto": false,
+    "palavras_contexto": 1923
+  },
+  {
+    "pr_id": "PR-009",
+    "filename": "app/config/reader.py",
+    "line": "    kind = type(config) == dict",
+    "sub_regra": "tipo_isinstance",
+    "no_contexto": true,
+    "palavras_contexto": 1923
+  },
+  {
+    "pr_id": "PR-009",
+    "filename": "app/config/reader.py",
+    "line": "    return \"configuracao carregada do arquivo local do usuario com sucesso\" if kind else None",
+    "sub_regra": "linha_longa",
+    "no_contexto": false,
+    "palavras_contexto": 1923
+  },
+  {
+    "pr_id": "PR-010",
+    "filename": "app/warehouse/slots.py",
+    "line": "class StockShortage(Exception):",
+    "sub_regra": "erro_sufixo",
+    "no_contexto": true,
+    "palavras_contexto": 1831
+  },
+  {
+    "pr_id": "PR-010",
+    "filename": "app/warehouse/slots.py",
+    "line": "class warehouse_slot:",
+    "sub_regra": "nome_classe",
+    "no_contexto": true,
+    "palavras_contexto": 1831
+  },
+  {
+    "pr_id": "PR-010",
+    "filename": "app/warehouse/slots.py",
+    "line": "    def FreeSpace(self, used):",
+    "sub_regra": "nome_funcao",
+    "no_contexto": false,
+    "palavras_contexto": 1831
+  },
+  {
+    "pr_id": "PR-010",
+    "filename": "app/warehouse/slots.py",
+    "line": "        free=self.capacity - used",
+    "sub_regra": "espaco_operador",
+    "no_contexto": true,
+    "palavras_contexto": 1831
+  },
+  {
+    "pr_id": "PR-010",
+    "filename": "app/warehouse/slots.py",
+    "line": "class slot_report:",
+    "sub_regra": "nome_classe",
+    "no_contexto": true,
+    "palavras_contexto": 1831
+  },
+  {
+    "pr_id": "PR-011",
+    "filename": "app/profiles/cache.py",
+    "line": "        self.hits = 0 #contador de acertos",
+    "sub_regra": "comentario_inline",
+    "no_contexto": false,
+    "palavras_contexto": 2030
+  },
+  {
+    "pr_id": "PR-011",
+    "filename": "app/profiles/cache.py",
+    "line": "    def put(this, key, value):",
+    "sub_regra": "self_cls",
+    "no_contexto": true,
+    "palavras_contexto": 2030
+  },
+  {
+    "pr_id": "PR-011",
+    "filename": "app/profiles/cache.py",
+    "line": "        return sorted( self.items )",
+    "sub_regra": "espaco_parenteses",
+    "no_contexto": false,
+    "palavras_contexto": 2030
+  },
+  {
+    "pr_id": "PR-011",
+    "filename": "app/profiles/cache.py",
+    "line": "        handler = lambda item: self.items.pop(item, None)",
+    "sub_regra": "lambda_atribuido",
+    "no_contexto": false,
+    "palavras_contexto": 2030
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "import requests",
+    "sub_regra": "import_ordem",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "from calendar import *",
+    "sub_regra": "import_estrela",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "from datetime import *",
+    "sub_regra": "import_estrela",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "DefaultTimezone = \"UTC\"",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": false,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "lastCheck = 0",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": false,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "import json",
+    "sub_regra": "import_topo",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "import os",
+    "sub_regra": "import_topo",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "import re",
+    "sub_regra": "import_topo",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "    return {\"first\" : first, \"last\" : last}",
+    "sub_regra": "espaco_antes_virgula",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-012",
+    "filename": "app/reports/dates.py",
+    "line": "    print(date , text)",
+    "sub_regra": "espaco_antes_virgula",
+    "no_contexto": true,
+    "palavras_contexto": 1891
+  },
+  {
+    "pr_id": "PR-013",
+    "filename": "app/search/query.py",
+    "line": "    if exact == True:",
+    "sub_regra": "booleano",
+    "no_contexto": true,
+    "palavras_contexto": 1496
+  },
+  {
+    "pr_id": "PR-013",
+    "filename": "app/search/query.py",
+    "line": "    if not response is None and response.count > 0:",
+    "sub_regra": "not_is",
+    "no_contexto": false,
+    "palavras_contexto": 1496
+  },
+  {
+    "pr_id": "PR-013",
+    "filename": "app/search/query.py",
+    "line": "    if not request.filters is None:",
+    "sub_regra": "not_is",
+    "no_contexto": false,
+    "palavras_contexto": 1496
+  },
+  {
+    "pr_id": "PR-013",
+    "filename": "app/search/ranking.py",
+    "line": "    ranked = sorted(hits, key=score); ranked.reverse()",
+    "sub_regra": "instrucoes_compostas",
+    "no_contexto": false,
+    "palavras_contexto": 1770
+  },
+  {
+    "pr_id": "PR-013",
+    "filename": "app/search/ranking.py",
+    "line": "    total=hit.weight * hit.freq",
+    "sub_regra": "espaco_operador",
+    "no_contexto": false,
+    "palavras_contexto": 1770
+  },
+  {
+    "pr_id": "PR-013",
+    "filename": "app/search/ranking.py",
+    "line": "    return f\"Resultado ordenado pelo peso do termo multiplicado pela frequencia: {total}\"",
+    "sub_regra": "linha_longa",
+    "no_contexto": true,
+    "palavras_contexto": 1770
+  },
+  {
+    "pr_id": "PR-014",
+    "filename": "app/crm/sync.py",
+    "line": "def FormatContact(contact):",
+    "sub_regra": "nome_funcao",
+    "no_contexto": false,
+    "palavras_contexto": 1606
+  },
+  {
+    "pr_id": "PR-014",
+    "filename": "app/crm/sync.py",
+    "line": "    for l in contact.phones:",
+    "sub_regra": "nome_proibido",
+    "no_contexto": true,
+    "palavras_contexto": 1606
+  },
+  {
+    "pr_id": "PR-014",
+    "filename": "app/crm/sync.py",
+    "line": "        except:",
+    "sub_regra": "except_nu",
+    "no_contexto": false,
+    "palavras_contexto": 1606
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/invoice.py",
+    "line": "import requests",
+    "sub_regra": "import_ordem",
+    "no_contexto": true,
+    "palavras_contexto": 1443
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/invoice.py",
+    "line": "Currency = \"BRL\"",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": true,
+    "palavras_contexto": 1443
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/invoice.py",
+    "line": "def issue(number, amount):",
+    "sub_regra": "linhas_em_branco",
+    "no_contexto": false,
+    "palavras_contexto": 1443
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/receipt.py",
+    "line": "import requests",
+    "sub_regra": "import_ordem",
+    "no_contexto": true,
+    "palavras_contexto": 1795
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/receipt.py",
+    "line": "pageSize = 10",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": false,
+    "palavras_contexto": 1795
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/receipt.py",
+    "line": "    lines = [f\"{k}: {v}\" for k, v in receipt.items()] # uma linha por campo",
+    "sub_regra": "comentario_inline",
+    "no_contexto": false,
+    "palavras_contexto": 1795
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/receipt.py",
+    "line": "def write(receipt, path):",
+    "sub_regra": "linhas_em_branco",
+    "no_contexto": true,
+    "palavras_contexto": 1795
+  },
+  {
+    "pr_id": "PR-015",
+    "filename": "app/billing/totals.py",
+    "line": "    return sum(totals) #soma anual",
+    "sub_regra": "comentario_inline",
+    "no_contexto": false,
+    "palavras_contexto": 1258
+  },
+  {
+    "pr_id": "PR-016",
+    "filename": "app/importer/validate.py",
+    "line": "    if record.get(\"email\") == None:",
+    "sub_regra": "nulo",
+    "no_contexto": false,
+    "palavras_contexto": 1994
+  },
+  {
+    "pr_id": "PR-016",
+    "filename": "app/importer/validate.py",
+    "line": "    if type(record.get(\"age\")) == int:",
+    "sub_regra": "tipo_isinstance",
+    "no_contexto": false,
+    "palavras_contexto": 1994
+  },
+  {
+    "pr_id": "PR-016",
+    "filename": "app/importer/validate.py",
+    "line": "    normalize = lambda text: text.strip().lower()",
+    "sub_regra": "lambda_atribuido",
+    "no_contexto": false,
+    "palavras_contexto": 1994
+  },
+  {
+    "pr_id": "PR-016",
+    "filename": "app/importer/validate.py",
+    "line": "    return len(missing) == 0 and sorted( missing ) == []",
+    "sub_regra": "espaco_parenteses",
+    "no_contexto": true,
+    "palavras_contexto": 1994
+  },
+  {
+    "pr_id": "PR-016",
+    "filename": "app/importer/validate.py",
+    "line": "        if record.get(\"phone\") != None:",
+    "sub_regra": "nulo",
+    "no_contexto": false,
+    "palavras_contexto": 1994
+  },
+  {
+    "pr_id": "PR-017",
+    "filename": "app/tasks/queue.py",
+    "line": "import os, sys",
+    "sub_regra": "import_unico",
+    "no_contexto": true,
+    "palavras_contexto": 2122
+  },
+  {
+    "pr_id": "PR-017",
+    "filename": "app/tasks/queue.py",
+    "line": "class TaskFailed(Exception):",
+    "sub_regra": "erro_sufixo",
+    "no_contexto": true,
+    "palavras_contexto": 2122
+  },
+  {
+    "pr_id": "PR-017",
+    "filename": "app/tasks/queue.py",
+    "line": "    def run(this, limit):",
+    "sub_regra": "self_cls",
+    "no_contexto": true,
+    "palavras_contexto": 2122
+  },
+  {
+    "pr_id": "PR-017",
+    "filename": "app/tasks/report.py",
+    "line": "    rows = [done , failed]",
+    "sub_regra": "espaco_antes_virgula",
+    "no_contexto": true,
+    "palavras_contexto": 1601
+  },
+  {
+    "pr_id": "PR-018",
+    "filename": "app/audit/filters.py",
+    "line": "    kept=[e for e in entries if e.user == user]",
+    "sub_regra": "espaco_operador",
+    "no_contexto": true,
+    "palavras_contexto": 2079
+  },
+  {
+    "pr_id": "PR-018",
+    "filename": "app/audit/filters.py",
+    "line": "    if not user is None:",
+    "sub_regra": "not_is",
+    "no_contexto": false,
+    "palavras_contexto": 2079
+  },
+  {
+    "pr_id": "PR-018",
+    "filename": "app/audit/filters.py",
+    "line": "    first = kept[0] if kept else None; last = kept[-1] if kept else None",
+    "sub_regra": "instrucoes_compostas",
+    "no_contexto": true,
+    "palavras_contexto": 2079
+  },
+  {
+    "pr_id": "PR-018",
+    "filename": "app/audit/filters.py",
+    "line": "    return f\"Auditoria filtrada por usuario e limitada a quinhentas entradas: {len(kept)}\"",
+    "sub_regra": "linha_longa",
+    "no_contexto": false,
+    "palavras_contexto": 2079
+  },
+  {
+    "pr_id": "PR-019",
+    "filename": "app/orders/status.py",
+    "line": "    if order.paid == True:",
+    "sub_regra": "booleano",
+    "no_contexto": false,
+    "palavras_contexto": 1240
+  },
+  {
+    "pr_id": "PR-019",
+    "filename": "app/orders/status.py",
+    "line": "    except:",
+    "sub_regra": "except_nu",
+    "no_contexto": true,
+    "palavras_contexto": 1240
+  },
+  {
+    "pr_id": "PR-019",
+    "filename": "app/orders/status.py",
+    "line": "    order.archived = True #arquivado",
+    "sub_regra": "comentario_inline",
+    "no_contexto": false,
+    "palavras_contexto": 1240
+  },
+  {
+    "pr_id": "PR-019",
+    "filename": "app/orders/models.py",
+    "line": "MaxItems = 50",
+    "sub_regra": "constante_maiuscula",
+    "no_contexto": false,
+    "palavras_contexto": 1778
+  },
+  {
+    "pr_id": "PR-019",
+    "filename": "app/orders/models.py",
+    "line": "class order_line:",
+    "sub_regra": "nome_classe",
+    "no_contexto": false,
+    "palavras_contexto": 1778
+  },
+  {
+    "pr_id": "PR-020",
+    "filename": "app/plugins/loader.py",
+    "line": "from importlib import *",
+    "sub_regra": "import_estrela",
+    "no_contexto": true,
+    "palavras_contexto": 1475
+  },
+  {
+    "pr_id": "PR-020",
+    "filename": "app/plugins/loader.py",
+    "line": "from pkgutil import *",
+    "sub_regra": "import_estrela",
+    "no_contexto": true,
+    "palavras_contexto": 1475
+  },
+  {
+    "pr_id": "PR-020",
+    "filename": "app/plugins/loader.py",
+    "line": "    I = len(names)",
+    "sub_regra": "nome_proibido",
+    "no_contexto": true,
+    "palavras_contexto": 1475
+  },
+  {
+    "pr_id": "PR-020",
+    "filename": "app/plugins/loader.py",
+    "line": "    return type(module) == type(import_module)",
+    "sub_regra": "tipo_isinstance",
+    "no_contexto": true,
+    "palavras_contexto": 1475
+  },
+  {
+    "pr_id": "PR-020",
+    "filename": "app/plugins/loader.py",
+    "line": "register = lambda module: PLUGINS.append(module)",
+    "sub_regra": "lambda_atribuido",
+    "no_contexto": false,
+    "palavras_contexto": 1475
+  },
+  {
+    "pr_id": "PR-020",
+    "filename": "app/plugins/registry.py",
+    "line": "    REGISTRY.pop( name, None )",
+    "sub_regra": "espaco_parenteses",
+    "no_contexto": false,
+    "palavras_contexto": 1394
+  }
+]

@@ -1064,7 +1064,8 @@ Chunks menores gastam menos tokens, mas perdem mais cobertura do que economizam.
 O `chunk_size` fica em 512 e a recuperação segue como limitação registrada. Das
 45 linhas positivas sem a norma no contexto (com 512), só uma parte vira FN, o
 que sugere que o modelo também acerta por conhecimento prévio da PEP 8; a
-rodada 2 mede isso.
+a rodada 2 mediu isso: com a norma no contexto o recall foi 0,87 (46 de 53),
+sem ela 0,69 (31 de 45).
 
 ---
 

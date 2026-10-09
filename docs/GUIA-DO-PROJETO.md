@@ -279,14 +279,10 @@ Metas do TCC: Precisão >= 0,70, Recall >= 0,65, F1 >= 0,67.
 | 07/10 | Avaliação oficial de D-009 (corpus da PEP 8, 75 PRs) | P 0,96 · R 0,97 · F1 0,97 |
 | 08/10 | Dataset realista (D-010): 25 PRs, 35 arquivos, 23 normas. Rodada 1 | P 0,80 · R 0,79 · F1 0,79 |
 | 08/10 | 40 erros investigados contra o texto da PEP 8 | 15 erros de rótulo do dataset, corrigidos |
+| 09/10 | Rodada 2 de D-010 (dataset corrigido) | P 0,86 · R 0,79 · F1 0,82 |
 
-**Falta, nesta ordem:**
-
-1. Rodar a rodada 2 da avaliação de detecção com o dataset corrigido (1 cota
-   diária do Groq, que zera às 00:00 UTC).
-2. Cruzar a cobertura do contexto com as detecções, para medir quanto o modelo
-   depende do que o retriever entrega.
-3. Acrescentar a rodada 2 ao relatório e abrir o PR.
+**Falta:** abrir o PR de `feat/dataset-realista`. Em aberto: linha de base sem
+recuperação, tratamento do `except` tolerado, ambiguidade no workflow (F-004).
 
 ## 8. Onde cada decisão está escrita
 

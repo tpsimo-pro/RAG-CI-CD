@@ -45,7 +45,7 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Os resultados desta seção são da **rodada 1 de D-010** (dataset realista de 25 PRs e 35 arquivos, 23 normas da PEP 8). Depois dela, 15 dos 40 erros se mostraram erros de rótulo do dataset e foram corrigidos; a **rodada 2**, com o dataset corrigido, ainda não foi rodada (a cota diária da Groq estava esgotada). Relatório completo em `docs/RELATORIO-RESULTADOS.md`, que mantém como anexos as rodadas de D-009 (75 PRs, 6 normas) e D-008. Os números não são comparáveis entre rodadas: mudam dataset, normas e gabarito.
+> Os resultados de detecção desta seção são da **rodada 1 de D-010** (dataset realista de 25 PRs e 35 arquivos, 23 normas da PEP 8). Depois dela, 15 dos 40 erros se mostraram erros de rótulo do dataset e foram corrigidos; a **rodada 2**, com o dataset corrigido, deu P 0,86, R 0,79, F1 0,82 (detalhes na seção 0 do relatório). Relatório completo em `docs/RELATORIO-RESULTADOS.md`, que mantém como anexos as rodadas de D-009 (75 PRs, 6 normas) e D-008. Os números não são comparáveis entre rodadas: mudam dataset, normas e gabarito.
 >
 > A avaliação reporta métricas **por família** (`per_rule`) e o recall **por norma** (`per_sub_rule_recall`) em `results_realista.json`. O recorte de uma família são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a família alguma e só entram na matriz global.
 
