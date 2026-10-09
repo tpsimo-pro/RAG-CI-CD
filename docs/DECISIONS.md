@@ -1128,8 +1128,9 @@ corpus, os prompts e o retriever são os da `main`.
 | `requirements.txt` | `requests` | Cliente HTTP da API do GitHub |
 | `rag_reviewer/retriever.py` | `Retriever.retrieve_for_diff` | Aplica a recuperação por arquivo a todos os arquivos do PR e descarta os sem linhas adicionadas ou sem contexto |
 | `rag_reviewer/github_publisher.py` | `GitHubPublisher.publish`, `_create_review` | Uma review `COMMENT` com comentários inline; se a API devolver 422, refaz só com o sumário |
-| `rag_reviewer/github_publisher.py` | `_find_diff_position(..., usadas)` | Posição exata da linha no diff; linhas repetidas vão a posições diferentes; igualdade vence substring |
+| `rag_reviewer/github_publisher.py` | `_find_diff_position(..., usadas)` | Posição da linha no diff conforme a doc da API (a linha abaixo do primeiro `@@` é a posição 1; `@@` seguintes e linhas removidas contam); linhas repetidas vão a posições diferentes; igualdade exata vence substring; duas violações na mesma linha reusam a exata |
 | `rag_reviewer/github_publisher.py` | `_existing_comments`, `_build_review_comments` | Não repete comentário já publicado (o Action roda a cada push); sem posição vai ao sumário |
+| `rag_reviewer/github_publisher.py` | `post_summary`, `_get_all` | Os avisos gerais (aprovação, sem arquivo, sem contexto) não são repetidos a cada push; leitura paginada compartilhada |
 | `rag_reviewer/github_publisher.py` | `_format_inline_comment`, `_build_summary_body` | Texto do comentário (severidade, norma, como corrigir, ambiguidade) e sumário por severidade, sem emojis |
 | `rag_reviewer/reviewer.py` | `RAGReviewer.run`, `_review_all_contexts`, `_review_with_retry` | Orquestra diff, recuperação, LLM por arquivo e publicação; falha num arquivo vira "não revisado"; uma nova tentativa curta em 429; falha em todos faz o job falhar |
 | `rag_reviewer/main.py` | `main` | Entrada do Action (`python -m rag_reviewer.main`), sem `show_locals` para não vazar segredos |

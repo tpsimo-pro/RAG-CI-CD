@@ -1511,15 +1511,15 @@ Comparar P, R, F1, gate e contagem de ambiguas sinalizadas. Criterio: nenhuma qu
 **PRs escolhidos** (cobrem arquivo novo e modificado, ambiguidade, hard negatives e um PR sem violacao): `PR-003` (violacoes; 1 novo e 1 modificado), `PR-007` (5 violacoes e 1 ambigua), `PR-021` (sem violacao; arquivo modificado com hard negatives). Sao 4 arquivos, ~4 chamadas ao LLM (~15 mil tokens).
 
 **Interfaces:**
-- Produces: `reconstruir_antes(source_after: str, patch: str) -> str`; `linha_na_posicao(patch: str, posicao: int) -> str | None`.
+- Produces: `reconstruir_antes(source_after: str, patch: str) -> str`; `texto_da_linha(linhas_depois: list[str], numero: int | None) -> str | None` (usa o campo `line` que a API devolve em cada comentario, e nao a contagem de `position`, para a conferencia ser independente do publisher).
 
-- [ ] **Step 1: Testes de `reconstruir_antes` e `linha_na_posicao` (falham)**
+- [ ] **Step 1: Testes de `reconstruir_antes` e `texto_da_linha` (falham)**
 
 `tests/unit/test_prs_demo.py`:
 
 ```python
 from scripts.montar_prs_demo import reconstruir_antes
-from scripts.conferir_prs_demo import linha_na_posicao
+from scripts.conferir_prs_demo import texto_da_linha
 
 DEPOIS = "a = 1\nb = 2\nc = 3\nd = 4\n"
 PATCH = "@@ -1,3 +1,4 @@\n a = 1\n-x = 0\n+b = 2\n c = 3\n+d = 4"
@@ -1529,11 +1529,12 @@ def test_reconstruir_antes_desfaz_adicoes_e_restaura_remocoes():
     assert reconstruir_antes(DEPOIS, PATCH) == "a = 1\nx = 0\nc = 3\n"
 
 
-def test_linha_na_posicao():
-    assert linha_na_posicao(PATCH, 1) is None          # cabecalho do hunk
-    assert linha_na_posicao(PATCH, 3) == "b = 2"        # a linha removida nao conta
-    assert linha_na_posicao(PATCH, 5) == "d = 4"
-    assert linha_na_posicao(PATCH, 4) is None          # contexto
+def test_texto_da_linha():
+    linhas = DEPOIS.splitlines()
+    assert texto_da_linha(linhas, 2) == "b = 2"
+    assert texto_da_linha(linhas, 4) == "d = 4"
+    assert texto_da_linha(linhas, None) is None  # comentario desatualizado
+    assert texto_da_linha(linhas, 99) is None
 ```
 Criar tambem `scripts/__init__.py` vazio.
 
@@ -1656,37 +1657,11 @@ _RAIZ = Path(__file__).resolve().parents[1]
 _DATASET = _RAIZ / "evaluation" / "dataset" / "pilot_dataset.json"
 
 
-def linha_na_posicao(patch: str, posicao: int) -> str | None:
-    """Texto da linha adicionada na posição do diff (a mesma contagem do publisher)."""
-    atual = 0
-    for linha in patch.splitlines():
-        if linha.startswith("-"):
-            continue
-        atual += 1
-        if atual == posicao:
-            if linha.startswith("+") and not linha.startswith("+++"):
-                return linha[1:]
-            return None
-    return None
-
-
-def _gh(caminho: str) -> list[dict]:
-    saida = subprocess.run(
-        ["gh", "api", "--paginate", caminho],
-        cwd=_RAIZ, check=True, capture_output=True, text=True, encoding="utf-8",
-    ).stdout
-    # --paginate concatena arrays JSON ("[...][...]"); decodifica um a um
-    decodificador = json.JSONDecoder()
-    itens: list[dict] = []
-    pos = 0
-    while pos < len(saida):
-        while pos < len(saida) and saida[pos].isspace():
-            pos += 1
-        if pos >= len(saida):
-            break
-        bloco, pos = decodificador.raw_decode(saida, pos)
-        itens.extend(bloco)
-    return itens
+def texto_da_linha(linhas_depois: list[str], numero: int | None) -> str | None:
+    """Texto da linha `numero` (1-indexada) do arquivo depois da mudança."""
+    if numero is None or not 1 <= numero <= len(linhas_depois):
+        return None
+    return linhas_depois[numero - 1]
 
 
 def main() -> None:
@@ -1698,11 +1673,17 @@ def main() -> None:
     total = {"tp": 0, "fp": 0, "fn": 0, "tn": 0}
     for par in sys.argv[1:]:
         pr_id, numero = par.split("=")
-        arquivos = {f["filename"]: f for f in _gh(f"repos/{repo}/pulls/{numero}/files")}
         sinalizadas: set[tuple[str, str]] = set()
         for c in _gh(f"repos/{repo}/pulls/{numero}/comments"):
-            arq = arquivos.get(c["path"])
-            texto = linha_na_posicao(arq["patch"], c["position"]) if arq and c.get("position") else None
+            arq_dataset = next(
+                (f for f in dataset[pr_id]["files"] if f["filename"] == c["path"]), None
+            )
+            if arq_dataset is None:
+                continue
+            depois = arq_dataset.get("source_after") or "\n".join(
+                l["line"] for l in arq_dataset["added_lines"]
+            )
+            texto = texto_da_linha(depois.splitlines(), c.get("line"))
             if texto is not None:
                 sinalizadas.add((c["path"], texto.strip()))
         print(f"\n== {pr_id} (PR #{numero})")
@@ -1759,4 +1740,4 @@ Fechar os PRs de teste (`gh pr close <n> --delete-branch`), apagar `demo/base` l
 
 **Placeholders:** nenhum passo descreve algo sem mostrar como. Os ajustes de teste portados (tarefas 2 e 5) dizem exatamente quais testes mudam e por que.
 
-**Consistencia de tipos:** `Violation.ambiguous` (1) e usado em `_format_inline_comment` (4); `publish(violations, pr_diff, unreviewed, model)` (4) e chamado igual em `reviewer.py` (5); `retrieve_for_diff` (3) e chamado em `reviewer.py` (5); `_find_diff_position(patch, line_content, usadas)` (4) e espelhado por `linha_na_posicao` (10).
+**Consistencia de tipos:** `Violation.ambiguous` (1) e usado em `_format_inline_comment` (4); `publish(violations, pr_diff, unreviewed, model)` (4) e chamado igual em `reviewer.py` (5); `retrieve_for_diff` (3) e chamado em `reviewer.py` (5); `_find_diff_position(patch, line_content, usadas)` (4) e conferido de forma independente pelo campo `line` da API em `texto_da_linha` (10; revisado depois da revisao final, que achou que a contagem de `position` do publisher estava errada).

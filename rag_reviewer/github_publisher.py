@@ -88,8 +88,13 @@ class GitHubPublisher:
         )
 
     def post_summary(self, message: str) -> None:
-        """Publica um comentário geral (não inline) no PR."""
+        """Publica um comentário geral (não inline) no PR, se o mesmo texto ainda não existe."""
         url = f"{_GITHUB_API_BASE}/repos/{self._repo}/issues/{self._pr_number}/comments"
+        if any(c.get("body") == message for c in self._get_all(url)):
+            console.log(
+                "[dim]GitHubPublisher:[/dim] o aviso já existe no PR; não repete."
+            )
+            return
         response = requests.post(
             url, headers=self._headers, json={"body": message}, timeout=30
         )
@@ -97,10 +102,9 @@ class GitHubPublisher:
 
     # ── Internos ──────────────────────────────────────────────────────────
 
-    def _existing_comments(self) -> set[tuple[str, str]]:
-        """(path, corpo) dos comentários de review já publicados. Falha vira conjunto vazio."""
-        url = f"{_GITHUB_API_BASE}/repos/{self._repo}/pulls/{self._pr_number}/comments"
-        existentes: set[tuple[str, str]] = set()
+    def _get_all(self, url: str) -> list[dict]:
+        """Todas as páginas de uma listagem da API. Falha de leitura vira lista vazia."""
+        itens: list[dict] = []
         try:
             atual: str | None = url
             while atual:
@@ -108,17 +112,20 @@ class GitHubPublisher:
                     atual, headers=self._headers, params={"per_page": 100}, timeout=30
                 )
                 response.raise_for_status()
-                existentes.update(
-                    (c.get("path", ""), c.get("body", "")) for c in response.json()
-                )
+                itens.extend(response.json())
                 atual = response.links.get("next", {}).get("url")
         except requests.RequestException as exc:
             console.log(
-                f"[yellow]GitHubPublisher:[/yellow] não leu os comentários existentes "
-                f"({exc}); publicando sem checar repetições."
+                f"[yellow]GitHubPublisher:[/yellow] não leu {url} ({exc}); "
+                "seguindo sem checar repetições."
             )
-            return set()
-        return existentes
+            return []
+        return itens
+
+    def _existing_comments(self) -> set[tuple[str, str]]:
+        """(path, corpo) dos comentários de review já publicados."""
+        url = f"{_GITHUB_API_BASE}/repos/{self._repo}/pulls/{self._pr_number}/comments"
+        return {(c.get("path", ""), c.get("body", "")) for c in self._get_all(url)}
 
     def _build_review_comments(
         self, violations: ViolationList, existentes: set[tuple[str, str]]
@@ -195,34 +202,40 @@ def _find_diff_position(
     """
     Posição (1-indexada) de uma linha adicionada dentro do patch.
 
-    A posição conta a partir do primeiro cabeçalho de hunk, incluindo
-    cabeçalhos, linhas de contexto e adicionadas, e não conta as removidas.
-    Prefere a igualdade exata (após `strip`) à substring e ignora as posições
-    em `usadas`, para que violações de texto igual caiam em linhas diferentes.
-    A posição escolhida é registrada em `usadas`.
+    Pela documentação da API de reviews, a linha logo abaixo do PRIMEIRO
+    cabeçalho `@@` é a posição 1; a contagem segue por todas as linhas do diff
+    (adicionadas, de contexto e removidas) e os cabeçalhos `@@` seguintes também
+    contam.
+
+    Escolha da linha: a primeira igualdade exata (após `strip`) ainda não usada;
+    se todas já foram usadas (duas violações na mesma linha), reutiliza a
+    primeira igualdade exata; só sem igualdade exata cai para a primeira
+    substring ainda não usada. A posição escolhida entra em `usadas`.
     """
     if not patch or not line_content or not line_content.strip():
         return None
     usadas = usadas if usadas is not None else set()
     alvo = line_content.strip()
-    exata: int | None = None
-    parcial: int | None = None
+    exatas: list[int] = []
+    parciais: list[int] = []
     posicao = 0
+    primeiro_cabecalho_visto = False
     for linha in patch.splitlines():
-        if linha.startswith("-"):
+        if linha.startswith("@@") and not primeiro_cabecalho_visto:
+            primeiro_cabecalho_visto = True
             continue
         posicao += 1
-        if (
-            linha.startswith("+")
-            and not linha.startswith("+++")
-            and posicao not in usadas
-        ):
+        if linha.startswith("+") and not linha.startswith("+++"):
             conteudo = linha[1:].strip()
-            if conteudo == alvo and exata is None:
-                exata = posicao
-            elif alvo in conteudo and parcial is None:
-                parcial = posicao
-    escolhida = exata if exata is not None else parcial
+            if conteudo == alvo:
+                exatas.append(posicao)
+            elif alvo in conteudo:
+                parciais.append(posicao)
+    escolhida = next((p for p in exatas if p not in usadas), None)
+    if escolhida is None and exatas:
+        escolhida = exatas[0]
+    if escolhida is None:
+        escolhida = next((p for p in parciais if p not in usadas), None)
     if escolhida is not None:
         usadas.add(escolhida)
     return escolhida

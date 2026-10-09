@@ -59,7 +59,8 @@ def resp(status=200, json=None, links=None):
 
 class TestFindDiffPosition:
     def test_acha_linha_adicionada(self):
-        assert _find_diff_position(PATCH, "import os") == 2
+        # A linha logo abaixo do primeiro @@ e a posicao 1 (doc da API de reviews)
+        assert _find_diff_position(PATCH, "import os") == 1
 
     def test_nao_acha_trecho_ausente(self):
         assert _find_diff_position(PATCH, "z = 9") is None
@@ -74,22 +75,42 @@ class TestFindDiffPosition:
         assert _find_diff_position(patch_removida, "velha = 1") is None
         assert _find_diff_position(patch_removida, "contexto = 2") is None
 
-    def test_cabecalho_de_hunk_conta_posicao(self):
-        assert _find_diff_position("@@ -0,0 +1 @@\n+a = 1", "a = 1") == 2
+    def test_primeiro_cabecalho_nao_conta_posicao(self):
+        assert _find_diff_position("@@ -0,0 +1 @@\n+a = 1", "a = 1") == 1
+
+    def test_cabecalhos_seguintes_e_linhas_removidas_contam(self):
+        patch = "@@ -1,2 +1,2 @@\n-velha = 1\n+nova = 1\n@@ -9 +9 @@\n+outra = 2"
+        assert _find_diff_position(patch, "nova = 1") == 2
+        assert _find_diff_position(patch, "outra = 2") == 4
+
+    def test_ultima_linha_do_patch_tem_posicao_valida(self):
+        patch = "@@ -0,0 +1,2 @@\n+a = 1\n+b = 2"
+        assert _find_diff_position(patch, "b = 2") == 2  # nunca len(linhas) + 1
 
     def test_linhas_repetidas_vao_a_posicoes_diferentes(self):
         usadas: set[int] = set()
         primeira = _find_diff_position(PATCH, "x = 1", usadas)
         segunda = _find_diff_position(PATCH, "x = 1", usadas)
-        assert (primeira, segunda) == (3, 5)
-        assert _find_diff_position(PATCH, "x = 1", usadas) is None
+        assert (primeira, segunda) == (2, 4)
+
+    def test_terceira_violacao_na_mesma_linha_reusa_a_exata(self):
+        usadas: set[int] = set()
+        _find_diff_position(PATCH, "x = 1", usadas)
+        _find_diff_position(PATCH, "x = 1", usadas)
+        assert _find_diff_position(PATCH, "x = 1", usadas) == 2
+
+    def test_segunda_violacao_na_mesma_linha_nao_vai_para_substring(self):
+        patch = "@@ -0,0 +1,2 @@\n+x = 1\n+    x = 1  # nota"
+        usadas: set[int] = set()
+        assert _find_diff_position(patch, "x = 1", usadas) == 1
+        assert _find_diff_position(patch, "x = 1", usadas) == 1
 
     def test_igualdade_exata_vence_substring(self):
         patch = "@@ -0,0 +1,2 @@\n+total_x = 1\n+x = 1"
-        assert _find_diff_position(patch, "x = 1") == 3
+        assert _find_diff_position(patch, "x = 1") == 2
 
     def test_substring_quando_nao_ha_igualdade(self):
-        assert _find_diff_position(PATCH, "import") == 2
+        assert _find_diff_position(PATCH, "import") == 1
 
 
 class TestFormat:
@@ -138,6 +159,7 @@ class TestFormat:
 class TestPublish:
     def test_sem_violacoes_publica_aprovacao(self):
         with patch("rag_reviewer.github_publisher.requests") as req:
+            req.get.return_value = resp(200, [])
             req.post.return_value = resp(201)
             make_publisher().publish([], make_pr())
         url = req.post.call_args.args[0]
@@ -153,7 +175,7 @@ class TestPublish:
         payload = req.post.call_args.kwargs["json"]
         assert payload["event"] == "COMMENT"
         assert payload["commit_id"] == "abc"
-        assert payload["comments"][0]["position"] == 2
+        assert payload["comments"][0]["position"] == 1
         assert payload["comments"][0]["path"] == "app/a.py"
 
     def test_linha_inexistente_no_diff_vai_ao_sumario(self):
@@ -178,7 +200,7 @@ class TestPublish:
                 make_pr(),
             )
         comentarios = req.post.call_args.kwargs["json"]["comments"]
-        assert [c["position"] for c in comentarios] == [3, 5]
+        assert [c["position"] for c in comentarios] == [2, 4]
 
     def test_nao_repete_comentario_ja_publicado(self):
         fd = make_file()
@@ -211,6 +233,20 @@ class TestPublish:
                 [(make_file(), make_violation("import os"))], make_pr()
             )
         assert req.post.call_count == 1
+
+    def test_aprovacao_nao_e_repetida_a_cada_push(self):
+        aprovacao = "Nenhuma violação da PEP 8 detectada nas linhas adicionadas."
+        with patch("rag_reviewer.github_publisher.requests") as req:
+            req.get.return_value = resp(200, [{"body": aprovacao}])
+            make_publisher().publish([], make_pr())
+        req.post.assert_not_called()
+
+    def test_aviso_novo_e_publicado_quando_ainda_nao_existe(self):
+        with patch("rag_reviewer.github_publisher.requests") as req:
+            req.get.return_value = resp(200, [{"body": "outro comentario"}])
+            req.post.return_value = resp(201)
+            make_publisher().post_summary("aviso")
+        req.post.assert_called_once()
 
     def test_so_arquivos_nao_revisados_publica_sumario(self):
         with patch("rag_reviewer.github_publisher.requests") as req:
