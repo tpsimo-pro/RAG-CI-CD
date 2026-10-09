@@ -1134,6 +1134,7 @@ corpus, os prompts e o retriever são os da `main`.
 | `rag_reviewer/reviewer.py` | `RAGReviewer.run`, `_review_all_contexts`, `_review_with_retry` | Orquestra diff, recuperação, LLM por arquivo e publicação; falha num arquivo vira "não revisado"; uma nova tentativa curta em 429; falha em todos faz o job falhar |
 | `rag_reviewer/main.py` | `main` | Entrada do Action (`python -m rag_reviewer.main`), sem `show_locals` para não vazar segredos |
 | `tests/integration/test_rag_pipeline.py`, `Makefile` | `test-integration` | Fluxo ponta a ponta com GitHub, Qdrant e Groq simulados |
+| `.github/workflows/rag_reviewer.yml` | job `review` | Roda o revisor no `pull_request` (opened, synchronize, reopened) em `.py`; torch só CPU, cache do modelo, cancela a execução anterior do mesmo PR; `QDRANT_COLLECTION=pep8_chunks` |
 
 ---
 

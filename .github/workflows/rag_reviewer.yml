@@ -1,0 +1,56 @@
+name: RAG-Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**/*.py"
+
+permissions:
+  contents: read
+  pull-requests: write   # necessário para publicar a review
+
+# Um push novo cancela a execução anterior do mesmo PR
+concurrency:
+  group: rag-reviewer-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # torch só CPU: a build padrão traz CUDA e passa de 2 GB
+      - name: Instalar dependências
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      # O modelo de embedding multilíngue (ADR-002) tem ~470MB
+      - name: Cache do modelo de embedding
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ hashFiles('requirements.txt') }}
+
+      - name: Executar RAG-Reviewer
+        env:
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          QDRANT_URL:         ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY:     ${{ secrets.QDRANT_API_KEY }}
+          QDRANT_COLLECTION:  pep8_chunks
+          PR_NUMBER:          ${{ github.event.pull_request.number }}
+          REPO_FULL_NAME:     ${{ github.repository }}
+          PR_HEAD_SHA:        ${{ github.event.pull_request.head.sha }}
+        run: python -m rag_reviewer.main
