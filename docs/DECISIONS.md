@@ -1123,6 +1123,7 @@ corpus, os prompts e o retriever são os da `main`.
 | `rag_reviewer/llm_client.py` | `_VALID_SEVERITIES`, `Violation.ambiguous`, `_parse_single_violation` | Severidade só HIGH/MEDIUM/LOW; o campo `ambiguous` (só o booleano `true` vale) força LOW |
 | `rag_reviewer/prompts/system_prompt.txt`, `review_template.txt` | regra 6, schema, parágrafo da Tarefa | Sem CRITICAL; o modelo marca a ambiguidade |
 | `rag_reviewer/config.py` | remoção de `block_on_critical` | O Action nunca bloqueia |
+| `rag_reviewer/config.py` | `extra="ignore"` em `Settings` | Um `.env` com `BLOCK_ON_CRITICAL` (já removida) não derruba a configuração |
 
 ---
 
