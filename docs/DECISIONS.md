@@ -1131,6 +1131,9 @@ corpus, os prompts e o retriever são os da `main`.
 | `rag_reviewer/github_publisher.py` | `_find_diff_position(..., usadas)` | Posição exata da linha no diff; linhas repetidas vão a posições diferentes; igualdade vence substring |
 | `rag_reviewer/github_publisher.py` | `_existing_comments`, `_build_review_comments` | Não repete comentário já publicado (o Action roda a cada push); sem posição vai ao sumário |
 | `rag_reviewer/github_publisher.py` | `_format_inline_comment`, `_build_summary_body` | Texto do comentário (severidade, norma, como corrigir, ambiguidade) e sumário por severidade, sem emojis |
+| `rag_reviewer/reviewer.py` | `RAGReviewer.run`, `_review_all_contexts`, `_review_with_retry` | Orquestra diff, recuperação, LLM por arquivo e publicação; falha num arquivo vira "não revisado"; uma nova tentativa curta em 429; falha em todos faz o job falhar |
+| `rag_reviewer/main.py` | `main` | Entrada do Action (`python -m rag_reviewer.main`), sem `show_locals` para não vazar segredos |
+| `tests/integration/test_rag_pipeline.py`, `Makefile` | `test-integration` | Fluxo ponta a ponta com GitHub, Qdrant e Groq simulados |
 
 ---
 

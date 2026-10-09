@@ -1,7 +1,7 @@
 # RAG-Reviewer — Makefile
 # Atalhos para tarefas de desenvolvimento
 
-.PHONY: help install install-dev index test test-cov lint lint-fix format typecheck docker-qdrant keep-alive evaluate eval-retrieval clean
+.PHONY: help install install-dev index test test-integration test-cov lint lint-fix format typecheck docker-qdrant keep-alive evaluate eval-retrieval clean
 
 # ── Intérprete Python — sempre usa o .venv do projeto ────────────────────────
 # Detecta Windows (Scripts/) vs Unix (bin/)
@@ -57,6 +57,9 @@ test:
 
 test-unit:
 	$(PYTHON) -m pytest tests/unit/ -v
+
+test-integration:
+	$(PYTHON) -m pytest tests/integration/ -v
 
 test-cov:
 	$(PYTHON) -m pytest tests/ --cov=rag_reviewer --cov=indexer --cov-report=term-missing --cov-report=html -v
