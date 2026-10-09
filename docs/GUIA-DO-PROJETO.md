@@ -135,24 +135,36 @@ arquivo do PR ─┬─> retriever (1 busca híbrida por linha -> união -> 8 ch
 ## 5. O dataset
 
 Arquivo: `evaluation/dataset/pilot_dataset.json`. Esquema:
-`evaluation/dataset/SCHEMA.md`.
+`evaluation/dataset/SCHEMA.md`. Catálogo das normas:
+`evaluation/dataset/norms.py`.
 
-- 75 PRs sintéticos, um arquivo cada, com 2.025 linhas no total.
-- Cada linha tem rótulo: viola ou não viola, e qual regra.
-- 3 regras, 25 PRs cada:
+O dataset é um ensaio do workflow real do GitHub: PRs com vários arquivos,
+novos e modificados, e violações de várias normas misturadas.
 
-| Regra | Sub-regras | Exemplo de violação |
-|---|---|---|
-| PEP 8, Programming Recommendations (comparações) | `booleano`, `nulo` | `if x == True:`, `if y != None:` |
-| PEP 8, Naming Conventions | `nome_funcao`, `nome_classe`, `nome_proibido` | `def CalculateTax`, `class order_item`, `I = 3` |
-| PEP 8, Programming Recommendations (`except:` nu) | `except_nu` | `except:` seguido de `pass` ou `continue` |
+- 25 PRs sintéticos (20 violadores e 5 limpos), 35 arquivos (21 novos e 14
+  modificados, estes com `patch` de hunks, contexto e remoções), 796 linhas
+  adicionadas no total.
+- Cada linha tem rótulo: viola ou não viola, e qual norma.
+- 23 normas da PEP 8 em 6 famílias (`regra` é a família, `sub_regra` é a norma):
 
-- 118 linhas violam (positivas). 146 são "negativos difíceis": parecem
-  violação mas não são (ex.: `if x is True:`). O resto é código comum.
-- 21 dos 75 PRs são de controle: não têm nenhuma violação.
-- D-008: todo o código fora das linhas rotuladas cumpre o corpus inteiro
-  (docstrings, tipos, linhas em branco), para o LLM não achar violações
-  reais que o gabarito não rotulou.
+| Família | Normas (exemplo de violação) |
+|---|---|
+| Programming Recommendations | `booleano` (`== True`), `nulo` (`!= None`), `except_nu` (`except:` + `pass`), `not_is` (`not x is None`), `tipo_isinstance` (`type(a) == type(b)`), `lambda_atribuido`, `instrucoes_compostas` (`a = 1; b = 2`) |
+| Naming Conventions | `nome_funcao`, `nome_classe`, `nome_proibido` (`l`, `O`, `I`), `erro_sufixo`, `self_cls`, `constante_maiuscula` |
+| Code Lay-out | `linha_longa` (79 colunas), `linhas_em_branco` |
+| Imports | `import_unico`, `import_topo`, `import_estrela`, `import_ordem` |
+| Whitespace | `espaco_operador`, `espaco_parenteses`, `espaco_antes_virgula` |
+| Comments | `comentario_inline` |
+
+- 98 linhas violam (positivas), no mínimo 4 por norma. 77 são "negativos
+  difíceis": parecem violação mas não são (ex.: `if x is True:`,
+  `except Exception:`). O resto é código comum.
+- O ruff é o oráculo do rótulo: toda violação numa linha adicionada tem de
+  estar rotulada, e todo rótulo positivo tem de disparar a própria norma. Assim
+  o LLM não acha violações reais que o gabarito esqueceu (lição de D-008).
+- Três normas dependem da vizinhança (`linhas_em_branco`, `import_topo`,
+  `import_ordem`) e só aparecem em arquivos novos, porque o workflow entrega ao
+  LLM só as linhas adicionadas.
 
 ---
 
@@ -164,8 +176,8 @@ Do mais barato ao mais caro:
 |---|---|---|---|---|
 | 1 | Testes unitários | não | não | zero |
 | 2 | Validação do dataset | não | não | zero |
-| 3 | Avaliação de recuperação (L0 a L4) | sim | não | zero de cota |
-| 4 | Avaliação de detecção (a oficial) | sim | sim | ~140 mil tokens, 1 cota diária do Groq |
+| 3 | Avaliação de recuperação | sim | não | zero de cota |
+| 4 | Avaliação de detecção (a oficial) | sim | sim | ~130 mil tokens (35 arquivos), 1 cota diária do Groq |
 
 ### 6.1 Testes unitários
 
@@ -180,11 +192,11 @@ o resto.
 `python -m evaluation.dataset.validate_pilot_dataset`
 
 Não avalia o sistema. Confere se o **gabarito** está correto: formato,
-contagens, se cada linha positiva viola mesmo (ruff + AST), se o resto do
-código cumpre o corpus inteiro (`conformity.py`, D-008). Rode sempre que o
+composição, se cada linha positiva dispara a própria norma e se nenhuma
+violação ficou sem rótulo (ruff + AST, `conformity.py`). Rode sempre que o
 dataset mudar.
 
-### 6.3 Avaliação de recuperação (ablação L0 a L4)
+### 6.3 Avaliação de recuperação
 
 `python -m evaluation.retrieval.run_retrieval_eval --label X --per-line --hybrid`
 e depois `python -m evaluation.retrieval.ablation` para a tabela.
@@ -192,25 +204,25 @@ e depois `python -m evaluation.retrieval.ablation` para a tabela.
 **Pergunta que responde:** "para cada linha que viola, a norma certa
 aparece entre os chunks que o Qdrant devolve?" Não chama o LLM.
 
-Para cada uma das 118 linhas positivas, faz a busca e olha se algum dos k
+Para cada uma das 98 linhas positivas, faz a busca e olha se algum dos k
 primeiros chunks contém a norma daquela linha (`norm_map.py` sabe
 reconhecer o texto de cada norma).
 
-- `recall@5`: fração das 118 linhas em que a norma veio entre os 5
+- `recall@5`: fração das 98 linhas em que a norma veio entre os 5
   primeiros.
 - `context_precision@5`: dos 5 chunks, quantos carregam a norma certa.
 
-**As configurações L0 a L4** são o sistema montado peça por peça, para
-medir quanto cada peça ajuda:
+**As configurações** montam o sistema peça por peça (rótulos `d010_*` nos
+resultados):
 
 | Config | Como busca | Modelo | recall@5 |
 |---|---|---|---|
-| L0 | 1 busca com o arquivo inteiro, loader antigo | MiniLM inglês | 0,64 |
-| L1 | igual, com o loader e chunker atuais | MiniLM inglês | 0,70 |
-| L2 | 1 busca por linha | MiniLM inglês | 0,16 |
-| L3 | 1 busca por linha | multilíngue | 0,67 |
-| L4 (produção) | 1 busca híbrida por linha | multilíngue | 0,84 |
-| L4 com o MiniLM | 1 busca híbrida por linha | MiniLM inglês | 0,89 |
+| `d010_L3` | 1 busca por linha, só denso | multilíngue | 0,19 |
+| `d010_L4` (produção) | 1 busca híbrida por linha | multilíngue | 0,68 |
+| `d010_L4_minilm` | 1 busca híbrida por linha | MiniLM inglês | 0,63 |
+
+A consulta por arquivo inteiro (L0/L1 de rodadas anteriores) não foi refeita:
+no corpus da PEP 8 ela já dava recall@5 abaixo de 0,03 em D-009.
 
 Cuidado: essa avaliação olha cada linha **sozinha**. Ela não passa pela
 união e pelo corte em 8 do passo 3, e por isso não viu o bug corrigido em
@@ -222,9 +234,10 @@ união e pelo corte em 8 do passo 3, e por isso não viu o bug corrigido em
 
 **Pergunta que responde:** "o sistema inteiro acha as violações certas?"
 
-Para cada um dos 75 PRs:
+Para cada um dos 25 PRs:
 
-1. roda o fluxo da seção 4 de verdade (Qdrant + Groq);
+1. roda o fluxo da seção 4 de verdade (Qdrant + Groq), um arquivo por
+   chamada ao LLM;
 2. compara as violações que o LLM devolveu com o gabarito, **linha a
    linha**.
 
@@ -263,30 +276,19 @@ Metas do TCC: Precisão >= 0,70, Recall >= 0,65, F1 >= 0,67.
 
 | Quando | O quê | Resultado |
 |---|---|---|
-| 29/09 | Avaliação oficial com o bug do retriever (`b2eddf4`) | P 0,79 · R 0,64 · F1 0,71. Recall abaixo da meta |
-| 29/09 | Bug achado: a norma certa não chegava ao LLM | Corrigido em `fb05820`. Norma no contexto: 25 de 54 PRs violadores -> 47 de 54 |
-| 29/09 | Ablação L0 a L4 refeita no dataset atual (`74fb75a`) | L4 com recall@5 de 0,84. Falhas só em nomenclatura |
+| 07/10 | Avaliação oficial de D-009 (corpus da PEP 8, 75 PRs) | P 0,96 · R 0,97 · F1 0,97 |
+| 08/10 | Dataset realista (D-010): 25 PRs, 35 arquivos, 23 normas. Rodada 1 | P 0,80 · R 0,79 · F1 0,79 |
+| 08/10 | 40 erros investigados contra o texto da PEP 8 | 15 erros de rótulo do dataset, corrigidos |
+| 09/10 | Rodada 2 de D-010 (dataset corrigido) | P 0,86 · R 0,79 · F1 0,82 |
 
-**Falta, nesta ordem:**
-
-1. Rodar a avaliação de detecção com o retriever corrigido (1 cota
-   diária do Groq).
-2. Escrever a subseção "Resultado" em D-008, comparando com a rodada de
-   `b2eddf4`.
-3. Atualizar os números de detecção no README.
-4. Enviar a branch e abrir o PR para a `main`.
-
-**Decisão em aberto:** o modelo em inglês superou o multilíngue na
-ablação nova (0,89 contra 0,84). Manter o multilíngue ou trocar muda o
-ADR-002 e exige reindexar a coleção antes do passo 1.
-
----
+**Falta:** abrir o PR de `feat/dataset-realista`. Em aberto: linha de base sem
+recuperação, tratamento do `except` tolerado, ambiguidade no workflow (F-004).
 
 ## 8. Onde cada decisão está escrita
 
 | Assunto | Documento |
 |---|---|
-| Decisões do piloto (D-001 a D-008) | `docs/DECISIONS.md` |
+| Decisões do piloto (D-001 a D-010) | `docs/DECISIONS.md` |
 | Por que o RAG básico falhou e como foi refeito | `docs/superpowers/specs/2026-09-01-refacao-camada-rag-design.md` |
 | Qdrant, embedding, LLM, busca híbrida | `docs/adr/ADR-001` a `ADR-004` |
 | Formato do dataset | `evaluation/dataset/SCHEMA.md` |

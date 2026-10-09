@@ -1,4 +1,220 @@
-# Relatório de resultados: avaliação oficial de D-009 (PEP 8)
+# Relatório de resultados: avaliação oficial de D-010 (dataset realista)
+
+Rodadas de 2026-10-08 e 2026-10-09, branch `feat/dataset-realista`. Corpus: a PEP 8
+em inglês (43 chunks, coleção `pep8_chunks`). Dataset de 25 PRs e 35 arquivos
+(D-010): 21 arquivos novos e 14 modificados, 23 normas da PEP 8 misturadas,
+5 PRs limpos. LLM `qwen/qwen3.8-27b`, temperatura 0.0, 1 repetição, uma chamada
+por arquivo. Resultados completos em `evaluation/results_realista.json`
+(rodada 1) e `evaluation/results_realista_r2.json` (rodada 2).
+
+A **rodada 1** usou o dataset como foi escrito. Depois dela os erros foram
+investigados contra o texto da PEP 8 e 15 deles se mostraram erros de rótulo do
+dataset (D-010, "Revisão após a primeira rodada"). A **rodada 2** reavalia o
+dataset corrigido e é a que vale para o dataset atual; as seções 1 a 4 são da
+rodada 1 e ficam como registro. O objetivo do dataset é ensaiar o workflow do
+GitHub (seção 8), e os resultados **não são comparáveis** com D-009.
+
+## 0. Rodada 2 (dataset corrigido)
+
+| Métrica | Rodada 1 | Rodada 2 | Meta mínima |
+|---|---|---|---|
+| Precisão | 0,8021 | 0,8556 | 0,70 |
+| Recall | 0,7857 | 0,7857 | 0,65 |
+| F1 | 0,7938 | 0,8191 | 0,67 |
+
+As três metas foram atingidas. Matriz por linha (905 linhas, fora as 3
+ambíguas): TP = 77, FP = 13, FN = 21, TN = 794. Gate por PR: TP = 19, FP = 4,
+FN = 1, TN = 1 (um PR limpo passou; na rodada 1 nenhum passou). Alucinação de
+localização 0,0. Precisão da referência normativa 0,7403.
+
+Ambíguas (literais globais em minúsculas): 3, e o modelo sinalizou 2
+(`retry_limit`, `default_name`); `retries` não foi sinalizada.
+
+| Família | TP/FP/FN/TN | Precisão | Recall | F1 |
+|---|---|---|---|---|
+| `pep8-nomes` | 24/0/3/22 | 1,0000 | 0,8889 | 0,9412 |
+| `pep8-espacos` | 11/1/1/8 | 0,9167 | 0,9167 | 0,9167 |
+| `pep8-imports` | 13/0/4/4 | 1,0000 | 0,7647 | 0,8667 |
+| `pep8-recomendacoes` | 23/4/5/26 | 0,8519 | 0,8214 | 0,8364 |
+| `pep8-comentarios` | 3/0/3/3 | 1,0000 | 0,5000 | 0,6667 |
+| `pep8-layout` | 3/3/5/3 | 0,5000 | 0,3750 | 0,4286 |
+
+Normas com recall abaixo de 1 (4 a 7 positivas cada, é indicação): `import_ordem`
+0/4, `lambda_atribuido` 1/4, `linha_longa` 1/4, `linhas_em_branco` 2/4,
+`comentario_inline` 3/6, `constante_maiuscula` 5/7, e 3/4 em `erro_sufixo`,
+`espaco_antes_virgula`, `not_is` e `tipo_isinstance`. As outras 14 normas
+tiveram recall 1,00.
+
+Os 13 FPs: 2 corpos de método (`return this.price ...`, `return klass(...)`),
+3 linhas de string longa em `pep8-layout`, 2 `except Exception as ...:`, 2
+`except:` tolerados, e 4 linhas isoladas (`LoadFile(...)`,
+`sys.stdout.write(...)`, `def __init__(self, sku, qty):`, `round(..., ndigits=2)`).
+Essas 4 e as 3 linhas longas não foram investigadas uma a uma nesta rodada.
+
+**Dependência do contexto recuperado** (`context_coverage` cruzado com as
+detecções, 98 positivas):
+
+| Norma no contexto de 8 chunks | Positivas | Detectadas | Recall |
+|---|---|---|---|
+| Sim | 53 | 46 | 0,868 |
+| Não | 45 | 31 | 0,689 |
+
+Com a norma no contexto o recall é 17 pontos maior, então o RAG contribui. Mas
+69% das positivas sem a norma no contexto foram detectadas mesmo assim, o que
+mostra que o modelo conhece a PEP 8 e que parte do acerto não vem do corpus.
+Separar de fato as duas fontes pede uma linha de base sem recuperação (ainda em
+aberto). Dados em `evaluation/retrieval/context_coverage_d010.json`.
+
+**Execução.** A rodada 2 caiu uma vez por erro de parsing: o modelo emitiu uma
+vírgula sobrando antes de `}` numa resposta cortada em 900 tokens, e a
+recuperação de resposta truncada a rejeitava. Corrigido em `_recover_truncated`
+(com teste); a correção só age onde a execução antes falhava, então os 10 PRs
+já avaliados não mudam. A rodada foi retomada do checkpoint. A cota diária da
+Groq não resetou às 20:00 locais como se supunha: a janela se comportou como
+deslizante, e a rodada terminou no dia seguinte.
+
+## 1. Resultado principal (rodada 1)
+
+| Métrica | Valor | Meta mínima | Situação |
+|---|---|---|---|
+| Precisão | 0,8021 | 0,70 | atingida |
+| Recall | 0,7857 | 0,65 | atingida |
+| F1 | 0,7938 | 0,67 | atingida |
+
+Matriz por linha (796 linhas):
+
+| | Previsto positivo | Previsto negativo |
+|---|---|---|
+| **Real positivo** | TP = 77 | FN = 21 |
+| **Real negativo** | FP = 19 | TN = 679 |
+
+Gate por PR (25 PRs): TP = 19, FP = 5, FN = 1, TN = 0. **Os 5 PRs limpos foram
+bloqueados**, então nesta rodada o gate não distingue PR limpo de violador.
+Alucinação de localização 0,0. Precisão da referência normativa 0,7792.
+
+## 2. Por família e por norma
+
+| Família | TP/FP/FN/TN | Precisão | Recall | F1 | Citação correta |
+|---|---|---|---|---|---|
+| `pep8-espacos` | 11/0/1/9 | 1,0000 | 0,9167 | 0,9565 | 1,0000 |
+| `pep8-nomes` | 25/3/2/22 | 0,8929 | 0,9259 | 0,9091 | 0,6400 |
+| `pep8-imports` | 13/0/4/4 | 1,0000 | 0,7647 | 0,8667 | 1,0000 |
+| `pep8-recomendacoes` | 23/5/5/25 | 0,8214 | 0,8214 | 0,8214 | 0,6957 |
+| `pep8-layout` | 4/2/4/4 | 0,6667 | 0,5000 | 0,5714 | 0,7500 |
+| `pep8-comentarios` | 1/0/5/3 | 1,0000 | 0,1667 | 0,2857 | 1,0000 |
+
+Cobertura por norma (positivas detectadas / positivas), com 4 a 7 positivas por
+norma; é indicação, não estatística:
+
+| Recall | Normas |
+|---|---|
+| 4/4 ou 5/5 | `booleano`, `nulo`, `except_nu`, `espaco_operador`, `espaco_parenteses`, `import_estrela`, `import_topo`, `import_unico`, `instrucoes_compostas`, `nome_classe`, `nome_funcao`, `nome_proibido`, `self_cls` |
+| 3/4 | `erro_sufixo`, `espaco_antes_virgula`, `linhas_em_branco`, `not_is`, `tipo_isinstance` |
+| 6/7 | `constante_maiuscula` |
+| 1/4 | `lambda_atribuido`, `linha_longa` |
+| 1/6 | `comentario_inline` |
+| 0/4 | `import_ordem` |
+
+## 3. Investigação dos 40 erros
+
+Cada erro foi lido contra o texto da PEP 8 e contra o contexto que o retriever
+entregou ao arquivo (`evaluation/retrieval/context_coverage.py`).
+
+| Origem | FPs | FNs | Exemplos |
+|---|---|---|---|
+| Erro de rótulo do dataset | 11 | 4 | 8 funções públicas sem docstring (a PEP 8 exige), `if x is True:` como negativo (a PEP 8 o lista como Wrong), 2 literais globais em minúsculas (ambíguo), `import_ordem` definida como ordem alfabética (a PEP 8 só exige grupos) |
+| Norma ausente do contexto de 8 chunks | 0 | 15 | `comentario_inline` (5), `linha_longa` (3), `lambda_atribuido` (3), `not_is`, `tipo_isinstance`, `linhas_em_branco`, `constante_maiuscula` |
+| Falha do modelo | 6 | 2 | `except Exception as exc:` com log (2) e `except:` tolerado com `logger.exception` ou `raise` (2) tratados como violação; linhas de 79 e 76 colunas acusadas como longas (2); `class StockShortage(Exception)` e `print(date , text)` não acusados |
+| Acusação dupla benigna | 2 | 0 | `def subtotal(this)` e o corpo `return this.price` |
+
+Observações:
+
+- No dataset já corrigido, a norma está no contexto entregue ao LLM em 53 das
+  98 positivas (54%). Mesmo sem a norma no contexto, parte das linhas foi detectada, o que sugere que o modelo acerta
+  também por conhecimento prévio da PEP 8. Essa parte foi medida na rodada 2 (seção 0).
+- O modelo não conta colunas de forma confiável: acusou linhas de 76 e 79
+  colunas e deixou passar linhas longas de verdade (`linha_longa` 1/4).
+- O ruff acusa todo `except:` nu, e a PEP 8 tolera os que registram o traceback ou
+  relançam. O modelo não distingue os dois casos (mesmo problema de D-009).
+- Se os 11 FPs e os 4 FNs de rótulo fossem eliminados mantendo o resto, a
+  precisão ficaria perto de 0,91; é estimativa, não medição.
+
+## 4. Recuperação (sem LLM)
+
+`recall@k` por linha positiva (98 linhas), consulta por linha, `top_k` 5.
+
+| Config | recall@1 | recall@3 | recall@5 | context_precision@5 |
+|---|---|---|---|---|
+| Só denso, multilíngue | 0,1327 | 0,1939 | 0,1939 | 0,0827 |
+| Híbrido denso + BM25, multilíngue (produção) | 0,3367 | 0,5816 | 0,6837 | 0,1367 |
+| Híbrido, MiniLM em inglês | 0,3469 | 0,5714 | 0,6327 | 0,1265 |
+
+Critério do plano (`recall@5 >= 0,95`): não atingido. Recall@5 por norma no
+híbrido multilíngue: 1,00 para `nulo`, `except_nu`, `not_is`, `tipo_isinstance`,
+`erro_sufixo` e as quatro normas de imports; 0,00 para `nome_funcao`,
+`comentario_inline` e `linhas_em_branco`. Esses números são da recuperação por
+linha; o contexto que o LLM de fato recebe por arquivo é outra medida
+(`context_coverage`, a seguir).
+
+Chunks menores, testados no caminho de produção (contexto de 8 chunks por
+arquivo): a norma chega ao contexto em 54% das linhas com 512 palavras, 38% com
+256 e 29% com 128, e o contexto cai de 1.835 para 1.102 e 710 palavras por
+arquivo. Os chunks menores perdem mais cobertura do que economizam; o
+`chunk_size` fica em 512 (D-010).
+
+## 5. Custo
+
+A rodada fez 35 chamadas ao LLM, estimadas em cerca de 130 mil tokens, contra o
+teto diário de 200 mil. O processo foi encerrado uma vez pelo sistema por memória baixa
+(durante uma chamada ao LLM) e retomado do checkpoint, sem perda de PR.
+
+## 6. Limitações
+
+- As seções 1 a 4 são da rodada 1; o dataset atual é o da rodada 2 (seção 0).
+- Cerca de 4 positivas por norma: a cobertura por norma é indicação.
+- Uma repetição, dataset sintético escrito pelo autor (D-004).
+- A recuperação é o principal limite do recall: em 45 das 98 positivas a norma
+  não chega ao LLM.
+- A PEP 8 é conhecida pelo LLM; sem uma linha de base sem recuperação não se
+  separa a contribuição do RAG da do conhecimento prévio.
+
+## 7. Como ler a comparação com D-009
+
+Muda o dataset (25 PRs de vários arquivos contra 75 de um arquivo), mudam as
+normas (23 contra 6, com `except:` nu mantido) e o gabarito. A queda de F1 de
+0,97 para 0,79 reflete principalmente um teste mais difícil e mais amplo, mais os
+erros de rótulo da rodada 1, e não uma piora do sistema.
+
+## 8. Equivalência com o workflow do GitHub (`main-completa`)
+
+O dataset ensaia o Action de `main-completa`. O que há em comum e o que não é
+exercitado:
+
+| Etapa do workflow | Na avaliação |
+|---|---|
+| Gatilho: `pull_request` (opened, synchronize, reopened) em arquivos `*.py` | Não exercitado |
+| `DiffCollector`: lista os arquivos do PR pela API (com paginação) e monta `FileDiff` com `filename`, `patch`, `status`, `additions`, `deletions`, `added_lines` | O dataset entrega o `FileDiff` pronto, com `status` e `patch` reais (inclusive de arquivos modificados). A coleta pela API não é testada |
+| Recuperação: `retriever` consulta por linha adicionada, une, corta em 8 chunks | Exercitado, com o `retriever` desta branch (difere em detalhes do de `main-completa`: `retriever.py` e `llm_client.py` têm diferenças) |
+| LLM: uma chamada por arquivo, resposta em JSON com `line_content`, `violation_description`, `norm_reference`, `severity`, `suggestion` | Exercitado. Mede-se a linha e a norma citada |
+| `GitHubPublisher`: comentário inline na posição do patch, review consolidada, tabela de severidades | Não exercitado |
+| `request_changes` só com violação `CRITICAL` e `block_on_critical` | O gate da avaliação conta qualquer sinalização como bloqueio |
+
+Não medidos nesta rodada: a qualidade da `suggestion`, a `severity`, a
+localização do comentário no diff e o tempo de um job (o Action tem
+`timeout-minutes: 10`). A medida do gate (5 de 5 PRs limpos bloqueados) é a
+mais pessimista possível frente ao workflow real.
+
+## 9. Próximos passos
+
+- Medir a contribuição do RAG com uma linha de base sem recuperação.
+- Ajustar o prompt ou o corpus para `except:` tolerado e `except Exception:`.
+- No workflow, fazer o modelo sinalizar ambiguidade (`docs/TODO-FUTURO.md`, F-004).
+- Medir a `suggestion` aplicando a correção e rodando o ruff (fora do escopo
+  desta rodada).
+
+---
+
+# Anexo A: relatório de D-009 (PEP 8, 75 PRs)
 
 Rodada de 2026-10-07, branch `feat/corpus-pep8`. Corpus: a PEP 8 completa, em
 inglês (`docs/style_guides/pep-0008.md`, 43 chunks, coleção Qdrant
@@ -158,7 +374,7 @@ Recommendations têm cerca de 450 palavras cada.
 
 ---
 
-# Anexo: relatório de D-008 (corpus de três guias)
+# Anexo B: relatório de D-008 (corpus de três guias)
 
 Resultados da rodada anterior, mantidos como registro. O corpus daquela rodada
 (`guia_python_pep8.md`, `coding_standards.md`, `architecture_patterns.md`) saiu

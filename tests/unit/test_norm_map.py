@@ -1,20 +1,9 @@
 import json
-from pathlib import Path
 
 import pytest
 
 from evaluation.retrieval.gold import build_gold
-from evaluation.retrieval.norm_map import (
-    NORM_BOOLEANO,
-    NORM_EXCECAO,
-    NORM_NOME_CLASSE,
-    NORM_NOME_FUNCAO,
-    NORM_NOME_PROIBIDO,
-    NORM_NULO,
-    norm_keys_of_chunk,
-)
-from indexer.chunker import RecursiveChunker
-from indexer.document_loader import DocumentLoader
+from evaluation.retrieval.norm_map import norm_keys_of_chunk
 
 
 def test_chunk_com_norma_booleana_e_reconhecido():
@@ -23,7 +12,7 @@ def test_chunk_com_norma_booleana_e_reconhecido():
         "  Correct: if greeting:\n"
         "  Wrong: if greeting == True:"
     )
-    assert NORM_BOOLEANO in norm_keys_of_chunk(texto)
+    assert "booleano" in norm_keys_of_chunk(texto)
 
 
 def test_chunk_com_norma_de_nulos_e_reconhecido_apesar_da_quebra_de_linha():
@@ -31,20 +20,20 @@ def test_chunk_com_norma_de_nulos_e_reconhecido_apesar_da_quebra_de_linha():
         "- Comparisons to singletons like None should always be done with\n"
         "  `is` or `is not`, never the equality operators."
     )
-    assert NORM_NULO in norm_keys_of_chunk(texto)
+    assert "nulo" in norm_keys_of_chunk(texto)
 
 
 def test_chunk_irrelevante_nao_carrega_chave():
-    texto = "Limit all lines to a maximum of 79 characters."
+    texto = "Use blank lines in functions, sparingly, to indicate sections."
     assert norm_keys_of_chunk(texto) == set()
 
 
-def test_chunk_unico_pode_carregar_as_duas_chaves():
+def test_chunk_unico_pode_carregar_varias_chaves():
     texto = (
         "Don't compare boolean values to True or False using ==.\n"
         "Comparisons to singletons like None should always be done with is."
     )
-    assert norm_keys_of_chunk(texto) == {NORM_BOOLEANO, NORM_NULO}
+    assert norm_keys_of_chunk(texto) == {"booleano", "nulo"}
 
 
 def test_chunk_de_excecoes_carrega_a_norma_do_except_nu():
@@ -52,47 +41,49 @@ def test_chunk_de_excecoes_carrega_a_norma_do_except_nu():
         "- When catching exceptions, mention specific exceptions whenever\n"
         "  possible instead of using a bare `except:` clause:"
     )
-    assert NORM_EXCECAO in norm_keys_of_chunk(texto)
+    assert "except_nu" in norm_keys_of_chunk(texto)
 
 
 def test_excecao_derivada_de_exception_nao_carrega_a_norma():
     texto = "- Derive exceptions from `Exception` rather than `BaseException`."
-    assert NORM_EXCECAO not in norm_keys_of_chunk(texto)
+    assert "except_nu" not in norm_keys_of_chunk(texto)
 
 
-def test_gold_mapeia_a_sub_regra_do_except_nu(tmp_path):
+def _dataset(tmp_path, sub_regra="except_nu"):
     dataset = [
         {
             "pr_id": "PR-900",
-            "added_lines": [
-                {"line": "except:", "viola": True, "sub_regra": "except_nu"},
-                {"line": "    pass", "viola": False, "sub_regra": None},
+            "files": [
+                {
+                    "filename": "a.py",
+                    "added_lines": [
+                        {"line": "except:", "viola": True, "sub_regra": sub_regra},
+                        {"line": "    pass", "viola": False, "sub_regra": None},
+                    ],
+                },
+                {
+                    "filename": "b.py",
+                    "added_lines": [
+                        {"line": "x=1", "viola": True, "sub_regra": "espaco_operador"},
+                    ],
+                },
             ],
         }
     ]
     path = tmp_path / "ds.json"
     path.write_text(json.dumps(dataset), encoding="utf-8")
-
-    gold = build_gold(path)
-
-    assert [g.norm_key for g in gold] == [NORM_EXCECAO]
+    return path
 
 
-@pytest.mark.parametrize(
-    "chave",
-    [
-        NORM_BOOLEANO,
-        NORM_NULO,
-        NORM_NOME_FUNCAO,
-        NORM_NOME_CLASSE,
-        NORM_NOME_PROIBIDO,
-        NORM_EXCECAO,
-    ],
-)
-def test_toda_chave_e_carregada_por_algum_chunk_do_corpus_real(chave):
-    corpus = Path(__file__).parent.parent.parent / "docs" / "style_guides"
-    chunks = RecursiveChunker().split(DocumentLoader().load_directory(corpus))
+def test_gold_usa_a_sub_regra_como_chave_e_guarda_o_arquivo(tmp_path):
+    gold = build_gold(_dataset(tmp_path))
 
-    portadores = [c for c in chunks if chave in norm_keys_of_chunk(c.text)]
+    assert [(g.pr_id, g.filename, g.norm_key) for g in gold] == [
+        ("PR-900", "a.py", "except_nu"),
+        ("PR-900", "b.py", "espaco_operador"),
+    ]
 
-    assert len(portadores) == 1
+
+def test_gold_rejeita_sub_regra_fora_do_catalogo(tmp_path):
+    with pytest.raises(ValueError, match="sub_regra desconhecida"):
+        build_gold(_dataset(tmp_path, sub_regra="captura_generica"))

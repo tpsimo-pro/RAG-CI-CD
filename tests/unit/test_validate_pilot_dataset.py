@@ -1,4 +1,4 @@
-"""Testes da checagem por AST da regra pep8-excecoes (D-009)."""
+"""Testes do validador do dataset (D-009, D-010)."""
 
 from __future__ import annotations
 
@@ -11,8 +11,9 @@ from evaluation.dataset.validate_pilot_dataset import (
     SUB_REGRAS,
     block_duplicates,
     except_labels,
-    main,
     matches_exc_catalog,
+    validar_arquivo,
+    Estatisticas,
 )
 
 
@@ -202,8 +203,8 @@ class TestBlockDuplicates:
         assert block_duplicates(lines, labels) == []
 
 
-def test_sub_regras_da_regra_de_excecao():
-    assert SUB_REGRAS["pep8-excecoes"] == {"except_nu"}
+def test_except_nu_pertence_a_familia_das_recomendacoes():
+    assert "except_nu" in SUB_REGRAS["pep8-recomendacoes"]
 
 
 class TestCatalogoExcecao:
@@ -245,5 +246,199 @@ class TestCatalogoExcecao:
         assert not matches_exc_catalog(padrao, "    except:", "        pass")
 
 
+# ── validar_arquivo: o oraculo e o schema v2 ─────────────────────────────────
+
+
+def _linha(texto, sub=None, regra=None, dificil=False):
+    return {
+        "line": texto,
+        "viola": sub is not None,
+        "regra": regra,
+        "sub_regra": sub,
+        "hard_negative": dificil,
+    }
+
+
+def _arquivo_novo(entradas, nome="app/mod.py"):
+    patch = "@@ -0,0 +1,%d @@\n" % len(entradas) + "\n".join(
+        "+" + e["line"] for e in entradas
+    )
+    return {"filename": nome, "status": "added", "patch": patch,
+            "added_lines": entradas}
+
+
+def _validar(arquivo):
+    erros: list[str] = []
+    positivas = validar_arquivo("PR-900", arquivo, erros, Estatisticas())
+    return positivas, erros
+
+
+def _corpo_limpo():
+    return [_linha(t) for t in [
+        '"""Modulo de exemplo."""', "", "", "def total(items):",
+        '    """Soma os itens."""', "    value = 0", "    for item in items:", "        value += item",
+        "    return value",
+    ]]
+
+
+class TestValidarArquivo:
+    def test_arquivo_limpo_nao_tem_erro(self):
+        positivas, erros = _validar(_arquivo_novo(_corpo_limpo()))
+        assert erros == [] and positivas == set()
+
+    def test_violacao_rotulada_passa(self):
+        e = _corpo_limpo()
+        e[5] = _linha("    value = 0 if value == None else 1", "nulo", "pep8-recomendacoes")
+        e[5]["line"] = "    if value == None:"
+        e[6:6] = [_linha("        pass")]
+        positivas, erros = _validar(_arquivo_novo(e))
+        assert positivas == {"nulo"}, erros
+        assert [x for x in erros if "oraculo" in x] == []
+
+    def test_violacao_sem_rotulo_e_erro_do_oraculo(self):
+        e = _corpo_limpo()
+        e[5] = _linha("    value=0")
+        _, erros = _validar(_arquivo_novo(e))
+        assert any("E225" in x and "oraculo" in x for x in erros)
+
+    def test_rotulo_positivo_que_nao_dispara_e_erro(self):
+        e = _corpo_limpo()
+        e[5] = _linha("    value = 0", "nulo", "pep8-recomendacoes")
+        _, erros = _validar(_arquivo_novo(e))
+        assert any("nenhum oraculo a detecta" in x for x in erros)
+
+    def test_regra_incoerente_com_a_norma_e_erro(self):
+        e = _corpo_limpo()
+        e[5] = _linha("    if value == None:", "nulo", "pep8-nomes")
+        _, erros = _validar(_arquivo_novo(e))
+        assert any("regra/sub_regra do catalogo" in x for x in erros)
+
+    def test_patch_inconsistente_e_erro(self):
+        arq = _arquivo_novo(_corpo_limpo())
+        arq["patch"] = arq["patch"].replace("+    value = 0", "+    value = 1")
+        _, erros = _validar(arq)
+        assert any("patch inconsistente" in x for x in erros)
+
+    def test_arquivo_pequeno_demais_e_erro(self):
+        _, erros = _validar(_arquivo_novo([_linha("x = 1")]))
+        assert any("fora de (8, 60)" in x for x in erros)
+
+
+def _modificado(antes, depois, rotulos=None, nome="app/mod.py"):
+    """Arquivo modificado com o patch gerado por difflib (contexto de 2 linhas)."""
+    import difflib
+
+    rotulos = rotulos or {}
+    diff = list(difflib.unified_diff(antes, depois, lineterm="", n=2))
+    patch = "\n".join(diff[2:])
+    entradas = [
+        rotulos.get(t[1:], _linha(t[1:]))
+        for t in diff[2:]
+        if t.startswith("+") and not t.startswith("@@")
+    ]
+    return {"filename": nome, "status": "modified", "patch": patch,
+            "source_after": "\n".join(depois), "added_lines": entradas}
+
+
+ANTES = [
+    '"""Modulo."""', "", "", "def total(items):", "    return sum(items)",
+    "", "", "def other(a):", "    return a  #nota",
+]
+
+
+class TestArquivoModificado:
+    def _depois(self, novas):
+        depois = list(ANTES)
+        depois[4:5] = novas
+        return depois
+
+    NOVAS = [
+        "    value = 0", "    for item in items:", "        value += item",
+        "    if value == None:", "        return 0", "    return value",
+        "    # fim", "    # fim2",
+    ]
+
+    def test_achado_em_contexto_pre_existente_e_ignorado(self):
+        # O `#nota` sem espaco (E262) ja existia na linha de contexto.
+        arq = _modificado(
+            ANTES, self._depois(self.NOVAS),
+            {"    if value == None:": _linha("    if value == None:", "nulo", "pep8-recomendacoes")},
+        )
+        positivas, erros = _validar(arq)
+        assert positivas == {"nulo"}, erros
+
+    def test_norma_de_contexto_em_arquivo_modificado_e_erro(self):
+        arq = _modificado(
+            ANTES, self._depois(self.NOVAS),
+            {"    # fim": _linha("    # fim", "linhas_em_branco", "pep8-layout")},
+        )
+        _, erros = _validar(arq)
+        assert any("so vale em arquivo novo" in x for x in erros)
+
+    def test_modified_exige_source_after(self):
+        arq = _modificado(ANTES, self._depois(self.NOVAS))
+        del arq["source_after"]
+        _, erros = _validar(arq)
+        assert any("exige source_after" in x for x in erros)
+
+    def test_patch_que_nao_bate_com_source_after_e_erro(self):
+        arq = _modificado(ANTES, self._depois(self.NOVAS))
+        arq["source_after"] = arq["source_after"].replace("value = 0", "value = 9")
+        _, erros = _validar(arq)
+        assert any("nao bate com source_after" in x for x in erros)
+
+
+def test_texto_igual_positivo_e_negativo_no_arquivo_e_erro():
+    e = _corpo_limpo()
+    e[5] = _linha("    if value == None:", "nulo", "pep8-recomendacoes")
+    e[6:6] = [
+        _linha("        pass"),
+        _linha("    if value == None:"),
+        _linha("        pass"),
+    ]
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("positivo e negativo ao mesmo tempo" in x for x in erros)
+
+
 def test_dataset_real_passa_no_validador(capsys):
+    from evaluation.dataset.validate_pilot_dataset import main
+
     assert main() == 0, capsys.readouterr().out
+
+
+# ── linhas ambiguas ──────────────────────────────────────────────────────────
+
+
+def _corpo_com_global(extras):
+    e = _corpo_limpo()
+    e[1:1] = [{**_linha("retry_limit = 3", regra="pep8-nomes"), **extras}]
+    return e
+
+
+def test_linha_ambigua_valida_passa_e_nao_conta_como_negativo():
+    e = _corpo_com_global({"ambiguo": True})
+    erros: list[str] = []
+    stats = Estatisticas()
+    validar_arquivo("PR-900", _arquivo_novo(e), erros, stats)
+    assert erros == []
+    assert stats.linhas_ambiguas == 1
+
+
+def test_linha_ambigua_exige_regra_e_nao_pode_ser_dificil():
+    e = _corpo_com_global({"ambiguo": True, "hard_negative": True})
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("linha ambigua exige regra valida" in x for x in erros)
+
+
+def test_linha_ambigua_sem_regra_e_erro():
+    e = _corpo_com_global({"ambiguo": True, "regra": None})
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("linha ambigua exige regra valida" in x for x in erros)
+
+
+def test_linha_positiva_nao_pode_ser_ambigua():
+    e = _corpo_limpo()
+    e[5] = {**_linha("    if value == None:", "nulo", "pep8-recomendacoes"), "ambiguo": True}
+    e[6:6] = [_linha("        pass")]
+    _, erros = _validar(_arquivo_novo(e))
+    assert any("positiva nao pode ser ambigua" in x for x in erros)

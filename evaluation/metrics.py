@@ -32,6 +32,8 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from typing import Protocol
 
+from evaluation.dataset.norms import FAMILIAS
+
 # ── Metas do TCC (§15.3 do planejamento) ────────────────────────────────────
 
 TARGET_PRECISION = 0.70
@@ -40,27 +42,8 @@ TARGET_F1 = 0.67
 
 # A citação (`norm_reference`) vem do contexto `[Fonte: ... | Seção: ...]`
 # montado a partir de `docs/style_guides/pep-0008.md`, então cita seções da
-# PEP 8 em inglês. Comparações (booleano e nulo) e o `except:` nu estão na
-# seção "Programming Recommendations"; a nomenclatura, em "Naming
-# Conventions" e nas subseções "Names to Avoid", "Class Names" e "Function
-# and Variable Names".
-_PEP8_RECOMENDACOES_PATTERN = re.compile(
-    r"programming\s+recommendations", re.IGNORECASE
-)
-_PEP8_NOMES_PATTERN = re.compile(r"naming|\bnames?\b", re.IGNORECASE)
-_PEP8_EXCECOES_PATTERN = re.compile(
-    r"programming\s+recommendations|\bbare\b|except:", re.IGNORECASE
-)
-
-REGRA_RECOMENDACOES = "pep8-recomendacoes"
-REGRA_NOMES = "pep8-nomes"
-REGRA_EXCECAO = "pep8-excecoes"
-
-_NORM_PATTERN_POR_REGRA = {
-    REGRA_RECOMENDACOES: _PEP8_RECOMENDACOES_PATTERN,
-    REGRA_NOMES: _PEP8_NOMES_PATTERN,
-    REGRA_EXCECAO: _PEP8_EXCECOES_PATTERN,
-}
+# PEP 8 em inglês. O padrão de cada família (regra) vem do catálogo de normas.
+_NORM_PATTERN_POR_REGRA = FAMILIAS
 
 
 def cites_norm_of(regra: str | None, norm_reference: str | None) -> bool:
@@ -501,7 +484,7 @@ class RepetitionResult:
             if cur.cell == "FP"
             and prev.pr_id == cur.pr_id
             and prev.expected_viola
-            and prev.regra == REGRA_EXCECAO
+            and prev.sub_regra == "except_nu"
         )
 
     # ── Agregação a nível de PR (gate de CI/CD) ─────────────────────────

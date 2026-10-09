@@ -1,4 +1,4 @@
-"""Conformidade do codigo do dataset com a PEP 8 (D-008, D-009).
+"""Conformidade do codigo do dataset com a PEP 8 (D-008, D-009, D-010).
 
 Nao faz parte do sistema avaliado: confere que o material de teste nao
 comete violacoes da PEP 8 que o gabarito nao rotula. Cada achado e um par
@@ -10,8 +10,11 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import subprocess
 import sys
+
+from evaluation.dataset.norms import NORMAS
 
 _RUFF_ARGS = [
     "check", "--isolated", "--no-cache", "--preview",
@@ -21,16 +24,11 @@ _RUFF_ARGS = [
     "--stdin-filename", "pr.py", "-",
 ]
 
-# O achado que e a propria violacao rotulada so vale na linha positiva
-# da sub-regra correspondente.
+# O achado que e a propria violacao rotulada so vale na linha positiva da
+# norma correspondente: os codigos do ruff do catalogo e, se a norma tambem
+# tem checagem AST, a propria tag (D-010).
 ALLOWED_BY_SUB = {
-    "booleano": {"E712"},
-    "nulo": {"E711"},
-    "nome_funcao": {"N802"},
-    "nome_classe": {"N801"},
-    # N806: `O`/`I` dentro de funcao e a mesma violacao vista como maiuscula.
-    "nome_proibido": {"E741", "N806"},
-    "except_nu": {"E722"},
+    n.id: set(n.ruff) | ({n.id} if n.ast else set()) for n in NORMAS
 }
 
 # PEP 8: `l`, `O` e `I` nunca como nome; so aparecem na linha positiva que
@@ -80,21 +78,94 @@ def tolerated_bare_excepts(code: str) -> set[int]:
     return tolerated
 
 
+_UPPER = re.compile(r"^_?[A-Z][A-Z0-9_]*$")
+_SNAKE = re.compile(r"^_{0,2}[a-z][a-z0-9_]*_{0,2}$")
+
+
+def _is_literal(node: ast.expr | None) -> bool:
+    if isinstance(node, ast.Constant):
+        return True
+    return isinstance(node, ast.Tuple) and all(_is_literal(e) for e in node.elts)
+
+
 def ast_findings(code: str) -> list[tuple[int, str]]:
+    tree = ast.parse(code)
     out: list[tuple[int, str]] = []
-    for node in ast.walk(ast.parse(code)):
+    # PEP 8: constantes de modulo em MAIUSCULAS. Vale o literal atribuido a
+    # um nome que nao e MAIUSCULO nem snake_case (CapWords ou mixedCase);
+    # variavel global em snake_case e legitima pela propria PEP 8.
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            alvo, valor = node.targets[0], node.value
+        elif isinstance(node, ast.AnnAssign):
+            alvo, valor = node.target, node.value
+        else:
+            continue
+        if (
+            isinstance(alvo, ast.Name)
+            and _is_literal(valor)
+            and not _UPPER.match(alvo.id)
+            and not _SNAKE.match(alvo.id)
+        ):
+            out.append((node.lineno - 1, "constante_maiuscula"))
+    for node in ast.walk(tree):
         if isinstance(node, ast.Name) and node.id in _FORBIDDEN_NAMES:
             if not isinstance(node.ctx, ast.Store):
                 out.append((node.lineno - 1, "uso-nome-proibido"))
     return out
 
 
-def conformity_errors(lines: list[str], sub_regras: list[str | None]) -> list[str]:
-    """Achados que nao sao a propria violacao rotulada na linha."""
+def docstring_findings(code: str) -> list[tuple[int, str]]:
+    """Modulo, classe, funcao e metodo publicos sem docstring.
+
+    PEP 8, Documentation Strings: "Write docstrings for all public modules,
+    functions, classes, and methods". Publico e o nome sem `_` inicial, mais
+    o `__init__` (PEP 257). Funcoes aninhadas e membros de classe nao publica
+    ficam de fora. O ruff com `E,W,N,I` nao cobra isso.
+    """
+    tree = ast.parse(code)
+    out: list[tuple[int, str]] = []
+    if ast.get_docstring(tree) is None:
+        out.append((0, "docstring_publico"))
+
+    def visita(corpo: list[ast.stmt], publico_o_dono: bool) -> None:
+        for no in corpo:
+            if not isinstance(no, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                continue
+            publico = publico_o_dono and (
+                not no.name.startswith("_") or no.name == "__init__"
+            )
+            if publico and ast.get_docstring(no) is None:
+                out.append((no.lineno - 1, "docstring_publico"))
+            if isinstance(no, ast.ClassDef):
+                visita(no.body, publico)
+
+    visita(tree.body, True)
+    return out
+
+
+def conformity_errors(
+    lines: list[str],
+    sub_regras: list[str | None],
+    alvo: set[int] | None = None,
+    docstrings: bool = False,
+) -> list[str]:
+    """Achados que nao sao a propria violacao rotulada na linha.
+
+    `lines` e o arquivo inteiro e `sub_regras` a norma de cada linha (None se
+    nao rotulada). `alvo` limita a checagem as linhas adicionadas (indices
+    0-based); achados em linhas de contexto sao codigo pre-existente.
+    `docstrings` liga a cobranca de docstring em definicoes publicas.
+    """
     code = "\n".join(lines)
     tolerated = tolerated_bare_excepts(code)
     errors: list[str] = []
-    for idx, tag in ruff_findings(code) + ast_findings(code):
+    achados = ruff_findings(code) + ast_findings(code)
+    if docstrings:
+        achados += docstring_findings(code)
+    for idx, tag in achados:
+        if alvo is not None and idx not in alvo:
+            continue
         if tag == "E722" and idx in tolerated:
             continue
         inside = 0 <= idx < len(lines)

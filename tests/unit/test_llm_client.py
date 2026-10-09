@@ -252,6 +252,15 @@ class TestExtractJson:
         result = client._extract_json(raw)
         assert [v["line_content"] for v in result["violations"]] == ["a", "b"]
 
+    def test_recupera_com_virgula_sobrando_antes_de_chave(self):
+        client = make_llm_client()
+        raw = (
+            '{\n  "violations": [\n    {\n      "line_content": "a",\n'
+            '      "severity": "LOW",\n    },\n    {\n      "line_content": "b'
+        )
+        result = client._extract_json(raw)
+        assert [v["line_content"] for v in result["violations"]] == ["a"]
+
     def test_truncada_sem_nenhuma_violacao_completa_levanta(self):
         client = make_llm_client()
         with pytest.raises(json.JSONDecodeError):

@@ -174,6 +174,9 @@ class LLMClient:
         marker = re.search(r'"violations"\s*:\s*\[', raw)
         if not marker:
             return []
+        # vírgula sobrando antes de } ou ] em outra linha (nunca dentro de string JSON)
+        raw = re.sub(r",(\s*\n\s*[}\]])", r"\1", raw)
+        marker = re.search(r'"violations"\s*:\s*\[', raw)
         decoder = json.JSONDecoder()
         pos = marker.end()
         objetos: list[dict] = []
