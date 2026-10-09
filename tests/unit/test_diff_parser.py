@@ -366,13 +366,13 @@ class TestDiffCollectorParseFiles:
     def test_parses_multiple_files(self):
         raw = [
             make_raw_file(filename="a.py", patch="@@ -1 +1 @@\n+line a"),
-            make_raw_file(filename="b.js", patch="@@ -1 +1 @@\n+line b"),
+            make_raw_file(filename="b.py", patch="@@ -1 +1 @@\n+line b"),
         ]
         files = self.collector._parse_files(raw)
         assert len(files) == 2
         filenames = {f.filename for f in files}
         assert "a.py" in filenames
-        assert "b.js" in filenames
+        assert "b.py" in filenames
 
     def test_empty_raw_list_returns_empty(self):
         files = self.collector._parse_files([])
