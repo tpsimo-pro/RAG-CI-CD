@@ -1106,6 +1106,40 @@ ambíguas), mesmo pipeline, mesmo modelo, 1 repetição. Resultado em
 
 ---
 
+## D-011 — Workflow do GitHub: o RAG-Reviewer revisando PRs reais
+
+Spec: `docs/superpowers/specs/2026-10-09-workflow-github-design.md`. Plano:
+`docs/superpowers/plans/2026-10-09-workflow-github.md`. Branch
+`feat/workflow-github`. O PR nunca é bloqueado (a PEP 8 é estilo): toda review sai
+como `COMMENT` e `CRITICAL` deixou de existir. O modelo marca `ambiguous` quando o
+texto da PEP 8 não decide o caso (F-004). Da `main-completa` entrou só o que é
+workflow (coleta do diff, publisher, orquestrador, entrada do Action e o YAML); o
+corpus, os prompts e o retriever são os da `main`.
+
+### Registro da implementação
+
+| Arquivo | Função / elemento | Para que serve |
+|---|---|---|
+| `rag_reviewer/llm_client.py` | `_VALID_SEVERITIES`, `Violation.ambiguous`, `_parse_single_violation` | Severidade só HIGH/MEDIUM/LOW; o campo `ambiguous` (só o booleano `true` vale) força LOW |
+| `rag_reviewer/prompts/system_prompt.txt`, `review_template.txt` | regra 6, schema, parágrafo da Tarefa | Sem CRITICAL; o modelo marca a ambiguidade |
+| `rag_reviewer/config.py` | remoção de `block_on_critical` | O Action nunca bloqueia |
+| `rag_reviewer/config.py` | `extra="ignore"` em `Settings` | Um `.env` com `BLOCK_ON_CRITICAL` (já removida) não derruba a configuração |
+| `rag_reviewer/diff_parser.py` | `PullRequestDiff`, `DiffCollector.collect/_paginate/_parse_files` | Lista os arquivos do PR pela API (com paginação), descarta deletados, binários, sem patch e não `.py`, e monta cada `FileDiff` |
+| `requirements.txt` | `requests` | Cliente HTTP da API do GitHub |
+| `rag_reviewer/retriever.py` | `Retriever.retrieve_for_diff` | Aplica a recuperação por arquivo a todos os arquivos do PR e descarta os sem linhas adicionadas ou sem contexto |
+| `rag_reviewer/github_publisher.py` | `GitHubPublisher.publish`, `_create_review` | Uma review `COMMENT` com comentários inline; se a API devolver 422, refaz só com o sumário |
+| `rag_reviewer/github_publisher.py` | `_find_diff_position(..., usadas)` | Posição da linha no diff conforme a doc da API (a linha abaixo do primeiro `@@` é a posição 1; `@@` seguintes e linhas removidas contam); linhas repetidas vão a posições diferentes; igualdade exata vence substring; duas violações na mesma linha reusam a exata |
+| `rag_reviewer/github_publisher.py` | `_existing_comments`, `_build_review_comments` | Não repete comentário já publicado (o Action roda a cada push); sem posição vai ao sumário |
+| `rag_reviewer/github_publisher.py` | `post_summary`, `_get_all` | Os avisos gerais (aprovação, sem arquivo, sem contexto) não são repetidos a cada push; leitura paginada compartilhada |
+| `rag_reviewer/github_publisher.py` | `_format_inline_comment`, `_build_summary_body` | Texto do comentário (severidade, norma, como corrigir, ambiguidade) e sumário por severidade, sem emojis |
+| `rag_reviewer/reviewer.py` | `RAGReviewer.run`, `_review_all_contexts`, `_review_with_retry` | Orquestra diff, recuperação, LLM por arquivo e publicação; falha num arquivo vira "não revisado"; uma nova tentativa curta em 429; falha em todos faz o job falhar |
+| `rag_reviewer/main.py` | `main` | Entrada do Action (`python -m rag_reviewer.main`), sem `show_locals` para não vazar segredos |
+| `tests/integration/test_rag_pipeline.py`, `Makefile` | `test-integration` | Fluxo ponta a ponta com GitHub, Qdrant e Groq simulados |
+| `arquitetura.md`, `README.md`, `docs/` | `CRITICAL`, `BLOCK_ON_CRITICAL` e `request_changes` removidos; seção do workflow | A documentação descreve a review `COMMENT`, sem bloqueio, e o fluxo do Action |
+| `.github/workflows/rag_reviewer.yml` | job `review` | Roda o revisor no `pull_request` (opened, synchronize, reopened) em `.py`; torch só CPU, cache do modelo, cancela a execução anterior do mesmo PR; `QDRANT_COLLECTION=pep8_chunks` |
+
+---
+
 ## Pendências (decisões ainda não tomadas)
 
 - **P-004 — Remoção da avaliação humana do planejamento.** Retirar §15.4

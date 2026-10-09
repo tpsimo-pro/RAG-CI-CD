@@ -56,13 +56,11 @@ class Settings(BaseSettings):
     top_k_chunks: int = Field(default=5, alias="TOP_K_CHUNKS")
     score_threshold: float = Field(default=0.55, alias="SCORE_THRESHOLD")
 
-    # ── Comportamento ────────────────────────────────────────────────────────
-    block_on_critical: bool = Field(default=True, alias="BLOCK_ON_CRITICAL")
-
     model_config = SettingsConfigDict(
         populate_by_name=True,
         env_file=str(_ENV_FILE),  # caminho absoluto — independente do cwd
         env_file_encoding="utf-8",
+        extra="ignore",  # variável antiga no .env (ex.: BLOCK_ON_CRITICAL) não derruba
     )
 
 

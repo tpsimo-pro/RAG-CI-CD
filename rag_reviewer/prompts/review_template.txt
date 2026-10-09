@@ -14,6 +14,9 @@ Analise as linhas adicionadas e identifique violações à PEP 8 nos trechos aci
 Quando a violação depender de um bloco de várias linhas, use em
 "line_content" a linha que abre o bloco (por exemplo, a linha "except ...:"),
 não as linhas do corpo.
+Se o texto da PEP 8 não decide o caso (por exemplo, um literal global em
+minúsculas, que pode ou não ser uma constante), use "ambiguous": true e
+severity "LOW"; caso contrário use "ambiguous": false.
 
 Responda em JSON com o seguinte schema:
 {{
@@ -22,8 +25,9 @@ Responda em JSON com o seguinte schema:
       "line_content": "trecho exato da linha violada",
       "violation_description": "descrição objetiva da violação, no máximo 15 palavras",
       "norm_reference": "seção da PEP 8 que a linha viola",
-      "severity": "CRITICAL | HIGH | MEDIUM | LOW",
-      "suggestion": "como corrigir, no máximo 15 palavras"
+      "severity": "HIGH | MEDIUM | LOW",
+      "suggestion": "como corrigir, no máximo 15 palavras",
+      "ambiguous": true | false
     }}
   ]
 }}

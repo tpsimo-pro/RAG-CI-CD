@@ -192,12 +192,12 @@ exercitado:
 
 | Etapa do workflow | Na avaliação |
 |---|---|
-| Gatilho: `pull_request` (opened, synchronize, reopened) em arquivos `*.py` | Não exercitado |
-| `DiffCollector`: lista os arquivos do PR pela API (com paginação) e monta `FileDiff` com `filename`, `patch`, `status`, `additions`, `deletions`, `added_lines` | O dataset entrega o `FileDiff` pronto, com `status` e `patch` reais (inclusive de arquivos modificados). A coleta pela API não é testada |
+| Gatilho: `pull_request` (opened, synchronize, reopened) em arquivos `*.py` | Não exercitado na avaliação; implementado em D-011 (`.github/workflows/rag_reviewer.yml`) |
+| `DiffCollector`: lista os arquivos do PR pela API (com paginação) e monta `FileDiff` com `filename`, `patch`, `status`, `additions`, `deletions`, `added_lines` | O dataset entrega o `FileDiff` pronto, com `status` e `patch` reais (inclusive de arquivos modificados). A coleta pela API (`DiffCollector`, D-011) é testada com HTTP simulado |
 | Recuperação: `retriever` consulta por linha adicionada, une, corta em 8 chunks | Exercitado, com o `retriever` desta branch (difere em detalhes do de `main-completa`: `retriever.py` e `llm_client.py` têm diferenças) |
 | LLM: uma chamada por arquivo, resposta em JSON com `line_content`, `violation_description`, `norm_reference`, `severity`, `suggestion` | Exercitado. Mede-se a linha e a norma citada |
-| `GitHubPublisher`: comentário inline na posição do patch, review consolidada, tabela de severidades | Não exercitado |
-| `request_changes` só com violação `CRITICAL` e `block_on_critical` | O gate da avaliação conta qualquer sinalização como bloqueio |
+| `GitHubPublisher`: comentário inline na posição do patch, review consolidada, tabela de severidades | Não exercitado na avaliação; implementado em D-011 e testado com HTTP simulado |
+| Bloqueio do PR | O workflow nunca bloqueia (D-011: review sempre `COMMENT`, sem `CRITICAL`); o gate da avaliação conta qualquer sinalização como bloqueio |
 
 Não medidos nesta rodada: a qualidade da `suggestion`, a `severity`, a
 localização do comentário no diff e o tempo de um job (o Action tem

@@ -1,7 +1,7 @@
 # Status do projeto
 
-Atualizado em 2026-10-09. Branch `feat/dataset-realista`, a partir da `main`
-com D-009 mesclado (PR #13). Ainda sem PR aberto para esta branch.
+Atualizado em 2026-10-09. Branch `feat/workflow-github`, a partir da `main` com
+D-010 mesclado (PR #14).
 
 Fluxo do sistema e das avaliações: `docs/GUIA-DO-PROJETO.md`.
 Resultados: `docs/RELATORIO-RESULTADOS.md`. Decisões: `docs/DECISIONS.md`.
@@ -16,7 +16,15 @@ primeira rodada") e a **rodada 2**, com o dataset corrigido, deu **P 0,86, R 0,7
 F1 0,82** (metas atingidas; gate TP 19, FP 4, FN 1, TN 1). Com a norma no
 contexto o recall é 0,87; sem ela, 0,69.
 
-## Feito nesta branch
+**D-011 (em andamento):** o workflow do GitHub. O Action coleta o diff do PR pela
+API, recupera as normas da PEP 8, chama o LLM por arquivo e publica uma review
+`COMMENT` com um comentário inline por violação (norma, severidade, como
+corrigir). O PR nunca é bloqueado, `CRITICAL` deixou de existir e o modelo marca
+`ambiguous` quando a PEP 8 não decide. O código está implementado e testado com
+HTTP simulado; faltam a rodada 3 da avaliação (o prompt mudou) e o teste em PR real.
+O registro de cada arquivo e função está na tabela de D-011 em `docs/DECISIONS.md`.
+
+## Feito em D-010 (mesclado, PR #14)
 
 | O quê | Commit |
 |---|---|

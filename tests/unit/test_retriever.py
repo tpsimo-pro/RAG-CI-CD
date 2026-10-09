@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 
-from rag_reviewer.diff_parser import FileDiff
+from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
 from rag_reviewer.retriever import RetrievedContext, Retriever
 
 # ── Helpers de fixture ────────────────────────────────────────────────────────
@@ -476,3 +476,32 @@ class TestQueryTextIntegration:
         r.retrieve_for_file(fd)
         embedded_text = embedder.embed.call_args[0][0][0]
         assert embedded_text == "x" * 3000
+
+
+class TestRetrieveForDiff:
+    def test_ignora_arquivo_sem_linhas_adicionadas_e_sem_contexto(self):
+        retriever = Retriever.__new__(Retriever)
+        com_linhas = FileDiff(filename="a.py", patch="p", status="added", added_lines=["x = 1"])
+        sem_linhas = FileDiff(filename="b.py", patch="p", status="modified", added_lines=[])
+        sem_contexto = FileDiff(filename="c.py", patch="p", status="added", added_lines=["y = 2"])
+        ctx_a = MagicMock()
+        retriever._retrieve_for_file = MagicMock(
+            side_effect=lambda fd: ctx_a if fd.filename == "a.py" else None
+        )
+        pr_diff = PullRequestDiff(
+            pr_number=1,
+            repo="o/r",
+            files=[com_linhas, sem_linhas, sem_contexto],
+            total_additions=2,
+            total_deletions=0,
+        )
+        assert retriever.retrieve_for_diff(pr_diff) == [ctx_a]
+        consultados = [c.args[0].filename for c in retriever._retrieve_for_file.call_args_list]
+        assert consultados == ["a.py", "c.py"]
+
+    def test_pr_sem_arquivos_devolve_lista_vazia(self):
+        retriever = Retriever.__new__(Retriever)
+        pr_diff = PullRequestDiff(
+            pr_number=1, repo="o/r", files=[], total_additions=0, total_deletions=0
+        )
+        assert retriever.retrieve_for_diff(pr_diff) == []

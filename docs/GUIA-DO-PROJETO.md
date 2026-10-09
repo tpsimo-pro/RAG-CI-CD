@@ -132,6 +132,17 @@ arquivo do PR ─┬─> retriever (1 busca híbrida por linha -> união -> 8 ch
 
 ---
 
+### Passo 5: publicação no PR (só no GitHub Action)
+
+No Action, antes do passo 1 o `DiffCollector` lista os arquivos do PR pela API, e
+depois do passo 4 o `GitHubPublisher` publica uma única review `COMMENT`: um
+comentário inline por violação, na linha do diff, com a severidade (`HIGH`,
+`MEDIUM`, `LOW`), a norma da PEP 8 e como corrigir. Violação ambígua sai com aviso e
+severidade `LOW`. Violação cuja linha não está no diff vai só ao sumário. O PR nunca
+é bloqueado. Um arquivo cuja chamada ao LLM falha é listado como "não revisado".
+A avaliação local (seção 6.4) cobre os passos 1 a 4; o passo 5 é coberto pelos
+testes com HTTP simulado e pelo teste em PR real (D-011).
+
 ## 5. O dataset
 
 Arquivo: `evaluation/dataset/pilot_dataset.json`. Esquema:

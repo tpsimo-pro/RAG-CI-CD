@@ -29,8 +29,8 @@ console = Console()
 # Diretório dos prompts — relativo a este arquivo, independe do cwd
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
 
-# Severidades válidas conforme o planejamento
-_VALID_SEVERITIES = frozenset({"CRITICAL", "HIGH", "MEDIUM", "LOW"})
+# Severidades válidas: a PEP 8 é estilo, então não há CRITICAL nem bloqueio de PR
+_VALID_SEVERITIES = frozenset({"HIGH", "MEDIUM", "LOW"})
 
 
 # ── Modelos de dados ───────────────────────────────────────────────────────────
@@ -50,10 +50,13 @@ class Violation:
     """Referência à norma: nome do documento + seção/página."""
 
     severity: str
-    """Severidade da violação: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'."""
+    """Severidade da violação: 'HIGH' | 'MEDIUM' | 'LOW'."""
 
     suggestion: str
     """Sugestão concreta de como corrigir a violação."""
+
+    ambiguous: bool = False
+    """True quando o texto da PEP 8 não decide o caso; a severidade é então LOW."""
 
 
 # ── Cliente LLM ────────────────────────────────────────────────────────────────
@@ -266,8 +269,9 @@ class LLMClient:
 
     def _parse_single_violation(self, v: dict) -> Violation:
         """Converte um dict em Violation, validando campos obrigatórios."""
+        ambiguous = v.get("ambiguous", False) is True
         severity = str(v.get("severity", "LOW")).upper()
-        if severity not in _VALID_SEVERITIES:
+        if severity not in _VALID_SEVERITIES or ambiguous:
             severity = "LOW"
 
         return Violation(
@@ -276,6 +280,7 @@ class LLMClient:
             norm_reference=str(v["norm_reference"]),
             severity=severity,
             suggestion=str(v["suggestion"]),
+            ambiguous=ambiguous,
         )
 
     def _get_client(self):

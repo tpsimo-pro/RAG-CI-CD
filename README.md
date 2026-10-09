@@ -87,6 +87,29 @@ Origem dos 40 erros, lidos contra o texto da PEP 8 e o contexto entregue ao LLM:
 
 ---
 
+## Workflow do GitHub
+
+O GitHub Action `.github/workflows/rag_reviewer.yml` roda em cada PR (`opened`,
+`synchronize`, `reopened`) que altere arquivos `.py`. O fluxo (`rag_reviewer/main.py`):
+
+1. `DiffCollector` lista os arquivos do PR pela API e monta o diff de cada `.py`.
+2. `Retriever.retrieve_for_diff` recupera as normas da PEP 8 por arquivo (busca
+   por linha, união, corte em 8 chunks).
+3. O LLM é chamado uma vez por arquivo.
+4. `GitHubPublisher` publica uma review `COMMENT` com um comentário inline por
+   violação: severidade (`HIGH`, `MEDIUM`, `LOW`), norma da PEP 8 citada e como
+   corrigir. Se a PEP 8 não decide o caso, o comentário avisa da ambiguidade.
+
+A PEP 8 é estilo, então o revisor **nunca bloqueia** o PR. Um arquivo cuja chamada
+ao LLM falha aparece no sumário como "não revisado". A cada push o Action não
+repete comentários que já existem.
+
+Secrets do repositório: `GROQ_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`
+(`GITHUB_TOKEN` é automático). A coleção usada é `pep8_chunks`. PRs de fork não
+recebem secrets, então o Action não roda neles.
+
+---
+
 ## Pré-requisitos
 
 | Ferramenta | Versão | Uso |
