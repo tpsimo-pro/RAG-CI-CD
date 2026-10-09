@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from rich.console import Console
 
 from rag_reviewer.config import get_settings
-from rag_reviewer.diff_parser import FileDiff
+from rag_reviewer.diff_parser import FileDiff, PullRequestDiff
 from rag_reviewer.embedder import Embedder
 from rag_reviewer.sparse_encoder import SparseEncoder
 from rag_reviewer.vector_store import VectorStore, ordenar_deterministico
@@ -142,6 +142,26 @@ class Retriever:
         return self._score_threshold
 
     # ── Interface pública ─────────────────────────────────────────────────
+
+    def retrieve_for_diff(self, pr_diff: PullRequestDiff) -> list[RetrievedContext]:
+        """
+        Recupera o contexto normativo de cada arquivo do PR.
+
+        Ignora arquivos sem linhas adicionadas e arquivos em que nenhum chunk
+        atinge o `score_threshold`. Cada arquivo usa `_retrieve_for_file`
+        (busca por linha, união com o maior score, corte em 8 chunks).
+        """
+        candidatos = [f for f in pr_diff.files if f.added_lines]
+        console.log(
+            f"[cyan]Retriever:[/cyan] {len(candidatos)}/{len(pr_diff.files)} "
+            f"arquivo(s) com linhas adicionadas para revisar."
+        )
+        contextos: list[RetrievedContext] = []
+        for file_diff in candidatos:
+            contexto = self._retrieve_for_file(file_diff)
+            if contexto is not None:
+                contextos.append(contexto)
+        return contextos
 
     def retrieve_for_file(self, file_diff: FileDiff) -> RetrievedContext | None:
         """
