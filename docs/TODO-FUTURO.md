@@ -66,3 +66,6 @@ afirmar a violação nesses casos. A resposta do LLM precisa de um campo (ou um
 texto na `violation_description`) que diga que pode haver ambiguidade, e o
 comentário publicado no PR deve trazer isso ao desenvolvedor. A avaliação já
 reporta quantas linhas ambíguas o modelo sinalizou (`published.ambiguous`).
+
+**Implementado em D-011:** a resposta do LLM ganhou o campo `ambiguous`, que força
+severidade `LOW`, e o comentário publicado avisa da possível ambiguidade.

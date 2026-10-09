@@ -222,11 +222,7 @@ sequenceDiagram
     Pub->>GH: POST /repos/{repo}/pulls/{pr}/reviews
     GH-->>Dev: Inline comments appear on PR
 
-    Note over Rev: Step 5: Block if critical
-    alt Has CRITICAL violations
-        Rev->>Pub: request_changes("⛔ N CRITICAL violations")
-        Pub->>GH: POST review (REQUEST_CHANGES)
-    end
+    Note over Rev: The review is always COMMENT: the PR is never blocked
 ```
 
 ### 5.1 Step 1 — Diff Collection
@@ -286,8 +282,9 @@ For each file with added lines:
       "line_content": "exact line from PR",
       "violation_description": "clear description",
       "norm_reference": "document + section/page",
-      "severity": "CRITICAL | HIGH | MEDIUM | LOW",
-      "suggestion": "how to fix"
+      "severity": "HIGH | MEDIUM | LOW",
+      "suggestion": "how to fix",
+      "ambiguous": true | false
     }
   ]
 }
@@ -296,11 +293,11 @@ For each file with added lines:
 **Defensive Parsing**:
 1. Direct `json.loads()`
 2. Fallback: regex extraction of ` ```json {...} ``` ` blocks
-3. Severity normalization (uppercase, fallback to `LOW`)
+3. Severity normalization (uppercase, fallback to `LOW`); `ambiguous` is only true for the boolean `true`, and an ambiguous violation is always `LOW`
 4. Invalid violation entries are logged and skipped
 
 **Data Model**:
-- `Violation` — `line_content`, `violation_description`, `norm_reference`, `severity`, `suggestion`
+- `Violation` — `line_content`, `violation_description`, `norm_reference`, `severity`, `suggestion`, `ambiguous`
 
 ### 5.4 Step 4 — GitHub Publishing
 
@@ -313,12 +310,14 @@ For each file with added lines:
 
 **Comment Format**:
 ```
-⛔ **[CRITICAL]** Description of the violation
+**[HIGH]** Description of the violation
 
-📖 **Norma violada:** `coding_standards.md#3.2`
+**Norma:** `PEP 8 - Naming Conventions`
 
-💡 **Sugestão:** How to fix the violation
+**Como corrigir:** How to fix the violation
 ```
+
+An ambiguous violation opens with `**[LOW] Possível ambiguidade.**` and does not assert the violation.
 
 **Diff Position Calculation** (`_find_diff_position()`):
 - Iterates patch lines counting position (1-indexed)
@@ -327,11 +326,12 @@ For each file with added lines:
 - `+` and context lines increment position
 - Matches violation `line_content` against added lines via substring search
 
-### 5.5 Step 5 — PR Status Decision
+### 5.5 Step 5 — PR Status
 
-If `BLOCK_ON_CRITICAL=true` and there are CRITICAL violations:
-- `GitHubPublisher.request_changes()` is called
-- Posts a `REQUEST_CHANGES` review event to block the merge
+The review is always published with the `COMMENT` event. PEP 8 is style, so the
+reviewer never blocks the merge (D-011): there is no `CRITICAL` severity, no
+`BLOCK_ON_CRITICAL` setting and no `request_changes`. Comments that already exist
+on the PR are not posted again when the Action re-runs on a new push.
 
 ### 5.6 Orchestrator
 
@@ -384,7 +384,6 @@ graph LR
 | `top_k_chunks` | `TOP_K_CHUNKS` | `5` |
 | `score_threshold` | `SCORE_THRESHOLD` | `0.55` |
 | `max_diff_tokens` | `MAX_DIFF_TOKENS` | `3000` |
-| `block_on_critical` | `BLOCK_ON_CRITICAL` | `true` |
 
 ---
 
@@ -807,7 +806,7 @@ graph TD
 │                                    │                                │
 │                                    ▼                                │
 │                           Inline comments + Review on PR            │
-│                           (+ REQUEST_CHANGES if CRITICAL)           │
+│                           (COMMENT only: never blocks the PR)       │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
