@@ -518,7 +518,7 @@ class TestFindDiffPosition:
         assert _find_diff_position(PATCH, "x = 1", usadas) is None
 
     def test_igualdade_exata_vence_substring(self):
-        patch = "@@ -0,0 +1,2 @@\n+total = x + 1\n+x = 1"
+        patch = "@@ -0,0 +1,2 @@\n+total_x = 1\n+x = 1"
         assert _find_diff_position(patch, "x = 1") == 3
 
     def test_substring_quando_nao_ha_igualdade(self):
@@ -1535,7 +1535,7 @@ def test_linha_na_posicao():
     assert linha_na_posicao(PATCH, 5) == "d = 4"
     assert linha_na_posicao(PATCH, 4) is None          # contexto
 ```
-(criar `scripts/__init__.py` vazio se o import falhar.)
+Criar tambem `scripts/__init__.py` vazio.
 
 - [ ] **Step 2: `scripts/montar_prs_demo.py`**
 
@@ -1675,8 +1675,18 @@ def _gh(caminho: str) -> list[dict]:
         ["gh", "api", "--paginate", caminho],
         cwd=_RAIZ, check=True, capture_output=True, text=True, encoding="utf-8",
     ).stdout
-    # --paginate concatena arrays JSON: "[...][...]"
-    return [item for bloco in saida.replace("][", "]\n[").splitlines() for item in json.loads(bloco)]
+    # --paginate concatena arrays JSON ("[...][...]"); decodifica um a um
+    decodificador = json.JSONDecoder()
+    itens: list[dict] = []
+    pos = 0
+    while pos < len(saida):
+        while pos < len(saida) and saida[pos].isspace():
+            pos += 1
+        if pos >= len(saida):
+            break
+        bloco, pos = decodificador.raw_decode(saida, pos)
+        itens.extend(bloco)
+    return itens
 
 
 def main() -> None:
