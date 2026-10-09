@@ -1,0 +1,26 @@
+## Arquivo em revisão
+{filename}
+
+## Linhas adicionadas no PR
+```
+{added_lines}
+```
+
+## Tarefa
+Analise as linhas adicionadas e identifique violações à PEP 8.
+Quando a violação depender de um bloco de várias linhas, use em
+"line_content" a linha que abre o bloco (por exemplo, a linha "except ...:"),
+não as linhas do corpo.
+
+Responda em JSON com o seguinte schema:
+{{
+  "violations": [
+    {{
+      "line_content": "trecho exato da linha violada",
+      "violation_description": "descrição objetiva da violação, no máximo 15 palavras",
+      "norm_reference": "seção da PEP 8 que a linha viola",
+      "severity": "CRITICAL | HIGH | MEDIUM | LOW",
+      "suggestion": "como corrigir, no máximo 15 palavras"
+    }}
+  ]
+}}

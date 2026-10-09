@@ -1104,6 +1104,32 @@ ambíguas), mesmo pipeline, mesmo modelo, 1 repetição. Resultado em
   terminou no dia seguinte, retomada do checkpoint (a invalidação do checkpoint
   depende do hash do dataset e dos prompts, não do código do cliente).
 
+### Linha de base sem recuperação (2026-10-09)
+
+Pergunta: quanto do resultado vem do RAG e quanto do conhecimento prévio do
+modelo sobre a PEP 8? Resposta: nova opção `--sem-recuperacao` em
+`evaluation.run_evaluation`, que avalia o mesmo dataset sem Qdrant nem embedder
+e com prompts próprios (`system_prompt_sem_rag.txt`, `review_template_sem_rag.txt`),
+iguais aos de produção exceto por: sem a seção de trechos, sem "fornecidas como
+contexto" e sem a regra de ignorar o que não está no contexto. O hash do
+checkpoint inclui a variante, para não misturar execuções. Os prompts de produção
+não mudam.
+
+- **Resultado** (`evaluation/results_realista_sem_rag.json`): P 0,7660, R 0,7347,
+  F1 0,7500, contra P 0,8556, R 0,7857, F1 0,8191 com RAG. Gate sem RAG: TP 20,
+  FP 5, FN 0, TN 0.
+- **Leitura.** O modelo sozinho já atinge as metas mínimas; o RAG soma cerca de 7
+  pontos de F1, principalmente em precisão. Quando a norma está no contexto, o RAG
+  detecta 11 positivas a mais (46 contra 35 de 53); quando a norma não chegou,
+  detecta 6 a menos (31 contra 37 de 45), o que atribuo à regra "ignore o que não
+  está nos trechos". Isso é uma hipótese, não foi isolada por experimento.
+- **Limitações.** Uma repetição, ~4 positivas por norma; a redação dos prompts
+  difere, então parte do efeito pode ser de prompt. Os 17 FPs só do sem RAG e os 8
+  só do com RAG não foram investigados um a um.
+- **Consequência para o trabalho futuro.** Aumentar a cobertura da norma no
+  contexto, ou relaxar a regra de ignorar o que não foi fornecido, pode recuperar
+  parte das 6 detecções perdidas; não foi testado.
+
 ---
 
 ## Pendências (decisões ainda não tomadas)

@@ -14,7 +14,9 @@ da avaliação oficial deu P 0,80, R 0,79, F1 0,79. A investigação dos 40 erro
 achou 15 erros de rótulo do dataset; foram corrigidos (D-010, "Revisão após a
 primeira rodada") e a **rodada 2**, com o dataset corrigido, deu **P 0,86, R 0,79,
 F1 0,82** (metas atingidas; gate TP 19, FP 4, FN 1, TN 1). Com a norma no
-contexto o recall é 0,87; sem ela, 0,69.
+contexto o recall é 0,87; sem ela, 0,69. A **linha de base sem recuperação** (branch
+`feat/baseline-sem-recuperacao`) deu P 0,77, R 0,73, F1 0,75: o RAG soma cerca de 7
+pontos de F1 sobre o conhecimento prévio do modelo.
 
 ## Feito nesta branch
 
@@ -39,8 +41,6 @@ Abrir o PR de `feat/dataset-realista`. Os FPs da rodada 2 sem causa registrada
 
 ## Decisões em aberto
 
-- **Linha de base sem recuperação.** Sem ela não se separa a contribuição do RAG
-  do conhecimento prévio do modelo sobre a PEP 8.
 - **Falhas do modelo no `except`.** `except Exception:` e o `except:` tolerado
   (com `logger.exception` ou `raise`) são acusados como violação. Ajustar prompt
   ou corpus exige nova rodada.

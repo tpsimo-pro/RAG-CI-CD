@@ -431,3 +431,26 @@ class TestLLMClientReview:
 
         violations = client.review(make_context())
         assert violations == []
+
+
+class TestSemRecuperacao:
+    def test_prompts_da_linha_de_base_nao_citam_trechos_recuperados(self):
+        with patch("rag_reviewer.llm_client.get_settings") as settings:
+            settings.return_value.groq_api_key = "k"
+            settings.return_value.llm_model = "m"
+            settings.return_value.llm_temperature = 0.0
+            client = LLMClient(sem_recuperacao=True)
+        assert "{retrieved_chunks}" not in client._review_template
+        assert "fornecid" not in client._system_prompt
+        msg = client._build_user_message(
+            make_context(chunks=[make_chunk(text="Norma que nao deve aparecer")])
+        )
+        assert "Norma que nao deve aparecer" not in msg
+
+    def test_prompts_padrao_seguem_com_chunks(self):
+        with patch("rag_reviewer.llm_client.get_settings") as settings:
+            settings.return_value.groq_api_key = "k"
+            settings.return_value.llm_model = "m"
+            settings.return_value.llm_temperature = 0.0
+            client = LLMClient()
+        assert "{retrieved_chunks}" in client._review_template
