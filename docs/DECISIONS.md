@@ -1178,6 +1178,19 @@ corpus, os prompts e o retriever são os da `main`.
 | `scripts/montar_prs_demo.py` | `reconstruir_antes`, `main` | Monta as branches dos PRs de teste: `demo/base` com o estado anterior dos arquivos modificados (desfaz o patch sobre `source_after`; round-trip conferido nos 14 modificados do dataset) e `demo/<pr>` com o estado depois |
 | `scripts/conferir_prs_demo.py` | `texto_da_linha`, `main` | Confere as reviews dos PRs de teste contra o gabarito do dataset usando o campo `line` da API, independente da contagem de `position` do publisher |
 
+### Resultado do teste em PRs reais (2026-10-10)
+
+PR-003, PR-007 e PR-021 do dataset abertos como PRs de teste (#17, #18, #19) contra `demo/base`. Os comentários inline foram conferidos com `scripts.conferir_prs_demo`.
+
+| PR | Resultado no GitHub | Rodada 2 local (mesmo PR) |
+|---|---|---|
+| PR-003 (#17) | 2 FP (`this.price...`, `klass(...)`), 1 FN (`label` longo) | idêntico |
+| PR-007 (#18) | `MaxRequests = 100` sinalizada; `retry_limit = 3` (ambígua) sinalizada | `MaxRequests` era FN (prompt da rodada 3 ainda não medido) |
+| PR-021 (#19) | 2 FP (`round(..., ndigits=2)`, `message = "..."`) | idêntico |
+
+- Job de 1 a 2 minutos (limite de 10), `QDRANT_URL` aponta para o cluster com `pep8_chunks`, `position` aceito pela API (igual a `line` nos comentários conferidos).
+- PR-021 não disparou o Action na abertura; fechar e reabrir o PR disparou. Causa não investigada.
+
 ---
 
 ## Pendências (decisões ainda não tomadas)
