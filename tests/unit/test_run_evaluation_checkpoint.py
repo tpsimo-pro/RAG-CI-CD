@@ -58,3 +58,16 @@ def test_results_salvam_linhas_e_deteccoes_de_cada_pr(tmp_path):
 
     salvo = json.loads(out.read_text(encoding="utf-8"))["per_pr_detail"]
     assert salvo == details[0]
+
+
+def test_checkpoint_e_descartado_se_a_variante_mudou(checkpoint):
+    dataset, _ = checkpoint
+    assert run_evaluation._load_checkpoint(dataset, 1, sem_recuperacao=True) == {}
+
+
+def test_fingerprint_difere_entre_com_e_sem_recuperacao(tmp_path):
+    dataset = tmp_path / "ds.json"
+    dataset.write_text("[1]", encoding="utf-8")
+    assert run_evaluation._config_fingerprint(
+        dataset
+    ) != run_evaluation._config_fingerprint(dataset, sem_recuperacao=True)

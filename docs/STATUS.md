@@ -1,6 +1,6 @@
 # Status do projeto
 
-Atualizado em 2026-10-09. Branch `feat/workflow-github`, a partir da `main` com
+Atualizado em 2026-10-12. Branch `feat/workflow-github`, a partir da `main` com
 D-010 mesclado (PR #14).
 
 Fluxo do sistema e das avaliações: `docs/GUIA-DO-PROJETO.md`.
@@ -14,14 +14,22 @@ da avaliação oficial deu P 0,80, R 0,79, F1 0,79. A investigação dos 40 erro
 achou 15 erros de rótulo do dataset; foram corrigidos (D-010, "Revisão após a
 primeira rodada") e a **rodada 2**, com o dataset corrigido, deu **P 0,86, R 0,79,
 F1 0,82** (metas atingidas; gate TP 19, FP 4, FN 1, TN 1). Com a norma no
-contexto o recall é 0,87; sem ela, 0,69.
+contexto o recall é 0,87; sem ela, 0,69. A **linha de base sem recuperação** (branch
+`feat/baseline-sem-recuperacao`) deu P 0,77, R 0,73, F1 0,75: o RAG soma cerca de 7
+pontos de F1 sobre o conhecimento prévio do modelo.
+
+**Com o prompt final (rodada 3):** RAG P 0,88, R 0,72, F1 0,79 (gate 20/4/0/1); linha de
+base com o mesmo prompt P 0,79, R 0,76, F1 0,77. O ganho do RAG em F1 cai para 0,02
+(ruído de uma repetição); a vantagem é precisão (10 contra 20 FPs) e citação da norma.
+O teste em PRs reais (#17, #18, #19, mantidos abertos) reproduziu a avaliação local.
+Seção 0.2 de `docs/RELATORIO-RESULTADOS.md`.
 
 **D-011 (em andamento):** o workflow do GitHub. O Action coleta o diff do PR pela
 API, recupera as normas da PEP 8, chama o LLM por arquivo e publica uma review
 `COMMENT` com um comentário inline por violação (norma, severidade, como
 corrigir). O PR nunca é bloqueado, `CRITICAL` deixou de existir e o modelo marca
 `ambiguous` quando a PEP 8 não decide. O código está implementado e testado com
-HTTP simulado; faltam a rodada 3 da avaliação (o prompt mudou) e o teste em PR real.
+HTTP simulado; a rodada 3 e o teste em PR real foram feitos.
 O registro de cada arquivo e função está na tabela de D-011 em `docs/DECISIONS.md`.
 
 ## Feito em D-010 (mesclado, PR #14)
@@ -47,8 +55,6 @@ Abrir o PR de `feat/dataset-realista`. Os FPs da rodada 2 sem causa registrada
 
 ## Decisões em aberto
 
-- **Linha de base sem recuperação.** Sem ela não se separa a contribuição do RAG
-  do conhecimento prévio do modelo sobre a PEP 8.
 - **Falhas do modelo no `except`.** `except Exception:` e o `except:` tolerado
   (com `logger.exception` ou `raise`) são acusados como violação. Ajustar prompt
   ou corpus exige nova rodada.

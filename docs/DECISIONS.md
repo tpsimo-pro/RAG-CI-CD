@@ -1104,6 +1104,44 @@ ambíguas), mesmo pipeline, mesmo modelo, 1 repetição. Resultado em
   terminou no dia seguinte, retomada do checkpoint (a invalidação do checkpoint
   depende do hash do dataset e dos prompts, não do código do cliente).
 
+### Linha de base sem recuperação (2026-10-09)
+
+Pergunta: quanto do resultado vem do RAG e quanto do conhecimento prévio do
+modelo sobre a PEP 8? Resposta: nova opção `--sem-recuperacao` em
+`evaluation.run_evaluation`, que avalia o mesmo dataset sem Qdrant nem embedder
+e com prompts próprios (`system_prompt_sem_rag.txt`, `review_template_sem_rag.txt`),
+iguais aos de produção exceto por: sem a seção de trechos, sem "fornecidas como
+contexto" e sem a regra de ignorar o que não está no contexto. O hash do
+checkpoint inclui a variante, para não misturar execuções. Os prompts de produção
+não mudam.
+
+- **Resultado** (`evaluation/results_realista_sem_rag.json`): P 0,7660, R 0,7347,
+  F1 0,7500, contra P 0,8556, R 0,7857, F1 0,8191 com RAG. Gate sem RAG: TP 20,
+  FP 5, FN 0, TN 0.
+- **Leitura.** O modelo sozinho já atinge as metas mínimas; o RAG soma cerca de 7
+  pontos de F1, principalmente em precisão. Quando a norma está no contexto, o RAG
+  detecta 11 positivas a mais (46 contra 35 de 53); quando a norma não chegou,
+  detecta 6 a menos (31 contra 37 de 45), o que atribuo à regra "ignore o que não
+  está nos trechos". Isso é uma hipótese, não foi isolada por experimento.
+
+- **Com o prompt final (2026-10-12).** Os prompts `*_sem_rag` foram atualizados
+  para HIGH/MEDIUM/LOW com `ambiguous`, e a linha de base foi rodada de novo
+  (`evaluation/results_realista_sem_rag_r3.json`): P 0,7872, R 0,7551, F1 0,7708,
+  contra P 0,8765, R 0,7245, F1 0,7933 da rodada 3 com RAG. O ganho do RAG caiu de
+  0,069 para 0,023 de F1, dentro do ruído de uma repetição; o RAG tem precisão
+  maior (10 contra 20 FPs) e perde recall (27 contra 24 FNs). Gate empatado em
+  20/4/0/1. Detalhes na seção 0.2 de `docs/RELATORIO-RESULTADOS.md`.
+- **Decisão sobre como defender.** O resultado não sustenta "o RAG melhora o F1";
+  sustenta "o RAG reduz falsos positivos e melhora a citação da norma, ao custo de
+  recall". Também não sustenta "detecta mais que o Ruff" (o Ruff é o oráculo dos
+  rótulos, F-005).
+- **Limitações.** Uma repetição, ~4 positivas por norma; a redação dos prompts
+  difere, então parte do efeito pode ser de prompt. Os 17 FPs só do sem RAG e os 8
+  só do com RAG não foram investigados um a um.
+- **Consequência para o trabalho futuro.** Aumentar a cobertura da norma no
+  contexto, ou relaxar a regra de ignorar o que não foi fornecido, pode recuperar
+  parte das 6 detecções perdidas; não foi testado.
+
 ---
 
 ## D-011 — Workflow do GitHub: o RAG-Reviewer revisando PRs reais

@@ -45,7 +45,7 @@ Avaliação (para cada PR do dataset)
 
 ## Resultados
 
-> Os resultados de detecção desta seção são da **rodada 1 de D-010** (dataset realista de 25 PRs e 35 arquivos, 23 normas da PEP 8). Depois dela, 15 dos 40 erros se mostraram erros de rótulo do dataset e foram corrigidos; a **rodada 2**, com o dataset corrigido, deu P 0,86, R 0,79, F1 0,82 (detalhes na seção 0 do relatório). Relatório completo em `docs/RELATORIO-RESULTADOS.md`, que mantém como anexos as rodadas de D-009 (75 PRs, 6 normas) e D-008. Os números não são comparáveis entre rodadas: mudam dataset, normas e gabarito.
+> Os resultados de detecção desta seção são da **rodada 1 de D-010** (dataset realista de 25 PRs e 35 arquivos, 23 normas da PEP 8). Depois dela, 15 dos 40 erros se mostraram erros de rótulo do dataset e foram corrigidos; a **rodada 2**, com o dataset corrigido, deu P 0,86, R 0,79, F1 0,82 (detalhes na seção 0 do relatório). Sem recuperação (`--sem-recuperacao`) o mesmo modelo faz P 0,77, R 0,73, F1 0,75, o que mostra a contribuição do RAG (seção 0.1). Relatório completo em `docs/RELATORIO-RESULTADOS.md`, que mantém como anexos as rodadas de D-009 (75 PRs, 6 normas) e D-008. Os números não são comparáveis entre rodadas: mudam dataset, normas e gabarito.
 >
 > A avaliação reporta métricas **por família** (`per_rule`) e o recall **por norma** (`per_sub_rule_recall`) em `results_realista.json`. O recorte de uma família são as linhas cujo campo `regra` é ela: as positivas mais os negativos difíceis escritos contra ela. Negativos comuns não pertencem a família alguma e só entram na matriz global.
 
@@ -82,7 +82,7 @@ Origem dos 40 erros, lidos contra o texto da PEP 8 e o contexto entregue ao LLM:
 - O dataset é sintético e escrito pelo autor, o que ameaça a validade externa (D-004). Os erros de rótulo só foram achados depois de ver o resultado; a correção seguiu o texto da PEP 8 e foi registrada em D-010.
 - Cerca de 4 positivas por norma: a cobertura por norma é indicação, não estatística.
 - A norma chega ao LLM em apenas 54% das linhas positivas; a recuperação é o principal limite do recall.
-- A PEP 8 é conhecida pelo LLM, e não há linha de base sem recuperação para separar a contribuição do RAG do conhecimento prévio do modelo.
+- A PEP 8 é conhecida pelo LLM: a linha de base sem recuperação (F1 0,75 contra 0,82 com RAG) mostra que o RAG acrescenta cerca de 7 pontos sobre o conhecimento prévio.
 - Não são medidos a `suggestion` de correção, a `severity` e o comentário publicado no PR; o gate conta qualquer sinalização como bloqueio.
 
 ---

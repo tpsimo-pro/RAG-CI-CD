@@ -191,7 +191,9 @@ def _build_file_diff(file_data: dict) -> FileDiff:
 # ── Pipeline real (sem mocks) ────────────────────────────────────────────────
 
 
-def _build_pipeline() -> tuple[Retriever, LLMClient]:
+def _build_pipeline(
+    sem_recuperacao: bool = False,
+) -> tuple[Retriever | None, LLMClient]:
     """
     Instancia os componentes reais do sistema via `rag_reviewer/`.
 
@@ -199,10 +201,16 @@ def _build_pipeline() -> tuple[Retriever, LLMClient]:
     sentence-transformers real, `VectorStore` conecta ao Qdrant real, e
     `LLMClient` chama a API da Groq real. Falhas de configuração ou rede
     propagam como exceção — ver `main()`.
+
+    Com `sem_recuperacao` (linha de base sem RAG) não há embedder nem Qdrant:
+    o retriever é `None` e o LLM usa os prompts `*_sem_rag.txt`.
     """
-    embedder = Embedder()
-    store = VectorStore()
-    retriever = Retriever(embedder=embedder, store=store)
+    if sem_recuperacao:
+        retriever = None
+    else:
+        embedder = Embedder()
+        store = VectorStore()
+        retriever = Retriever(embedder=embedder, store=store)
     # Temperatura forçada a 0.0 (D-005), independente do que estiver no
     # .env: a avaliação do TCC não deve depender de configuração externa
     # correta para ser determinística.
@@ -217,7 +225,7 @@ def _build_pipeline() -> tuple[Retriever, LLMClient]:
     # com folga sob o teto de 1000 e é generoso para uma lista de violações
     # em JSON de um diff de PR (poucas centenas de tokens observados nos
     # runs concluídos até aqui).
-    llm = LLMClient(temperature=0.0, max_tokens=900)
+    llm = LLMClient(temperature=0.0, max_tokens=900, sem_recuperacao=sem_recuperacao)
     return retriever, llm
 
 
@@ -299,12 +307,17 @@ _PROMPT_FILES = (
     _PROJECT_ROOT / "rag_reviewer" / "prompts" / "system_prompt.txt",
     _PROJECT_ROOT / "rag_reviewer" / "prompts" / "review_template.txt",
 )
+_PROMPT_FILES_SEM_RAG = (
+    _PROJECT_ROOT / "rag_reviewer" / "prompts" / "system_prompt_sem_rag.txt",
+    _PROJECT_ROOT / "rag_reviewer" / "prompts" / "review_template_sem_rag.txt",
+)
 
 
-def _config_fingerprint(dataset_path: Path) -> str:
-    """sha256 do conteúdo do dataset e dos prompts."""
+def _config_fingerprint(dataset_path: Path, sem_recuperacao: bool = False) -> str:
+    """sha256 do conteúdo do dataset e dos prompts da variante em uso."""
     digest = hashlib.sha256()
-    for path in (dataset_path, *_PROMPT_FILES):
+    prompts = _PROMPT_FILES_SEM_RAG if sem_recuperacao else _PROMPT_FILES
+    for path in (dataset_path, *prompts):
         digest.update(path.read_bytes())
     return digest.hexdigest()
 
@@ -317,7 +330,9 @@ def _line_result_from_dict(d: dict) -> LineResult:
     return LineResult(**d)
 
 
-def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
+def _load_checkpoint(
+    dataset_path: Path, repeticoes: int, sem_recuperacao: bool = False
+) -> dict:
     """
     Carrega o checkpoint se existir e for compatível com esta execução
     (mesmo dataset, mesmo conteúdo de dataset e prompts, mesmo número de
@@ -334,19 +349,24 @@ def _load_checkpoint(dataset_path: Path, repeticoes: int) -> dict:
         data.get("dataset_path") != str(dataset_path)
         or data.get("repeticoes") != repeticoes
         or data.get("schema") != _CHECKPOINT_SCHEMA
-        or data.get("fingerprint") != _config_fingerprint(dataset_path)
+        or data.get("fingerprint") != _config_fingerprint(dataset_path, sem_recuperacao)
     ):
         return {}
     return data.get("completed_prs", {})
 
 
-def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -> None:
+def _save_checkpoint(
+    dataset_path: Path,
+    repeticoes: int,
+    completed_prs: dict,
+    sem_recuperacao: bool = False,
+) -> None:
     """Escrita atômica (arquivo temporário + rename) — nunca deixa o checkpoint pela metade."""
     payload = {
         "schema": _CHECKPOINT_SCHEMA,
         "dataset_path": str(dataset_path),
         "repeticoes": repeticoes,
-        "fingerprint": _config_fingerprint(dataset_path),
+        "fingerprint": _config_fingerprint(dataset_path, sem_recuperacao),
         "completed_prs": completed_prs,
     }
     tmp = _CHECKPOINT_PATH.with_suffix(".json.tmp")
@@ -358,7 +378,7 @@ def _save_checkpoint(dataset_path: Path, repeticoes: int, completed_prs: dict) -
 
 
 def run_evaluation(
-    dataset_path: Path, repeticoes: int
+    dataset_path: Path, repeticoes: int, sem_recuperacao: bool = False
 ) -> tuple[AggregatedEvaluation, str, list[list[dict]]]:
     """
     Executa o RAG-Reviewer real contra todos os PRs do dataset, `repeticoes`
@@ -375,7 +395,7 @@ def run_evaluation(
         reprodutibilidade: qual modelo produziu quais números.
     """
     dataset = _load_dataset(dataset_path)
-    retriever, llm = _build_pipeline()
+    retriever, llm = _build_pipeline(sem_recuperacao)
 
     console.rule("[bold cyan]RAG-Reviewer — Avaliação (sistema real)[/bold cyan]")
     console.print(
@@ -390,7 +410,7 @@ def run_evaluation(
     per_repetition_hallucinations = [0] * repeticoes
     per_repetition_details: list[list[dict]] = [[] for _ in range(repeticoes)]
 
-    completed_prs = _load_checkpoint(dataset_path, repeticoes)
+    completed_prs = _load_checkpoint(dataset_path, repeticoes, sem_recuperacao)
     if completed_prs:
         console.log(
             f"[yellow]↺ Checkpoint encontrado:[/yellow] {len(completed_prs)} PR(s) já "
@@ -418,7 +438,13 @@ def run_evaluation(
                 f"({len(arquivos)} arquivo(s), {total_linhas} linha(s))"
             )
 
-            contextos = [_retrieve_context(retriever, fd) for _, fd, _ in arquivos]
+            if sem_recuperacao:
+                contextos = [
+                    RetrievedContext(file_diff=fd, chunks=[], query_text="")
+                    for _, fd, _ in arquivos
+                ]
+            else:
+                contextos = [_retrieve_context(retriever, fd) for _, fd, _ in arquivos]
 
             per_pr_reps = []
             for rep in range(repeticoes):
@@ -452,7 +478,7 @@ def run_evaluation(
                 _log_pr_repetition(rep, line_results)
 
             completed_prs[pr_id] = per_pr_reps
-            _save_checkpoint(dataset_path, repeticoes, completed_prs)
+            _save_checkpoint(dataset_path, repeticoes, completed_prs, sem_recuperacao)
 
         for rep, rep_data in enumerate(per_pr_reps):
             per_repetition_lines[rep].extend(
@@ -632,6 +658,7 @@ def _save_results(
     model: str,
     output_path: Path,
     details: list[list[dict]],
+    sem_recuperacao: bool = False,
 ) -> None:
     """Salva o conjunto completo de métricas em JSON para análise posterior."""
     published = agg.median_f1_repetition
@@ -643,6 +670,7 @@ def _save_results(
             "repeticoes": repeticoes,
             "model": model,
             "temperature": 0.0,
+            "sem_recuperacao": sem_recuperacao,
         },
         "repetitions": [
             {
@@ -756,6 +784,14 @@ def _parse_args() -> argparse.Namespace:
             "desvio-padrão, ao custo de 3x a cota da API Groq."
         ),
     )
+    parser.add_argument(
+        "--sem-recuperacao",
+        action="store_true",
+        help=(
+            "Linha de base sem RAG: o LLM recebe só as linhas adicionadas, sem "
+            "chunks da PEP 8 (não usa Qdrant nem embedder)."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -771,7 +807,9 @@ def main() -> None:
         sys.exit(1)
 
     try:
-        aggregated, model, details = run_evaluation(args.dataset, args.repeticoes)
+        aggregated, model, details = run_evaluation(
+            args.dataset, args.repeticoes, args.sem_recuperacao
+        )
     except Exception as exc:  # noqa: BLE001 — erro fatal, sem fallback para mocks
         # show_locals=False: locals de LLMClient/VectorStore podem conter
         # segredos (API keys) — nunca imprimir isso, mesmo em erro.
@@ -784,7 +822,15 @@ def main() -> None:
         sys.exit(1)
 
     _print_summary(aggregated)
-    _save_results(aggregated, args.dataset, args.repeticoes, model, args.output, details)
+    _save_results(
+        aggregated,
+        args.dataset,
+        args.repeticoes,
+        model,
+        args.output,
+        details,
+        args.sem_recuperacao,
+    )
 
 
 if __name__ == "__main__":

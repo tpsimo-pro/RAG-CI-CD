@@ -69,3 +69,38 @@ reporta quantas linhas ambíguas o modelo sinalizou (`published.ambiguous`).
 
 **Implementado em D-011:** a resposta do LLM ganhou o campo `ambiguous`, que força
 severidade `LOW`, e o comentário publicado avisa da possível ambiguidade.
+
+---
+
+## F-005 — Ruff como detector e como alternativa ao workflow
+
+Registrado em 2026-10-09, não medido nem implementado.
+
+**O que o Ruff faz sozinho num PR do GitHub.** Detecta violações e, com
+`--output-format github`, cria anotações inline nas linhas do diff; mostra o código
+da regra (por exemplo `E501`), uma mensagem curta e o link da documentação, e
+corrige o que tem correção automática (`--fix`).
+
+**O que ele não entrega, e o workflow do RAG-Reviewer entrega.** A seção da PEP 8
+citada (o Ruff traz o código da regra, não a seção), a severidade
+`HIGH/MEDIUM/LOW` (a review é sempre `COMMENT`, nunca bloqueia), uma sugestão específica
+da linha, o comentário de revisão em thread (as anotações do Ruff não são uma
+review; isso exigiria outra ferramenta, como o reviewdog) e o julgamento de casos
+fora das regras do Ruff (docstring pública, `except:` tolerado, ambiguidade de
+constantes em minúsculas; na avaliação esses três precisaram de checagem própria
+ou de tratamento à parte).
+
+**Lacuna na avaliação.** O Ruff é o oráculo dos rótulos do dataset (D-010), então
+acerta quase 100% por construção. O Ruff nunca foi medido como detector no mesmo
+dataset, e por isso não existe comparação justa entre Ruff e RAG-Reviewer. A
+comparação custaria zero de cota da Groq. Enquanto não for feita, o argumento
+sustentável é posicionar o RAG-Reviewer como complemento do Ruff (norma citada,
+severidade, sugestão e casos de julgamento), não como substituto.
+
+**Atualização (2026-10-12).** Com a rodada 3 e a linha de base no prompt final
+(`docs/RELATORIO-RESULTADOS.md`, seção 0.2), o RAG não melhora o F1 de forma clara
+(0,7933 contra 0,7708). Não se pode afirmar que o RAG-Reviewer detecta mais que o
+Ruff: os rótulos vêm do Ruff. O valor defensável é a explicação, a citação da seção
+da PEP 8, a severidade e a sugestão (estas duas ainda não avaliadas), mais a entrega
+como review no PR. Medir o Ruff no dataset custa zero de cota, mas daria ~100% por
+circularidade; uma comparação justa exige rótulos independentes.
