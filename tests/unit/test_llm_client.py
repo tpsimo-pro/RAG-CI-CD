@@ -485,6 +485,14 @@ class TestSemRecuperacao:
         )
         assert "Norma que nao deve aparecer" not in msg
 
+    def test_prompts_da_linha_de_base_seguem_o_esquema_de_producao(self):
+        pasta = Path(__file__).resolve().parents[2] / "rag_reviewer" / "prompts"
+        sistema = (pasta / "system_prompt_sem_rag.txt").read_text(encoding="utf-8")
+        modelo = (pasta / "review_template_sem_rag.txt").read_text(encoding="utf-8")
+        assert "CRITICAL" not in sistema + modelo
+        assert "HIGH, MEDIUM ou LOW" in sistema
+        assert '"ambiguous"' in modelo
+
     def test_prompts_padrao_seguem_com_chunks(self):
         with patch("rag_reviewer.llm_client.get_settings") as settings:
             settings.return_value.groq_api_key = "k"
