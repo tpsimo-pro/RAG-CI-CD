@@ -5,7 +5,8 @@ em inglês (43 chunks, coleção `pep8_chunks`). Dataset de 25 PRs e 35 arquivos
 (D-010): 21 arquivos novos e 14 modificados, 23 normas da PEP 8 misturadas,
 5 PRs limpos. LLM `qwen/qwen3.8-27b`, temperatura 0.0, 1 repetição, uma chamada
 por arquivo. Resultados completos em `evaluation/results_realista.json`
-(rodada 1) e `evaluation/results_realista_r2.json` (rodada 2).
+(rodada 1), `evaluation/results_realista_r2.json` (rodada 2) e
+`evaluation/results_realista_r3.json` (rodada 3, prompt final, seção 0.2).
 
 A **rodada 1** usou o dataset como foi escrito. Depois dela os erros foram
 investigados contra o texto da PEP 8 e 15 deles se mostraram erros de rótulo do
@@ -74,6 +75,8 @@ deslizante, e a rodada terminou no dia seguinte.
 
 ## 0.1 Linha de base sem recuperação
 
+(Prompt antigo; a comparação com o prompt final está em 0.2.)
+
 Mesma rodada, mesmo dataset corrigido, mesmo modelo e métrica, mas o LLM recebe só
 as linhas adicionadas, sem chunks da PEP 8 (`--sem-recuperacao`, prompts
 `*_sem_rag.txt`). Resultado em `evaluation/results_realista_sem_rag.json`.
@@ -117,6 +120,72 @@ Limitações: uma repetição e ~4 positivas por norma; as diferenças por norma
 (tiram a seção de trechos, a frase "fornecidas como contexto" e a regra de
 ignorar o que não está no contexto), então parte da diferença pode vir da redação
 e não só da recuperação. O resultado vale para este modelo, que conhece a PEP 8.
+
+## 0.2 Rodada 3 e linha de base com o prompt final
+
+O prompt de produção mudou em D-011 (sem `CRITICAL`, severidades HIGH/MEDIUM/LOW,
+campo `ambiguous`). As seções 0 e 0.1 foram medidas com o prompt antigo, então
+nenhuma delas descreve o sistema entregue. Esta seção mede os dois lados com o
+prompt final: **rodada 3** (com RAG, `evaluation/results_realista_r3.json`) e
+**linha de base sem recuperação** com os prompts `*_sem_rag` atualizados para o
+mesmo esquema (`evaluation/results_realista_sem_rag_r3.json`). Mesmo dataset,
+modelo, temperatura 0.0 e uma repetição.
+
+| | Sem RAG | Com RAG (rodada 3) | Diferença |
+|---|---|---|---|
+| Precisão | 0,7872 | 0,8765 | +0,089 |
+| Recall | 0,7551 | 0,7245 | -0,031 |
+| F1 | 0,7708 | 0,7933 | +0,023 |
+| TP / FP / FN (linhas) | 74 / 20 / 24 | 71 / 10 / 27 | |
+| Precisão da referência normativa | 0,7027 | 0,7606 | +0,058 |
+| Gate por PR (TP/FP/FN/TN) | 20/4/0/1 | 20/4/0/1 | empate |
+| Ambíguas sinalizadas | 3 de 3 | 2 de 3 (`retries` não) | |
+
+Alucinação de localização 0,0 nos dois.
+
+Comparação com as rodadas do prompt antigo: com RAG o F1 foi de 0,8191 (rodada 2)
+para 0,7933 (rodada 3), com precisão maior (0,8556 para 0,8765) e recall menor
+(0,7857 para 0,7245); sem RAG foi de 0,7500 para 0,7708. O ganho do RAG sobre a
+linha de base caiu de 0,069 para 0,023 de F1.
+
+**Leitura.**
+- Com o mesmo prompt, o RAG **não melhora o F1 de forma clara**: 0,023 de
+  diferença, com uma repetição e 25 PRs, está dentro do que o acaso produz. Nenhum
+  teste de significância foi feito.
+- A vantagem consistente do RAG é **precisão**: metade dos falsos positivos (10
+  contra 20) e citação da norma correta um pouco melhor (0,76 contra 0,70).
+- O RAG **perde em recall** (27 contra 24 FN). Por família (F1, sem RAG contra com
+  RAG): `pep8-imports` 0,71 contra 0,87, `pep8-nomes` 0,86 contra 0,88; mas
+  `pep8-layout` 0,53 contra 0,33, `pep8-recomendacoes` 0,89 contra 0,79,
+  `pep8-comentarios` 0,80 contra 0,67 e `pep8-espacos` 0,96 contra 0,92. Por norma:
+  `import_topo` 4 contra 1 detectadas, `tipo_isinstance` 3 contra 1,
+  `erro_sufixo` 1 contra 0; mas `linhas_em_branco` 1 contra 4, `lambda_atribuido`
+  1 contra 3 e `constante_maiuscula` 4 contra 6 (de 4 a 7 positivas por norma,
+  indicação e não estatística).
+- A tese sustentável é que o RAG dá **precisão e rastreabilidade da norma**, não
+  mais detecções.
+
+**Teste em PRs reais** (D-011): PR-003, PR-007 e PR-021 foram abertos como PRs de
+teste no GitHub e o Action publicou os comentários. A conferência contra o gabarito
+reproduziu a avaliação local (PR-003 e PR-021 idênticos; no PR-007, `MaxRequests`
+passou a ser detectada). Job de 1 a 2 minutos, dentro do limite de 10.
+
+**Posicionamento frente ao Ruff.** O Ruff é o oráculo dos rótulos do dataset
+(D-010), então acerta quase 100% por construção; ele nunca foi medido como detector
+neste dataset, e **não há base para afirmar que o RAG-Reviewer detecta mais do que
+o Ruff**. O que o RAG-Reviewer acrescenta: cita a seção da PEP 8, atribui severidade,
+escreve uma sugestão específica da linha, sinaliza ambiguidade e entrega tudo como
+comentário de review no PR. O Ruff traz o código da regra, a mensagem curta, o link
+da documentação e correção automática para as regras corrigíveis (a correção do Ruff
+é exata, a sugestão do LLM não). A severidade e a sugestão do RAG-Reviewer **não
+foram avaliadas** (fora do escopo) e a severidade é julgamento do modelo. Se o Ruff
+classifica por severidade não foi verificado na documentação dele; não há afirmação
+sobre isso aqui. Posição defensável: complemento do Ruff, não substituto
+(F-005).
+
+Limitações: uma repetição, 25 PRs, 4 a 7 positivas por norma, prompt de produção
+medido contra linha de base com prompt equivalente mas não idêntico (os dois
+`*_sem_rag` diferem do de produção em três pontos, ver 0.1).
 
 ## 1. Resultado principal (rodada 1)
 

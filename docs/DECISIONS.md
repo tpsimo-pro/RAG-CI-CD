@@ -1123,6 +1123,18 @@ não mudam.
   detecta 11 positivas a mais (46 contra 35 de 53); quando a norma não chegou,
   detecta 6 a menos (31 contra 37 de 45), o que atribuo à regra "ignore o que não
   está nos trechos". Isso é uma hipótese, não foi isolada por experimento.
+
+- **Com o prompt final (2026-10-12).** Os prompts `*_sem_rag` foram atualizados
+  para HIGH/MEDIUM/LOW com `ambiguous`, e a linha de base foi rodada de novo
+  (`evaluation/results_realista_sem_rag_r3.json`): P 0,7872, R 0,7551, F1 0,7708,
+  contra P 0,8765, R 0,7245, F1 0,7933 da rodada 3 com RAG. O ganho do RAG caiu de
+  0,069 para 0,023 de F1, dentro do ruído de uma repetição; o RAG tem precisão
+  maior (10 contra 20 FPs) e perde recall (27 contra 24 FNs). Gate empatado em
+  20/4/0/1. Detalhes na seção 0.2 de `docs/RELATORIO-RESULTADOS.md`.
+- **Decisão sobre como defender.** O resultado não sustenta "o RAG melhora o F1";
+  sustenta "o RAG reduz falsos positivos e melhora a citação da norma, ao custo de
+  recall". Também não sustenta "detecta mais que o Ruff" (o Ruff é o oráculo dos
+  rótulos, F-005).
 - **Limitações.** Uma repetição, ~4 positivas por norma; a redação dos prompts
   difere, então parte do efeito pode ser de prompt. Os 17 FPs só do sem RAG e os 8
   só do com RAG não foram investigados um a um.
