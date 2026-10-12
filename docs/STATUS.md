@@ -21,7 +21,7 @@ pontos de F1 sobre o conhecimento prévio do modelo.
 **Com o prompt final (rodada 3):** RAG P 0,88, R 0,72, F1 0,79 (gate 20/4/0/1); linha de
 base com o mesmo prompt P 0,79, R 0,76, F1 0,77. O ganho do RAG em F1 cai para 0,02
 (ruído de uma repetição); a vantagem é precisão (10 contra 20 FPs) e citação da norma.
-O teste em PRs reais (#17, #18, #19, mantidos abertos) reproduziu a avaliação local.
+O teste em PRs reais (#17, #18, #19, mantidos abertos) reproduziu a avaliação local, e os logs do Action foram verificados (D-011).
 Seção 0.2 de `docs/RELATORIO-RESULTADOS.md`.
 
 **D-011 (em andamento):** o workflow do GitHub. O Action coleta o diff do PR pela

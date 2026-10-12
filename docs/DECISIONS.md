@@ -1191,6 +1191,31 @@ PR-003, PR-007 e PR-021 do dataset abertos como PRs de teste (#17, #18, #19) con
 - Job de 1 a 2 minutos (limite de 10), `QDRANT_URL` aponta para o cluster com `pep8_chunks`, `position` aceito pela API (igual a `line` nos comentários conferidos).
 - PR-021 não disparou o Action na abertura; fechar e reabrir o PR disparou. Causa não investigada.
 
+### Verificação dos logs do Action (2026-10-12)
+
+Leitura do log completo do run do PR #15 (2 min 40 s) e das reviews publicadas
+nos PRs de teste.
+
+- **Pipeline.** Coleta o diff (4 arquivos relevantes, 10 ignorados), recupera 8
+  normas por arquivo, revisa com o `qwen/qwen3.8-27b` (10 a 40 s por arquivo) e
+  publica. Com zero violações, o PR recebe o aviso curto "Nenhuma violação da PEP 8
+  detectada nas linhas adicionadas"; com violações, uma review `COMMENT` com a
+  tabela de severidades e um comentário inline por violação.
+- **Segredos.** `GITHUB_TOKEN`, `GROQ_API_KEY`, `QDRANT_URL` e `QDRANT_API_KEY`
+  aparecem mascarados nas variáveis de ambiente do job.
+- **Cache.** O cache do modelo de embedding (437 MB) e o do pip são salvos ao fim
+  do job.
+- **Log de conexão.** O log de conexão ao Qdrant mostra só o nome da coleção
+  (`vector_store.py`, teste em `tests/unit/test_vector_store_log.py`, PR #21).
+- **Observações sem ação.** O log traz barras de progresso do embedder e é
+  quebrado em cerca de 80 colunas pelo formatador (cosmético). O GitHub avisa que
+  `actions/cache@v4`, `checkout@v4` e `setup-python@v5` rodam hoje forçados em
+  Node 24; é depreciação, não falha.
+- **O revisor revisando o próprio PR.** No PR #21 o Action comentou uma linha de
+  teste com mais de 79 caracteres (MEDIUM, `Maximum Line Length`). O comentário
+  está correto segundo a PEP 8; o `ruff` do projeto usa um limite maior e não
+  reclama, então não foi alterado.
+
 ---
 
 ## Pendências (decisões ainda não tomadas)
