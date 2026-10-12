@@ -427,7 +427,7 @@ class VectorStore:
                     timeout=120,
                 )
                 console.log(
-                    f"[cyan]VectorStore:[/cyan] conectado ao Qdrant em [bold]{settings.qdrant_url}[/bold]"
+                    f"[cyan]VectorStore:[/cyan] conectado ao Qdrant, coleção [bold]{self._collection}[/bold]"
                 )
             except ImportError as exc:
                 raise ImportError(
