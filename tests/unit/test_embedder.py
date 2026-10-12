@@ -138,10 +138,12 @@ class TestVectorSize:
 class TestImportError:
     def test_missing_sentence_transformers_raises_import_error(self):
         """Se sentence-transformers não estiver instalado, deve levantar ImportError claro."""
-        with patch.dict("sys.modules", {"sentence_transformers": None}):
+        # O embedder importa SentenceTransformer ao carregar o módulo (None se
+        # a biblioteca faltar), então o que se simula é esse nome, não sys.modules.
+        with patch("rag_reviewer.embedder.SentenceTransformer", None):
             emb = Embedder()
             emb._model = None  # garante que tentará carregar
-            with pytest.raises((ImportError, TypeError)):
+            with pytest.raises(ImportError, match="sentence-transformers"):
                 emb._ensure_model_loaded()
 
 
